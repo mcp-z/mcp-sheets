@@ -1,19 +1,27 @@
 name: Publish MCP Server
 on:
   push:
-    tags: ['v*'] # Triggers when you push a version tag
+    tags: ['v*'] # Triggers on v1.0, v2.1.0, etc.
 
 jobs:
   publish:
     runs-on: ubuntu-latest
     permissions:
-      id-token: write  # Required for OIDC authentication
+      id-token: write  # Critical for OIDC
       contents: read
     steps:
       - uses: actions/checkout@v4
+
       - name: Install mcp-publisher
-        run: brew install mcp-publisher # Or use curl to download the binary
+        run: |
+          # Detect OS/Arch and download the specific binary
+          OS=$(uname -s | tr '[:upper:]' '[:lower:]')
+          ARCH=$(uname -m | sed 's/x86_64/amd64/;s/aarch64/arm64/')
+          curl -L "https://github.com/modelcontextprotocol/registry/releases/latest/download/mcp-publisher_${OS}_${ARCH}.tar.gz" | tar xz
+          sudo mv mcp-publisher /usr/local/bin/
+
       - name: Login and Publish
         run: |
+          # No manual login needed; OIDC uses the repo's identity
           mcp-publisher login github-oidc
           mcp-publisher publish
