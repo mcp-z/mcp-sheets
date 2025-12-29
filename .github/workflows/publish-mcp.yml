@@ -1,0 +1,19 @@
+name: Publish MCP Server
+on:
+  push:
+    tags: ['v*'] # Triggers when you push a version tag
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write  # Required for OIDC authentication
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install mcp-publisher
+        run: brew install mcp-publisher # Or use curl to download the binary
+      - name: Login and Publish
+        run: |
+          mcp-publisher login github-oidc
+          mcp-publisher publish
