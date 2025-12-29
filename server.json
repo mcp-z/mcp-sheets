@@ -1,0 +1,332 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.mcp-z/mcp-sheets",
+  "description": "Google Sheets integration with OAuth, spreadsheet management, batch operations, and formatting",
+  "version": "1.0.0",
+  "title": "Google Sheets",
+  "websiteUrl": "https://github.com/mcp-z/mcp-sheets#readme",
+  "packages": [
+    {
+      "registryType": "npm",
+      "identifier": "@mcp-z/mcp-sheets",
+      "version": "1.0.0",
+      "transport": {
+        "type": "stdio"
+      },
+      "runtimeHint": "npx",
+      "runtimeArguments": [
+        {
+          "type": "named",
+          "name": "-y"
+        }
+      ],
+      "environmentVariables": [
+        {
+          "name": "GOOGLE_CLIENT_ID",
+          "description": "Google OAuth client ID (required for OAuth authentication modes)",
+          "placeholder": "123456789-abcdefghijk.apps.googleusercontent.com",
+          "isRequired": true,
+          "isSecret": false
+        },
+        {
+          "name": "GOOGLE_CLIENT_SECRET",
+          "description": "Google OAuth client secret (optional for public clients)",
+          "placeholder": "GOCSPX-abcdefghijklmnop",
+          "isRequired": false,
+          "isSecret": true
+        },
+        {
+          "name": "GOOGLE_SERVICE_ACCOUNT_KEY_FILE",
+          "description": "Path to service account JSON key file (required for service-account auth mode)",
+          "placeholder": "/path/to/service-account-key.json",
+          "isRequired": false,
+          "isSecret": false,
+          "dependsOn": { "AUTH_MODE": ["service-account"] }
+        },
+        {
+          "name": "AUTH_MODE",
+          "value": "loopback-oauth",
+          "description": "Authentication mode",
+          "placeholder": "loopback-oauth",
+          "choices": ["loopback-oauth", "service-account"],
+          "isRequired": false,
+          "isSecret": false
+        },
+        {
+          "name": "HEADLESS",
+          "description": "Disable browser auto-open, return auth URL instead (true/false)",
+          "placeholder": "false",
+          "isRequired": false,
+          "isSecret": false,
+          "default": "false",
+          "dependsOn": { "AUTH_MODE": ["loopback-oauth"] }
+        },
+        {
+          "name": "REDIRECT_URI",
+          "description": "OAuth redirect URI (optional, default: ephemeral loopback)",
+          "placeholder": "http://localhost:{PORT}/oauth/callback",
+          "isRequired": false,
+          "isSecret": false,
+          "dependsOn": { "AUTH_MODE": ["loopback-oauth"] }
+        },
+        {
+          "name": "STORAGE_DIR",
+          "value": "~/.mcp-z/mcp-sheets/files",
+          "description": "Directory for storing exported files",
+          "placeholder": "~/.mcp-z/mcp-sheets/files",
+          "isRequired": false,
+          "isSecret": false
+        },
+        {
+          "name": "PORT",
+          "description": "HTTP server port (overrides --port)",
+          "placeholder": "3000",
+          "isRequired": false,
+          "isSecret": false
+        },
+        {
+          "name": "BASE_URL",
+          "description": "Base URL for HTTP file serving (optional, used for HTTP transport)",
+          "placeholder": "http://localhost:{PORT}",
+          "isRequired": false,
+          "isSecret": false
+        },
+        {
+          "name": "LOG_LEVEL",
+          "value": "info",
+          "description": "Logging level",
+          "placeholder": "info",
+          "choices": ["debug", "info", "warn", "error"],
+          "isRequired": false,
+          "isSecret": false,
+          "isMandatoryForMatrix": false
+        }
+      ],
+      "packageArguments": [
+        {
+          "type": "named",
+          "name": "--auth",
+          "description": "Authentication mode",
+          "choices": ["loopback-oauth", "service-account"]
+        },
+        {
+          "type": "named",
+          "name": "--headless",
+          "description": "Disable browser auto-open, return auth URL instead"
+        },
+        {
+          "type": "named",
+          "name": "--redirect-uri",
+          "description": "OAuth redirect URI (default: ephemeral loopback)"
+        },
+        {
+          "type": "named",
+          "name": "--service-account-key-file",
+          "description": "Path to service account JSON key file (overrides GOOGLE_SERVICE_ACCOUNT_KEY_FILE env var)"
+        },
+        {
+          "type": "named",
+          "name": "--storage-dir",
+          "description": "Override directory for storing exported files"
+        },
+        {
+          "type": "named",
+          "name": "--base-url",
+          "description": "Override base URL for HTTP file serving"
+        },
+        {
+          "type": "named",
+          "name": "--log-level",
+          "description": "Override logging level",
+          "choices": ["debug", "info", "warn", "error"]
+        }
+      ]
+    },
+    {
+      "registryType": "npm",
+      "identifier": "@mcp-z/mcp-sheets",
+      "version": "1.0.0",
+      "transport": {
+        "type": "streamable-http",
+        "url": "http://localhost:{PORT}/mcp"
+      },
+      "runtimeHint": "npx",
+      "runtimeArguments": [
+        {
+          "type": "named",
+          "name": "-y"
+        }
+      ],
+      "environmentVariables": [
+        {
+          "name": "GOOGLE_CLIENT_ID",
+          "description": "Google OAuth client ID (required for OAuth authentication modes)",
+          "placeholder": "123456789-abcdefghijk.apps.googleusercontent.com",
+          "isRequired": true,
+          "isSecret": false
+        },
+        {
+          "name": "GOOGLE_CLIENT_SECRET",
+          "description": "Google OAuth client secret (optional for public clients)",
+          "placeholder": "GOCSPX-abcdefghijklmnop",
+          "isRequired": false,
+          "isSecret": true
+        },
+        {
+          "name": "GOOGLE_SERVICE_ACCOUNT_KEY_FILE",
+          "description": "Path to service account JSON key file (required for service-account auth mode)",
+          "placeholder": "/path/to/service-account-key.json",
+          "isRequired": false,
+          "isSecret": false,
+          "dependsOn": { "AUTH_MODE": ["service-account"] }
+        },
+        {
+          "name": "AUTH_MODE",
+          "value": "loopback-oauth",
+          "description": "Authentication mode",
+          "placeholder": "loopback-oauth",
+          "choices": ["loopback-oauth", "service-account", "dcr"],
+          "isRequired": false,
+          "isSecret": false
+        },
+        {
+          "name": "HEADLESS",
+          "description": "Disable browser auto-open, return auth URL instead (true/false)",
+          "placeholder": "false",
+          "isRequired": false,
+          "isSecret": false,
+          "default": "false",
+          "dependsOn": { "AUTH_MODE": ["loopback-oauth", "dcr"] }
+        },
+        {
+          "name": "REDIRECT_URI",
+          "description": "OAuth redirect URI (optional, default: ephemeral loopback)",
+          "placeholder": "http://localhost:{PORT}/oauth/callback",
+          "isRequired": false,
+          "isSecret": false,
+          "dependsOn": { "AUTH_MODE": ["loopback-oauth"] }
+        },
+        {
+          "name": "DCR_MODE",
+          "description": "Dynamic Client Registration mode",
+          "placeholder": "self-hosted",
+          "choices": ["self-hosted", "external"],
+          "isRequired": false,
+          "isSecret": false,
+          "default": "self-hosted",
+          "dependsOn": { "AUTH_MODE": ["dcr"] }
+        },
+        {
+          "name": "DCR_VERIFY_URL",
+          "description": "External verification endpoint URL (required for external DCR mode)",
+          "placeholder": "https://example.com/verify",
+          "isRequired": false,
+          "isSecret": false,
+          "dependsOn": { "AUTH_MODE": ["dcr"], "DCR_MODE": ["external"] }
+        },
+        {
+          "name": "DCR_STORE_URI",
+          "description": "DCR client storage URI (for self-hosted DCR mode)",
+          "placeholder": "file://~/.mcp-z/mcp-sheets/dcr.json",
+          "isRequired": false,
+          "isSecret": false,
+          "default": "file://~/.mcp-z/mcp-sheets/dcr.json",
+          "dependsOn": { "AUTH_MODE": ["dcr"] }
+        },
+        {
+          "name": "STORAGE_DIR",
+          "value": "~/.mcp-z/mcp-sheets/files",
+          "description": "Directory for storing exported files",
+          "placeholder": "~/.mcp-z/mcp-sheets/files",
+          "isRequired": false,
+          "isSecret": false
+        },
+        {
+          "name": "PORT",
+          "description": "HTTP server port (overrides --port)",
+          "placeholder": "3000",
+          "isRequired": false,
+          "isSecret": false
+        },
+        {
+          "name": "BASE_URL",
+          "description": "Base URL for HTTP file serving (defaults to http://localhost:{PORT})",
+          "placeholder": "http://localhost:{PORT}",
+          "isRequired": false,
+          "isSecret": false
+        },
+        {
+          "name": "LOG_LEVEL",
+          "value": "info",
+          "description": "Logging level",
+          "placeholder": "info",
+          "choices": ["debug", "info", "warn", "error"],
+          "isRequired": false,
+          "isSecret": false,
+          "isMandatoryForMatrix": false
+        }
+      ],
+      "packageArguments": [
+        {
+          "type": "named",
+          "name": "--port",
+          "value": "9004",
+          "description": "HTTP server port"
+        },
+        {
+          "type": "named",
+          "name": "--auth",
+          "description": "Authentication mode",
+          "choices": ["loopback-oauth", "service-account", "dcr"]
+        },
+        {
+          "type": "named",
+          "name": "--headless",
+          "description": "Disable browser auto-open, return auth URL instead"
+        },
+        {
+          "type": "named",
+          "name": "--redirect-uri",
+          "description": "OAuth redirect URI (default: ephemeral loopback)"
+        },
+        {
+          "type": "named",
+          "name": "--service-account-key-file",
+          "description": "Path to service account JSON key file (overrides GOOGLE_SERVICE_ACCOUNT_KEY_FILE env var)"
+        },
+        {
+          "type": "named",
+          "name": "--dcr-mode",
+          "description": "DCR mode",
+          "choices": ["self-hosted", "external"]
+        },
+        {
+          "type": "named",
+          "name": "--dcr-verify-url",
+          "description": "External verification endpoint URL (required for external DCR mode)"
+        },
+        {
+          "type": "named",
+          "name": "--dcr-store-uri",
+          "description": "DCR client storage URI (for self-hosted DCR mode)"
+        },
+        {
+          "type": "named",
+          "name": "--storage-dir",
+          "description": "Override directory for storing exported files"
+        },
+        {
+          "type": "named",
+          "name": "--base-url",
+          "description": "Override base URL for HTTP file serving"
+        },
+        {
+          "type": "named",
+          "name": "--log-level",
+          "description": "Override logging level",
+          "choices": ["debug", "info", "warn", "error"]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,43 @@
+# OS specific
+.DS_Store
+
+# Node.js
+node_modules/
+.yarn/
+*.tgz
+
+# Build outputs
+dist/
+docs/
+coverage
+coverage.lcov
+
+# Test files
+.env.test
+.tmp/
+.tokens/
+
+# Logs
+logs
+*.log
+npm-debug.log*
+
+# Editor directories and files
+.idea/
+.vscode/
+
+# Agent files
+.agents/
+.claude/
+.mcp.json
+.mcp.*.json
+
+# mcp-z
+.mcp-z/
+service-account*.json
+examples/
+!examples/.mcp.*.json
+examples/service-account.json
+
+# Backup files
+*.bak

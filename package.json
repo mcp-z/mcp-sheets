@@ -1,0 +1,108 @@
+{
+  "name": "@mcp-z/mcp-sheets",
+  "version": "0.0.0",
+  "description": "MCP server for Google Sheets integration with OAuth authentication, spreadsheet management, batch operations, and advanced formatting",
+  "keywords": [
+    "sheets",
+    "google sheets",
+    "google",
+    "spreadsheet",
+    "mcp",
+    "ai",
+    "mcp-server",
+    "model context protocol",
+    "oauth",
+    "google api",
+    "spreadsheet automation",
+    "data management",
+    "batch operations",
+    "ai agent",
+    "claude",
+    "llm",
+    "charts",
+    "formatting",
+    "cell validation",
+    "data export",
+    "productivity",
+    "automation",
+    "typescript",
+    "nodejs",
+    "integration",
+    "api client"
+  ],
+  "homepage": "https://github.com/mcp-z/mcp-sheets#readme",
+  "bugs": {
+    "url": "https://github.com/mcp-z/mcp-sheets/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mcp-z/mcp-sheets.git"
+  },
+  "license": "MIT",
+  "author": "Kevin Malakoff <kmalakoff.info@gmail.com>",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/esm/index.d.ts",
+      "import": "./dist/esm/index.js",
+      "require": "./dist/cjs/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "main": "./dist/cjs/index.js",
+  "module": "./dist/esm/index.js",
+  "types": "./dist/esm/index.d.ts",
+  "bin": "bin/server.js",
+  "files": [
+    "dist",
+    "bin"
+  ],
+  "scripts": {
+    "build": "tsc -p . --noEmit && tsds build",
+    "format": "tsds format",
+    "prepublish:check": "ncp",
+    "prepublishOnly": "tsds validate",
+    "test": "npm run test:unit && npm run test:integration",
+    "test:engines": "nvu engines tsds test:node --no-timeouts 'test/**/*.test.ts'",
+    "test:integration": "tsds test:node --no-timeouts 'test/integration/**/*.test.ts'",
+    "test:setup": "node scripts/setup-test.ts",
+    "test:unit": "tsds test:node --no-timeouts 'test/unit/**/*.test.ts'",
+    "version": "tsds version"
+  },
+  "dependencies": {
+    "@mcp-z/oauth": "^1.0.0",
+    "@mcp-z/oauth-google": "^1.0.0",
+    "@mcp-z/server": "^1.0.0",
+    "@modelcontextprotocol/sdk": "^1.0.0",
+    "cors": "^2.0.0",
+    "csv-parse": "^6.1.0",
+    "express": "^5.0.0",
+    "google-auth-library": "^10.0.0",
+    "googleapis": "^169.0.0",
+    "keyv-registry": "^0.3.0",
+    "module-root-sync": "^2.0.0",
+    "pino": "^10.0.0",
+    "zod": "^4.0.0"
+  },
+  "devDependencies": {
+    "@mcp-z/client": "^1.0.0",
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.6",
+    "@types/mocha": "^10.0.10",
+    "@types/node": "^25.0.2",
+    "dotenv": "^17.2.3",
+    "get-port": "^7.1.0",
+    "keyv": "^5.5.5",
+    "node-version-use": "^2.1.6",
+    "ts-dev-stack": "^1.21.3",
+    "tsds-config": "^1.0.0",
+    "typescript": "^5.9.3"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "mcpName": "io.github.mcp-z/mcp-sheets",
+  "tsds": {
+    "source": "src/index.ts"
+  }
+}

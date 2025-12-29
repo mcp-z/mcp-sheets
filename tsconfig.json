@@ -1,0 +1,9 @@
+{
+  "extends": "tsds-config/tsconfig.json",
+  "compilerOptions": {
+    "outDir": "dist",
+    "types": ["node", "mocha"]
+  },
+  "include": ["src/**/*", "test/**/*"],
+  "exclude": ["node_modules/**/*"]
+}
