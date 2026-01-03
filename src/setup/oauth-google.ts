@@ -1,11 +1,11 @@
-import { AccountServer, type AuthEmailProvider } from '@mcp-z/oauth';
+import { type AccountAuthProvider, AccountServer } from '@mcp-z/oauth';
 import type { CachedToken } from '@mcp-z/oauth-google';
-import { createDcrRouter, DcrOAuthProvider, LoopbackOAuthProvider, ServiceAccountProvider } from '@mcp-z/oauth-google';
+import { createDcrRouter, createLoopbackCallbackRouter, DcrOAuthProvider, LoopbackOAuthProvider, ServiceAccountProvider } from '@mcp-z/oauth-google';
 import type { Logger, PromptModule, ToolModule } from '@mcp-z/server';
 import type { Router } from 'express';
 import type { Keyv } from 'keyv';
 import { GOOGLE_SCOPE } from '../constants.ts';
-import type { ServerConfig } from '../types.js';
+import type { ServerConfig } from '../types.ts';
 
 /**
  * Gmail OAuth runtime dependencies.
@@ -31,10 +31,11 @@ export interface AuthMiddleware {
 export interface OAuthAdapters {
   primary: LoopbackOAuthProvider | ServiceAccountProvider | DcrOAuthProvider;
   middleware: AuthMiddleware;
-  authAdapter: AuthEmailProvider;
+  authAdapter: AccountAuthProvider;
   accountTools: ToolModule[];
   accountPrompts: PromptModule[];
   dcrRouter?: Router;
+  loopbackRouter?: Router;
 }
 
 /**
@@ -89,7 +90,10 @@ export async function createOAuthAdapters(config: ServerConfig, deps: OAuthRunti
     });
 
     const middleware = primary.authMiddleware();
-    const authAdapter: AuthEmailProvider = {
+    const authAdapter: AccountAuthProvider = {
+      getAccessToken: () => {
+        throw new Error('DCR mode does not support getAccessToken - tokens are provided via bearer auth');
+      },
       getUserEmail: () => {
         throw new Error('DCR mode does not support getUserEmail - tokens are provided via bearer auth');
       },
@@ -130,14 +134,7 @@ export async function createOAuthAdapters(config: ServerConfig, deps: OAuthRunti
     });
   }
 
-  const authAdapter: AuthEmailProvider = {
-    getUserEmail: (accountId) => primary.getUserEmail(accountId),
-    ...('authenticateNewAccount' in primary && primary.authenticateNewAccount
-      ? {
-          authenticateNewAccount: () => primary.authenticateNewAccount?.(),
-        }
-      : {}),
-  };
+  const authAdapter: AccountAuthProvider = primary;
 
   let middleware: ReturnType<LoopbackOAuthProvider['authMiddleware']>;
   let accountTools: ToolModule[];
@@ -162,11 +159,14 @@ export async function createOAuthAdapters(config: ServerConfig, deps: OAuthRunti
     logger.debug('Loopback OAuth (multi-account mode)', { service: oauthStaticConfig.service });
   }
 
+  const loopbackRouter = primary instanceof LoopbackOAuthProvider && oauthStaticConfig.redirectUri ? createLoopbackCallbackRouter(primary) : undefined;
+
   return {
     primary,
     middleware: middleware as unknown as AuthMiddleware,
     authAdapter,
     accountTools,
     accountPrompts,
+    loopbackRouter,
   };
 }

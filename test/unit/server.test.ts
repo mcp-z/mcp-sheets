@@ -3,8 +3,8 @@ import { randomUUID } from 'crypto';
 import * as fs from 'fs';
 import getPort from 'get-port';
 import * as path from 'path';
-import { createHTTPServer } from '../../src/setup/http.js';
-import type { ServerConfig } from '../../src/types.js';
+import { createHTTPServer } from '../../src/setup/http.ts';
+import type { ServerConfig } from '../../src/types.ts';
 
 describe('createHTTPServer - transport initialization', () => {
   // Note: stdio transport tests are skipped because stdio initialization blocks waiting for input.

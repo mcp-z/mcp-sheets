@@ -1,7 +1,7 @@
 import type { CachedToken, DcrConfig, OAuthConfig } from '@mcp-z/oauth-google';
 import type { BaseServerConfig, MiddlewareLayer, PromptModule, ResourceModule, Logger as ServerLogger, ToolModule } from '@mcp-z/server';
 import type { Keyv } from 'keyv';
-import type { OAuthAdapters } from './setup/oauth-google.js';
+import type { OAuthAdapters } from './setup/oauth-google.ts';
 
 export type Logger = Pick<Console, 'info' | 'error' | 'warn' | 'debug'>;
 

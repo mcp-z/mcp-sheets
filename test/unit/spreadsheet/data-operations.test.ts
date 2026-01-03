@@ -3,9 +3,9 @@ import assert from 'assert';
 import type { OAuth2Client } from 'google-auth-library';
 import type { drive_v3, sheets_v4 } from 'googleapis';
 import { google } from 'googleapis';
-import { appendRows } from '../../../src/spreadsheet/data-operations.js';
-import { ensureTabAndHeaders } from '../../../src/spreadsheet/sheet-operations.js';
-import createMiddlewareContext from '../../lib/create-middleware-context.js';
+import { appendRows } from '../../../src/spreadsheet/data-operations.ts';
+import { ensureTabAndHeaders } from '../../../src/spreadsheet/sheet-operations.ts';
+import createMiddlewareContext from '../../lib/create-middleware-context.ts';
 
 let auth: OAuth2Client;
 let logger: Logger;

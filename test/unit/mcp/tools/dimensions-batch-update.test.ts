@@ -3,10 +3,10 @@ import assert from 'assert';
 import crypto from 'crypto';
 import fs from 'fs/promises';
 import * as path from 'path';
-import createTool, { type Input, type Output } from '../../../../src/mcp/tools/dimensions-batch-update.js';
-import { createExtra, type TypedHandler } from '../../../lib/create-extra.js';
-import createMiddlewareContext from '../../../lib/create-middleware-context.js';
-import { createTestSpreadsheet, deleteTestSpreadsheet } from '../../../lib/spreadsheet-helpers.js';
+import createTool, { type Input, type Output } from '../../../../src/mcp/tools/dimensions-batch-update.ts';
+import { createExtra, type TypedHandler } from '../../../lib/create-extra.ts';
+import createMiddlewareContext from '../../../lib/create-middleware-context.ts';
+import { createTestSpreadsheet, deleteTestSpreadsheet } from '../../../lib/spreadsheet-helpers.ts';
 
 describe('dimensions-batch-update tool (service-backed tests)', () => {
   // Shared test resources

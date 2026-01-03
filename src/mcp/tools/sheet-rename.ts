@@ -8,7 +8,7 @@ import type { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 import { ErrorCode, McpError } from '@modelcontextprotocol/sdk/types.js';
 import { google } from 'googleapis';
 import { z } from 'zod';
-import { SheetGidOutput, SheetGidSchema, SpreadsheetIdOutput, SpreadsheetIdSchema } from '../../schemas/index.js';
+import { SheetGidOutput, SheetGidSchema, SpreadsheetIdOutput, SpreadsheetIdSchema } from '../../schemas/index.ts';
 
 const inputSchema = z.object({
   id: SpreadsheetIdSchema,

@@ -1,5 +1,5 @@
 import type { drive_v3, sheets_v4 } from 'googleapis';
-import type { GoogleApiError } from '../types.js';
+import type { GoogleApiError } from '../types.ts';
 
 export const SPREADSHEET_URL_RE = /https:\/\/docs.google.com\/spreadsheets\/d\/([a-zA-Z0-9-_]{10,})/;
 export const SPREADSHEET_ID_RE = /^[a-zA-Z0-9-_]{30,}$/;

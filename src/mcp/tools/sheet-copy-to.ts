@@ -8,7 +8,7 @@ import type { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 import { ErrorCode, McpError } from '@modelcontextprotocol/sdk/types.js';
 import { google } from 'googleapis';
 import { z } from 'zod';
-import { SheetGidSchema, SpreadsheetIdSchema } from '../../schemas/index.js';
+import { SheetGidSchema, SpreadsheetIdSchema } from '../../schemas/index.ts';
 
 // Note: Using contextual descriptions for source/destination IDs since they describe different spreadsheets/sheets
 

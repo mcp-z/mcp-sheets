@@ -8,8 +8,8 @@ import type { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 import { ErrorCode, McpError } from '@modelcontextprotocol/sdk/types.js';
 import { google, type sheets_v4 } from 'googleapis';
 import { z } from 'zod';
-import { SheetGidOutput, SheetGidSchema, SpreadsheetIdOutput, SpreadsheetIdSchema } from '../../schemas/index.js';
-import { parseA1Notation, rangeReferenceToGridRange } from '../../spreadsheet/range-operations.js';
+import { SheetGidOutput, SheetGidSchema, SpreadsheetIdOutput, SpreadsheetIdSchema } from '../../schemas/index.ts';
+import { parseA1Notation, rangeReferenceToGridRange } from '../../spreadsheet/range-operations.ts';
 
 // RGB color schema (0-1 range for Google Sheets API)
 const ColorSchema = z.object({

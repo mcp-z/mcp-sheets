@@ -4,10 +4,10 @@ import crypto from 'crypto';
 import fs from 'fs/promises';
 import { google } from 'googleapis';
 import * as path from 'path';
-import createValuesCsvUpdateTool, { type Input, type Output } from '../../../../src/mcp/tools/values-csv-update.js';
-import { createExtra, type TypedHandler } from '../../../lib/create-extra.js';
-import createMiddlewareContext from '../../../lib/create-middleware-context.js';
-import { createTestSpreadsheet, deleteTestSpreadsheet } from '../../../lib/spreadsheet-helpers.js';
+import createValuesCsvUpdateTool, { type Input, type Output } from '../../../../src/mcp/tools/values-csv-update.ts';
+import { createExtra, type TypedHandler } from '../../../lib/create-extra.ts';
+import createMiddlewareContext from '../../../lib/create-middleware-context.ts';
+import { createTestSpreadsheet, deleteTestSpreadsheet } from '../../../lib/spreadsheet-helpers.ts';
 
 let handler: TypedHandler<Input>;
 let sharedSpreadsheetId: string;

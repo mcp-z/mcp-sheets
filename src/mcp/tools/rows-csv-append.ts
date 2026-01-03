@@ -11,10 +11,10 @@ import { ErrorCode, McpError } from '@modelcontextprotocol/sdk/types.js';
 import { parse } from 'csv-parse';
 import { google } from 'googleapis';
 import { z } from 'zod';
-import { SheetGidOutput, SheetGidSchema, SpreadsheetIdOutput, SpreadsheetIdSchema } from '../../schemas/index.js';
-import { getCsvReadStream } from '../../spreadsheet/csv-streaming.js';
-import { buildDeduplicationKey } from '../../spreadsheet/deduplication-utils.js';
-import { ensureTabAndHeaders } from '../../spreadsheet/sheet-operations.js';
+import { SheetGidOutput, SheetGidSchema, SpreadsheetIdOutput, SpreadsheetIdSchema } from '../../schemas/index.ts';
+import { getCsvReadStream } from '../../spreadsheet/csv-streaming.ts';
+import { buildDeduplicationKey } from '../../spreadsheet/deduplication-utils.ts';
+import { ensureTabAndHeaders } from '../../spreadsheet/sheet-operations.ts';
 
 // Header mapping schema: source/target can be string (name) or number (0-based index)
 const HeaderMapItemSchema = z.object({

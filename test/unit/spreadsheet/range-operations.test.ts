@@ -25,7 +25,7 @@ import {
   splitRangeIntoChunks,
   validateA1Notation,
   validateBatchRanges,
-} from '../../../src/spreadsheet/range-operations.js';
+} from '../../../src/spreadsheet/range-operations.ts';
 
 describe('A1 Notation Validation', () => {
   describe('isValidA1Notation', () => {

@@ -1,6 +1,6 @@
 import type { sheets_v4 } from 'googleapis';
-import type { Logger } from '../types.js';
-import { a1Col } from './column-utilities.js';
+import type { Logger } from '../types.ts';
+import { a1Col } from './column-utilities.ts';
 
 type ValueRange = sheets_v4.Schema$ValueRange;
 

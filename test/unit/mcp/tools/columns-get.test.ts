@@ -5,11 +5,11 @@ import fs from 'fs/promises';
 import { OAuth2Client } from 'google-auth-library';
 import { google } from 'googleapis';
 import * as path from 'path';
-import createColumnsGetTool, { type Output as ColumnsGetOutput, type Input } from '../../../../src/mcp/tools/columns-get.js';
-import createRowsAppendTool, { type Input as RowsAppendInput, type Output as RowsAppendOutput } from '../../../../src/mcp/tools/rows-append.js';
-import { createExtra, type TypedHandler } from '../../../lib/create-extra.js';
-import createMiddlewareContext from '../../../lib/create-middleware-context.js';
-import { createTestSpreadsheet, deleteTestSpreadsheet } from '../../../lib/spreadsheet-helpers.js';
+import createColumnsGetTool, { type Output as ColumnsGetOutput, type Input } from '../../../../src/mcp/tools/columns-get.ts';
+import createRowsAppendTool, { type Input as RowsAppendInput, type Output as RowsAppendOutput } from '../../../../src/mcp/tools/rows-append.ts';
+import { createExtra, type TypedHandler } from '../../../lib/create-extra.ts';
+import createMiddlewareContext from '../../../lib/create-middleware-context.ts';
+import { createTestSpreadsheet, deleteTestSpreadsheet } from '../../../lib/spreadsheet-helpers.ts';
 
 let handler: TypedHandler<Input>;
 let rowsAppendHandler: TypedHandler<RowsAppendInput>;

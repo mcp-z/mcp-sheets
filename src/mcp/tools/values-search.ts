@@ -8,7 +8,7 @@ import type { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 import { ErrorCode, McpError } from '@modelcontextprotocol/sdk/types.js';
 import { google } from 'googleapis';
 import { z } from 'zod';
-import { SheetCellSchema, SheetGidSchema, SpreadsheetIdSchema } from '../../schemas/index.js';
+import { SheetCellSchema, SheetGidSchema, SpreadsheetIdSchema } from '../../schemas/index.ts';
 
 // Helper to convert column index to letter (0 = A, 1 = B, etc.)
 function columnIndexToLetter(index: number): string {

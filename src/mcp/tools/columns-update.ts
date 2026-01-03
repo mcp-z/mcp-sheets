@@ -8,8 +8,8 @@ import type { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 import { ErrorCode, McpError } from '@modelcontextprotocol/sdk/types.js';
 import { google } from 'googleapis';
 import { z } from 'zod';
-import { SheetCellSchema, SheetGidOutput, SheetGidSchema, SpreadsheetIdOutput, SpreadsheetIdSchema } from '../../schemas/index.js';
-import { generateRowKey, type KeyGenerationStrategy, type Row, snapshotHeaderKeysAndPositions, type UpsertOptions, upsertByKey } from '../../spreadsheet/data-operations.js';
+import { SheetCellSchema, SheetGidOutput, SheetGidSchema, SpreadsheetIdOutput, SpreadsheetIdSchema } from '../../schemas/index.ts';
+import { generateRowKey, type KeyGenerationStrategy, type Row, snapshotHeaderKeysAndPositions, type UpsertOptions, upsertByKey } from '../../spreadsheet/data-operations.ts';
 
 // Input schema for columns update requests with enhanced validation
 const inputSchema = z

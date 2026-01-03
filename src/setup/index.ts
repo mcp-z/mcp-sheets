@@ -1,5 +1,5 @@
-export { createConfig, parseConfig } from './config.js';
-export { createHTTPServer } from './http.js';
-export { createOAuthAdapters } from './oauth-google.js';
-export * from './runtime.js';
-export { createStdioServer } from './stdio.js';
+export { createConfig, parseConfig } from './config.ts';
+export { createHTTPServer } from './http.ts';
+export { createOAuthAdapters } from './oauth-google.ts';
+export * from './runtime.ts';
+export { createStdioServer } from './stdio.ts';

@@ -1,9 +1,9 @@
 import type { Logger, LoopbackOAuthProvider } from '@mcp-z/oauth-google';
 import assert from 'assert';
-import createTool, { type Input, type Output } from '../../../../src/mcp/tools/spreadsheet-create.js';
-import { createExtra, type TypedHandler } from '../../../lib/create-extra.js';
-import createMiddlewareContext from '../../../lib/create-middleware-context.js';
-import { deleteTestSpreadsheet } from '../../../lib/spreadsheet-helpers.js';
+import createTool, { type Input, type Output } from '../../../../src/mcp/tools/spreadsheet-create.ts';
+import { createExtra, type TypedHandler } from '../../../lib/create-extra.ts';
+import createMiddlewareContext from '../../../lib/create-middleware-context.ts';
+import { deleteTestSpreadsheet } from '../../../lib/spreadsheet-helpers.ts';
 
 describe('spreadsheet-create', () => {
   // Shared instances for all tests

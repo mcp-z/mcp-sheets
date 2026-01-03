@@ -2,10 +2,10 @@ import type { Logger, LoopbackOAuthProvider } from '@mcp-z/oauth-google';
 import assert from 'assert';
 import type { OAuth2Client } from 'google-auth-library';
 import { google } from 'googleapis';
-import createValuesReplaceTool, { type Input, type Output } from '../../../../src/mcp/tools/values-replace.js';
-import { createExtra, type TypedHandler } from '../../../lib/create-extra.js';
-import createMiddlewareContext from '../../../lib/create-middleware-context.js';
-import { createTestSpreadsheet, deleteTestSpreadsheet } from '../../../lib/spreadsheet-helpers.js';
+import createValuesReplaceTool, { type Input, type Output } from '../../../../src/mcp/tools/values-replace.ts';
+import { createExtra, type TypedHandler } from '../../../lib/create-extra.ts';
+import createMiddlewareContext from '../../../lib/create-middleware-context.ts';
+import { createTestSpreadsheet, deleteTestSpreadsheet } from '../../../lib/spreadsheet-helpers.ts';
 
 /**
  * OPTIMIZATION STRATEGY - values-replace.test.ts

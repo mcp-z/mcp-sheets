@@ -10,7 +10,7 @@ import type { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 import { ErrorCode, McpError } from '@modelcontextprotocol/sdk/types.js';
 import { parse } from 'csv-parse';
 import { z } from 'zod';
-import { getCsvReadStream } from '../../spreadsheet/csv-streaming.js';
+import { getCsvReadStream } from '../../spreadsheet/csv-streaming.ts';
 
 const inputSchema = z.object({
   sourceUri: z.string().trim().min(1).describe('CSV file URI (file://, http://, https://)'),

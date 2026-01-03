@@ -1,7 +1,7 @@
 import type { sheets_v4 } from 'googleapis';
-import type { Logger } from '../types.js';
-import { a1Col } from './column-utilities.js';
-import { findSheetByRef } from './sheet-operations.js';
+import type { Logger } from '../types.ts';
+import { a1Col } from './column-utilities.ts';
+import { findSheetByRef } from './sheet-operations.ts';
 
 // Core data types
 export type Cell = string | number | boolean | null | undefined;

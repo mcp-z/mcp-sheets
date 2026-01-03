@@ -3,10 +3,10 @@ import assert from 'assert';
 import crypto from 'crypto';
 import fs from 'fs/promises';
 import * as path from 'path';
-import createTool, { type Input, type Output } from '../../../../src/mcp/tools/columns-update.js';
-import { createExtra, type TypedHandler } from '../../../lib/create-extra.js';
-import createMiddlewareContext from '../../../lib/create-middleware-context.js';
-import { createTestSpreadsheet, deleteTestSpreadsheet } from '../../../lib/spreadsheet-helpers.js';
+import createTool, { type Input, type Output } from '../../../../src/mcp/tools/columns-update.ts';
+import { createExtra, type TypedHandler } from '../../../lib/create-extra.ts';
+import createMiddlewareContext from '../../../lib/create-middleware-context.ts';
+import { createTestSpreadsheet, deleteTestSpreadsheet } from '../../../lib/spreadsheet-helpers.ts';
 
 /**
  * OPTIMIZATION STRATEGY - columns-update.test.ts

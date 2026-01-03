@@ -2,11 +2,11 @@ import type { Logger, LoopbackOAuthProvider } from '@mcp-z/oauth-google';
 import assert from 'assert';
 import type { OAuth2Client } from 'google-auth-library';
 import { google } from 'googleapis';
-import createValuesReplaceTool, { type Input as ReplaceInput, type Output as ReplaceOutput } from '../../../../src/mcp/tools/values-replace.js';
-import createSearchTool, { type Input as SearchInput, type Output as SearchOutput } from '../../../../src/mcp/tools/values-search.js';
-import { createExtra, type TypedHandler } from '../../../lib/create-extra.js';
-import createMiddlewareContext from '../../../lib/create-middleware-context.js';
-import { createTestSpreadsheet, deleteTestSpreadsheet } from '../../../lib/spreadsheet-helpers.js';
+import createValuesReplaceTool, { type Input as ReplaceInput, type Output as ReplaceOutput } from '../../../../src/mcp/tools/values-replace.ts';
+import createSearchTool, { type Input as SearchInput, type Output as SearchOutput } from '../../../../src/mcp/tools/values-search.ts';
+import { createExtra, type TypedHandler } from '../../../lib/create-extra.ts';
+import createMiddlewareContext from '../../../lib/create-middleware-context.ts';
+import { createTestSpreadsheet, deleteTestSpreadsheet } from '../../../lib/spreadsheet-helpers.ts';
 
 /**
  * SPECIAL CHARACTERS TEST SUITE
