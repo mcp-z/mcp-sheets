@@ -1,5 +1,5 @@
 import assert from 'assert';
-import { SheetGidSchema } from '../../../src/schemas/index.js';
+import { SheetGidSchema } from '../../../src/schemas/index.ts';
 
 /**
  * TDD Tests for SheetGidSchema coercion

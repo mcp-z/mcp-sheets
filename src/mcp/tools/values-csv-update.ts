@@ -11,8 +11,8 @@ import { ErrorCode, McpError } from '@modelcontextprotocol/sdk/types.js';
 import { parse } from 'csv-parse';
 import { google } from 'googleapis';
 import { z } from 'zod';
-import { A1NotationSchema, SheetGidOutput, SheetGidSchema, SpreadsheetIdOutput, SpreadsheetIdSchema } from '../../schemas/index.js';
-import { getCsvReadStream } from '../../spreadsheet/csv-streaming.js';
+import { A1NotationSchema, SheetGidOutput, SheetGidSchema, SpreadsheetIdOutput, SpreadsheetIdSchema } from '../../schemas/index.ts';
+import { getCsvReadStream } from '../../spreadsheet/csv-streaming.ts';
 
 /** Batch size for Sheets API calls (1000 rows × avg 10 cols = 10K cells, well under 40K limit) */
 const BATCH_SIZE = 1000;

@@ -4,7 +4,7 @@ import { ResourceTemplate } from '@modelcontextprotocol/sdk/server/mcp.js';
 import type { RequestHandlerExtra } from '@modelcontextprotocol/sdk/shared/protocol.js';
 import type { ReadResourceResult, ServerNotification, ServerRequest } from '@modelcontextprotocol/sdk/types.js';
 import { google, type sheets_v4 } from 'googleapis';
-import type { GoogleApiError } from '../../types.js';
+import type { GoogleApiError } from '../../types.ts';
 
 export default function createResource(): ResourceModule {
   const template = new ResourceTemplate('sheets://spreadsheets/{spreadsheetId}', { list: undefined });

@@ -2,9 +2,9 @@ import assert from 'assert';
 import crypto from 'crypto';
 import fs from 'fs/promises';
 import * as path from 'path';
-import createCsvGetColumnsTool, { type Input, type Output } from '../../../../src/mcp/tools/csv-get-columns.js';
-import { createExtra, type TypedHandler } from '../../../lib/create-extra.js';
-import createMiddlewareContext from '../../../lib/create-middleware-context.js';
+import createCsvGetColumnsTool, { type Input, type Output } from '../../../../src/mcp/tools/csv-get-columns.ts';
+import { createExtra, type TypedHandler } from '../../../lib/create-extra.ts';
+import createMiddlewareContext from '../../../lib/create-middleware-context.ts';
 
 let handler: TypedHandler<Input>;
 let tmpDir: string;

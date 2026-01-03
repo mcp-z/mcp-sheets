@@ -1,1 +1,1 @@
-export { default as spreadsheet } from './spreadsheet.js';
+export { default as spreadsheet } from './spreadsheet.ts';

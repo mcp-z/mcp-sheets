@@ -1,5 +1,5 @@
 import assert from 'assert';
-import { DEFAULT_APPEND_COUNT, DEFAULT_COLUMN_COUNT, DEFAULT_ROW_COUNT, type DimensionOperation, type DimensionRequest, type DimensionType, MAX_COLUMN_COUNT, MAX_ROW_COUNT, sortOperations } from '../../../../../src/mcp/tools/lib/dimension-operations.js';
+import { DEFAULT_APPEND_COUNT, DEFAULT_COLUMN_COUNT, DEFAULT_ROW_COUNT, type DimensionOperation, type DimensionRequest, type DimensionType, MAX_COLUMN_COUNT, MAX_ROW_COUNT, sortOperations } from '../../../../../src/mcp/tools/lib/dimension-operations.ts';
 
 describe('dimension-operations', () => {
   describe('constants', () => {

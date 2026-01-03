@@ -5,7 +5,7 @@
 
 import { OAuth2Client } from 'google-auth-library';
 import { google } from 'googleapis';
-import type { GoogleApiError, Logger } from '../../src/types.js';
+import type { GoogleApiError, Logger } from '../../src/types.ts';
 
 export async function createTestSpreadsheet(accessToken: string, opts: { title?: string } = {}): Promise<string> {
   const title = opts.title || `ci-test-spreadsheet-${Date.now()}`;

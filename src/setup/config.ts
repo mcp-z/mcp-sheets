@@ -1,5 +1,5 @@
 import { parseDcrConfig, parseConfig as parseOAuthConfig } from '@mcp-z/oauth-google';
-import { parseConfig as parseTransportConfig } from '@mcp-z/server';
+import { findConfigPath, parseConfig as parseTransportConfig } from '@mcp-z/server';
 import * as fs from 'fs';
 import moduleRoot from 'module-root-sync';
 import { homedir } from 'os';
@@ -7,7 +7,7 @@ import * as path from 'path';
 import * as url from 'url';
 import { parseArgs } from 'util';
 import { GOOGLE_SCOPE } from '../constants.ts';
-import type { ServerConfig } from '../types.js';
+import type { ServerConfig } from '../types.ts';
 
 const pkg = JSON.parse(fs.readFileSync(path.join(moduleRoot(url.fileURLToPath(import.meta.url)), 'package.json'), 'utf-8'));
 
@@ -120,7 +120,13 @@ export function parseConfig(args: string[], env: Record<string, string | undefin
   // Parse repository URL from package.json, stripping git+ prefix and .git suffix
   const rawRepoUrl = typeof pkg.repository === 'object' ? pkg.repository.url : pkg.repository;
   const repositoryUrl = rawRepoUrl?.replace(/^git\+/, '').replace(/\.git$/, '') ?? `https://github.com/mcp-z/${name}`;
-  const rootDir = process.cwd() === '/' ? homedir() : process.cwd();
+  let rootDir = homedir();
+  try {
+    const configPath = findConfigPath({ config: '.mcp.json', cwd: process.cwd(), stopDir: homedir() });
+    rootDir = path.dirname(configPath);
+  } catch {
+    rootDir = homedir();
+  }
   const baseDir = path.join(rootDir, '.mcp-z');
   const cliLogLevel = typeof values['log-level'] === 'string' ? values['log-level'] : undefined;
   const envLogLevel = env.LOG_LEVEL;

@@ -2,8 +2,8 @@ import { composeMiddleware, connectHttp, registerPrompts, registerResources, reg
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import cors from 'cors';
 import express from 'express';
-import type { RuntimeOverrides, ServerConfig } from '../types.js';
-import { createDefaultRuntime } from './runtime.js';
+import type { RuntimeOverrides, ServerConfig } from '../types.ts';
+import { createDefaultRuntime } from './runtime.ts';
 
 export async function createHTTPServer(config: ServerConfig, overrides?: RuntimeOverrides) {
   const runtime = await createDefaultRuntime(config, overrides);
@@ -25,6 +25,11 @@ export async function createHTTPServer(config: ServerConfig, overrides?: Runtime
   const app = express();
   app.use(cors());
   app.use(express.json({ limit: '10mb' }));
+
+  if (runtime.deps.oauthAdapters.loopbackRouter) {
+    app.use('/', runtime.deps.oauthAdapters.loopbackRouter);
+    logger.info('Mounted loopback OAuth callback router');
+  }
 
   if (runtime.deps.oauthAdapters.dcrRouter) {
     app.use('/', runtime.deps.oauthAdapters.dcrRouter);

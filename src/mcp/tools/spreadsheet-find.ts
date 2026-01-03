@@ -8,8 +8,8 @@ import type { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 import { ErrorCode, McpError } from '@modelcontextprotocol/sdk/types.js';
 import { google } from 'googleapis';
 import { z } from 'zod';
-import { SheetGidOutput, SpreadsheetIdOutput, SpreadsheetRefSchema } from '../../schemas/index.js';
-import { findSpreadsheetsByRef } from '../../spreadsheet/spreadsheet-management.js';
+import { SheetGidOutput, SpreadsheetIdOutput, SpreadsheetRefSchema } from '../../schemas/index.ts';
+import { findSpreadsheetsByRef } from '../../spreadsheet/spreadsheet-management.ts';
 
 /** Spreadsheet match result from findSpreadsheetsByRef */
 interface SpreadsheetMatch {

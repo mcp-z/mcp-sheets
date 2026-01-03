@@ -9,9 +9,9 @@ import { listAccountIds } from '@mcp-z/oauth';
 import { LoopbackOAuthProvider } from '@mcp-z/oauth-google';
 import type { Keyv } from 'keyv';
 import { GOOGLE_SCOPE } from '../../src/constants.ts';
-import createStore from '../../src/lib/create-store.js';
-import type { Logger } from '../../src/types.js';
-import { createConfig } from './config.js';
+import createStore from '../../src/lib/create-store.ts';
+import type { Logger } from '../../src/types.ts';
+import { createConfig } from './config.ts';
 
 /**
  * Validate exactly one account exists (0/1/Many strategy)

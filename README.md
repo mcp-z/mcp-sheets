@@ -50,6 +50,12 @@ MCP supports stdio and HTTP.
 3. Enable the Google Sheets API.
 4. Create OAuth 2.0 credentials (Desktop app).
 5. Copy the Client ID and Client Secret.
+6. Select your MCP transport (stdio for local and http for remote) and platform
+- For stdio, choose "APIs & Services", + Create client, "Desktop app" type
+- For http, choose "APIs & Services", + Create client, "Web application" type, add your URL (default is http://localhost:3000/oauth/callback based on the --port or PORT)
+- For local hosting, add "http://127.0.0.1" for [Ephemeral redirect URL](https://en.wikipedia.org/wiki/Ephemeral_port)
+7. Enable OAuth2 [scopes](https://console.cloud.google.com/auth/scopes): openid https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/drive
+8. Add [test emails](https://console.cloud.google.com/auth/audience)
 
 ## OAuth modes
 
@@ -64,7 +70,7 @@ GOOGLE_CLIENT_ID=your-client-id
 GOOGLE_CLIENT_SECRET=your-client-secret
 ```
 
-Example:
+Example (stdio) - Create .mcp.json:
 ```json
 {
   "mcpServers": {
@@ -72,13 +78,36 @@ Example:
       "command": "npx",
       "args": ["-y", "@mcp-z/mcp-sheets"],
       "env": {
-        "GOOGLE_CLIENT_ID": "your-client-id",
-        "GOOGLE_CLIENT_SECRET": "your-client-secret"
+        "GOOGLE_CLIENT_ID": "your-client-id"
       }
     }
   }
 }
 ```
+
+Example (http) - Create .mcp.json:
+```json
+{
+  "mcpServers": {
+    "sheets": {
+      "type": "http",
+      "url": "http://localhost:3000",
+      "start": {
+        "command": "npx",
+        "args": ["-y", "@mcp-z/mcp-sheets", "--port=3000"],
+        "env": {
+          "GOOGLE_CLIENT_ID": "your-client-id"
+        }
+      }
+    }
+  }
+}
+```
+
+Local (default): omit REDIRECT_URI → ephemeral loopback.
+Cloud: set REDIRECT_URI to your public /oauth/callback and expose the service publicly.
+
+Note: start block is a helper in "npx @mcp-z/cli up" for starting an http server from your .mpc.json. See [@mcp-z/cli](https://github.com/mcp-z/cli) for details.
 
 ### Service account
 

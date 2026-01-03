@@ -8,8 +8,8 @@ import type { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 import { ErrorCode, McpError } from '@modelcontextprotocol/sdk/types.js';
 import { google } from 'googleapis';
 import { z } from 'zod';
-import { SheetGidOutput, SheetGidSchema, SpreadsheetIdOutput, SpreadsheetIdSchema } from '../../schemas/index.js';
-import { buildDimensionRequest, calculateAffectedCount, DEFAULT_COLUMN_COUNT, DEFAULT_ROW_COUNT, type DimensionRequest, MAX_COLUMN_COUNT, MAX_ROW_COUNT, sortOperations } from './lib/dimension-operations.js';
+import { SheetGidOutput, SheetGidSchema, SpreadsheetIdOutput, SpreadsheetIdSchema } from '../../schemas/index.ts';
+import { buildDimensionRequest, calculateAffectedCount, DEFAULT_COLUMN_COUNT, DEFAULT_ROW_COUNT, type DimensionRequest, MAX_COLUMN_COUNT, MAX_ROW_COUNT, sortOperations } from './lib/dimension-operations.ts';
 
 // Input schema for dimension batch update requests
 const DimensionRequestSchema = z.object({

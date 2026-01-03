@@ -5,10 +5,10 @@ import { createLoggingMiddleware } from '@mcp-z/server';
 import * as fs from 'fs';
 import * as path from 'path';
 import pino from 'pino';
-import createStore from '../lib/create-store.js';
-import * as mcp from '../mcp/index.js';
-import type { CommonRuntime, RuntimeDeps, RuntimeOverrides, ServerConfig } from '../types.js';
-import { createOAuthAdapters, type OAuthAdapters } from './oauth-google.js';
+import createStore from '../lib/create-store.ts';
+import * as mcp from '../mcp/index.ts';
+import type { CommonRuntime, RuntimeDeps, RuntimeOverrides, ServerConfig } from '../types.ts';
+import { createOAuthAdapters, type OAuthAdapters } from './oauth-google.ts';
 
 export function createLogger(config: ServerConfig): Logger {
   const hasStdio = config.transport.type === 'stdio';

@@ -1,5 +1,5 @@
 import assert from 'assert';
-import { parseConfig } from '../../../src/setup/config.js';
+import { parseConfig } from '../../../src/setup/config.ts';
 
 describe('parseConfig', () => {
   it('defaults to stdio transport with no args or env', () => {

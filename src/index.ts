@@ -1,13 +1,13 @@
-import { createConfig, handleVersionHelp } from './setup/config.js';
-import { createHTTPServer } from './setup/http.js';
-import { createStdioServer } from './setup/stdio.js';
-import type { ServerConfig } from './types.js';
+import { createConfig, handleVersionHelp } from './setup/config.ts';
+import { createHTTPServer } from './setup/http.ts';
+import { createStdioServer } from './setup/stdio.ts';
+import type { ServerConfig } from './types.ts';
 
 export { GOOGLE_SCOPE } from './constants.ts';
-export * as mcp from './mcp/index.js';
-export * as schemas from './schemas/index.js';
-export * as setup from './setup/index.js';
-export * from './types.js';
+export * as mcp from './mcp/index.ts';
+export * as schemas from './schemas/index.ts';
+export * as setup from './setup/index.ts';
+export * from './types.ts';
 
 export async function startServer(config: ServerConfig): Promise<void> {
   const { logger, close } = config.transport.type === 'stdio' ? await createStdioServer(config) : await createHTTPServer(config);

@@ -8,7 +8,7 @@ import type { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 import { ErrorCode, McpError } from '@modelcontextprotocol/sdk/types.js';
 import { google } from 'googleapis';
 import { z } from 'zod';
-import { SpreadsheetIdOutput } from '../../schemas/index.js';
+import { SpreadsheetIdOutput } from '../../schemas/index.ts';
 
 const inputSchema = z.object({
   title: z.coerce.string().trim().min(1).describe('Title for the new spreadsheet'),

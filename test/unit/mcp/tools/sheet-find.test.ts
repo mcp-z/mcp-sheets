@@ -3,11 +3,11 @@ import assert from 'assert';
 import crypto from 'crypto';
 import fs from 'fs/promises';
 import * as path from 'path';
-import createTool, { type Input as SheetCreateInput, type Output as SheetCreateOutput } from '../../../../src/mcp/tools/sheet-create.js';
-import createSheetFindTool, { type Input, type Output as SheetFindOutput } from '../../../../src/mcp/tools/sheet-find.js';
-import { createExtra, type TypedHandler } from '../../../lib/create-extra.js';
-import createMiddlewareContext from '../../../lib/create-middleware-context.js';
-import { createTestSpreadsheet, deleteTestSpreadsheet } from '../../../lib/spreadsheet-helpers.js';
+import createTool, { type Input as SheetCreateInput, type Output as SheetCreateOutput } from '../../../../src/mcp/tools/sheet-create.ts';
+import createSheetFindTool, { type Input, type Output as SheetFindOutput } from '../../../../src/mcp/tools/sheet-find.ts';
+import { createExtra, type TypedHandler } from '../../../lib/create-extra.ts';
+import createMiddlewareContext from '../../../lib/create-middleware-context.ts';
+import { createTestSpreadsheet, deleteTestSpreadsheet } from '../../../lib/spreadsheet-helpers.ts';
 
 // Shared test resources
 let sharedSpreadsheetId: string;

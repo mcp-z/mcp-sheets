@@ -13,7 +13,7 @@
  * - Google Sheets limits validation and enforcement
  */
 
-import { a1Col } from './column-utilities.js';
+import { a1Col } from './column-utilities.ts';
 
 // Google Sheets constants and limits
 export const GOOGLE_SHEETS_LIMITS = {

@@ -1,5 +1,5 @@
 import { setTimeout as delay } from 'timers/promises';
-import type { GoogleApiError } from '../../src/types.js';
+import type { GoogleApiError } from '../../src/types.ts';
 
 export default async function waitForFile(drive: { files: { list: (args: Record<string, unknown>) => Promise<{ data?: { files?: Array<{ id?: string; name?: string }> } }> } }, q: string, opts: { interval?: number; timeout?: number } = {}): Promise<Array<{ id?: string; name?: string }> | undefined> {
   const initialInterval = typeof opts.interval === 'number' ? opts.interval : 200;
