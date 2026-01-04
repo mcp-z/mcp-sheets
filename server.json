@@ -86,7 +86,7 @@
         },
         {
           "name": "BASE_URL",
-          "description": "Base URL for HTTP file serving (optional, used for HTTP transport)",
+          "description": "Base URL for HTTP transport (used for OAuth/DCR endpoints and file links)",
           "placeholder": "http://localhost:{PORT}",
           "isRequired": false,
           "isSecret": false
@@ -132,7 +132,7 @@
         {
           "type": "named",
           "name": "--base-url",
-          "description": "Override base URL for HTTP file serving"
+          "description": "Override base URL for HTTP transport (used for OAuth/DCR endpoints and file links)"
         },
         {
           "type": "named",
@@ -250,7 +250,7 @@
         },
         {
           "name": "BASE_URL",
-          "description": "Base URL for HTTP file serving (defaults to http://localhost:{PORT})",
+          "description": "Base URL for HTTP transport (used for OAuth/DCR endpoints and file links)",
           "placeholder": "http://localhost:{PORT}",
           "isRequired": false,
           "isSecret": false
@@ -318,7 +318,7 @@
         {
           "type": "named",
           "name": "--base-url",
-          "description": "Override base URL for HTTP file serving"
+          "description": "Override base URL for HTTP transport (used for OAuth/DCR endpoints and file links)"
         },
         {
           "type": "named",
