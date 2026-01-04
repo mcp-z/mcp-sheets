@@ -29,6 +29,7 @@ Options:
   --port=<port>          Enable HTTP transport on specified port
   --stdio                Enable stdio transport (default if no port)
   --log-level=<level>    Logging level (default: info)
+  --base-url=<url>       Base URL for HTTP file serving (optional)
 
 Environment Variables:
   GOOGLE_CLIENT_ID       OAuth client ID (REQUIRED)
@@ -40,6 +41,7 @@ Environment Variables:
   DCR_STORE_URI          DCR storage URI (optional, same as --dcr-store-uri)
   PORT                   Default HTTP port (optional)
   LOG_LEVEL              Default logging level (optional)
+  BASE_URL               Base URL for HTTP file serving (optional)
 
 OAuth Scopes:
   openid https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/drive
@@ -84,6 +86,7 @@ export function handleVersionHelp(args: string[]): { handled: boolean; output?: 
  * - --port=<port>          Enable HTTP transport on specified port
  * - --stdio                Enable stdio transport (default if no port)
  * - --log-level=<level>    Logging level (default: info)
+ * - --base-url=<url>       Base URL for HTTP file serving (optional)
  *
  * Environment Variables:
  * - GOOGLE_CLIENT_ID       OAuth client ID (REQUIRED)
@@ -95,6 +98,7 @@ export function handleVersionHelp(args: string[]): { handled: boolean; output?: 
  * - DCR_STORE_URI          DCR storage URI (optional, same as --dcr-store-uri)
  * - PORT                   Default HTTP port (optional)
  * - LOG_LEVEL              Default logging level (optional)
+ * - BASE_URL               Base URL for HTTP file serving (optional)
  *
  * OAuth Scopes (from constants.ts):
  * openid https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/drive
@@ -106,11 +110,12 @@ export function parseConfig(args: string[], env: Record<string, string | undefin
   // Parse DCR configuration if DCR mode is enabled
   const dcrConfig = oauthConfig.auth === 'dcr' ? parseDcrConfig(args, env, GOOGLE_SCOPE) : undefined;
 
-  // Parse application-level config (LOG_LEVEL)
+  // Parse application-level config (LOG_LEVEL, BASE_URL)
   const { values } = parseArgs({
     args,
     options: {
       'log-level': { type: 'string' },
+      'base-url': { type: 'string' },
     },
     strict: false, // Allow other arguments
     allowPositionals: true,
@@ -131,6 +136,9 @@ export function parseConfig(args: string[], env: Record<string, string | undefin
   const cliLogLevel = typeof values['log-level'] === 'string' ? values['log-level'] : undefined;
   const envLogLevel = env.LOG_LEVEL;
   const logLevel = cliLogLevel ?? envLogLevel ?? 'info';
+  const cliBaseUrl = typeof values['base-url'] === 'string' ? values['base-url'] : undefined;
+  const envBaseUrl = env.BASE_URL;
+  const baseUrl = cliBaseUrl ?? envBaseUrl;
 
   // Combine configs
   return {
@@ -141,6 +149,7 @@ export function parseConfig(args: string[], env: Record<string, string | undefin
     name,
     version: pkg.version,
     repositoryUrl,
+    ...(baseUrl && { baseUrl }),
     ...(dcrConfig && { dcrConfig }),
   };
 }
