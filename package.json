@@ -71,7 +71,7 @@
   },
   "dependencies": {
     "@mcp-z/oauth": "^1.0.1",
-    "@mcp-z/oauth-google": "^1.0.3",
+    "@mcp-z/oauth-google": "^1.0.4",
     "@mcp-z/server": "^1.0.2",
     "@modelcontextprotocol/sdk": "^1.25.1",
     "cors": "^2.8.5",
@@ -85,7 +85,7 @@
     "zod": "^4.3.4"
   },
   "devDependencies": {
-    "@mcp-z/client": "^1.0.3",
+    "@mcp-z/client": "^1.0.5",
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
     "@types/mocha": "^10.0.10",
