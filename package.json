@@ -1,6 +1,6 @@
 {
   "name": "@mcp-z/mcp-sheets",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "MCP server for Google Sheets integration with OAuth authentication, spreadsheet management, batch operations, and advanced formatting",
   "keywords": [
     "sheets",
