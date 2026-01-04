@@ -35,9 +35,16 @@ async function setupTest(): Promise<void> {
   console.log('Starting OAuth flow...');
   console.log('');
 
-  // Trigger OAuth flow - will fetch email and set as active account
-  // OAuth flow will store token/account with email as accountId
-  await auth.getAccessToken();
+  // Trigger OAuth flow via middleware (handles auth_url by opening browser + polling)
+  const middleware = auth.authMiddleware();
+  const setupTool = middleware.withToolAuth({
+    name: 'test-setup',
+    config: {},
+    handler: async () => {
+      return { ok: true };
+    },
+  });
+  await setupTool.handler({}, {});
 
   console.log('✓ OAuth flow completed, fetching user email...');
 
