@@ -18,8 +18,8 @@ export function createLogger(config: ServerConfig): Logger {
 }
 
 export async function createTokenStore(baseDir: string) {
-  const storeUri = process.env.STORE_URI || `file://${path.join(baseDir, 'tokens.json')}`;
-  return createStore<CachedToken>(storeUri);
+  const tokenStoreUri = process.env.TOKEN_STORE_URI || `file://${path.join(baseDir, 'tokens.json')}`;
+  return createStore<CachedToken>(tokenStoreUri);
 }
 
 export async function createDcrStore(baseDir: string, required: boolean) {

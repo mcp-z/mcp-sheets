@@ -70,10 +70,10 @@
           "dependsOn": { "AUTH_MODE": ["loopback-oauth"] }
         },
         {
-          "name": "STORAGE_DIR",
-          "value": "~/.mcp-z/mcp-sheets/files",
-          "description": "Directory for storing exported files",
-          "placeholder": "~/.mcp-z/mcp-sheets/files",
+          "name": "RESOURCE_STORE_URI",
+          "value": "file://~/.mcp-z/mcp-sheets/files",
+          "description": "Resource store URI for exported files (file://)",
+          "placeholder": "file://~/.mcp-z/mcp-sheets/files",
           "isRequired": false,
           "isSecret": false
         },
@@ -126,8 +126,8 @@
         },
         {
           "type": "named",
-          "name": "--storage-dir",
-          "description": "Override directory for storing exported files"
+          "name": "--resource-store-uri",
+          "description": "Override resource store URI for exported files"
         },
         {
           "type": "named",
@@ -234,10 +234,10 @@
           "dependsOn": { "AUTH_MODE": ["dcr"] }
         },
         {
-          "name": "STORAGE_DIR",
-          "value": "~/.mcp-z/mcp-sheets/files",
-          "description": "Directory for storing exported files",
-          "placeholder": "~/.mcp-z/mcp-sheets/files",
+          "name": "RESOURCE_STORE_URI",
+          "value": "file://~/.mcp-z/mcp-sheets/files",
+          "description": "Resource store URI for exported files (file://)",
+          "placeholder": "file://~/.mcp-z/mcp-sheets/files",
           "isRequired": false,
           "isSecret": false
         },
@@ -312,8 +312,8 @@
         },
         {
           "type": "named",
-          "name": "--storage-dir",
-          "description": "Override directory for storing exported files"
+          "name": "--resource-store-uri",
+          "description": "Override resource store URI for exported files"
         },
         {
           "type": "named",
