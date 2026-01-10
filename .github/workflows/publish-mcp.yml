@@ -20,6 +20,19 @@ jobs:
           curl -L "https://github.com/modelcontextprotocol/registry/releases/latest/download/mcp-publisher_${OS}_${ARCH}.tar.gz" | tar xz
           sudo mv mcp-publisher /usr/local/bin/
 
+      - name: Sync server.json version
+        run: |
+          # Extract version from git tag (v1.2.3 -> 1.2.3)
+          VERSION=${GITHUB_REF#refs/tags/v}
+          
+          # Update all version fields in server.json
+          jq --arg ver "$VERSION" '
+            .version = $ver |
+            .packages[].version = $ver
+          ' server.json > server.json.tmp && mv server.json.tmp server.json
+          
+          echo "Updated server.json to version $VERSION"
+
       - name: Login and Publish
         run: |
           # No manual login needed; OIDC uses the repo's identity
