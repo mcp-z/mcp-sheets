@@ -194,8 +194,9 @@ mcp-z call sheets spreadsheet-find '{"spreadsheetRef":"Quarterly Report"}'
 22. values-batch-update
 23. values-clear
 24. values-csv-update
-25. values-replace
-26. values-search
+25. values-markdown-update
+26. values-replace
+27. values-search
 
 ## Resources
 

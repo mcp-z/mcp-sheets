@@ -59,7 +59,7 @@ const successBranchSchema = z.object({
 const outputSchema = z.discriminatedUnion('type', [successBranchSchema, AuthRequiredBranchSchema]);
 
 const config = {
-  description: 'Batch update multiple cell ranges. RAW=exact values, USER_ENTERED=parsed like user input. Use a1-notation prompt for range syntax.',
+  description: 'Batch update multiple cell ranges. RAW=exact values, USER_ENTERED=parsed like user input. Use a1-notation prompt for range syntax. For multiple clickable links or rich text inside a single cell, use values-markdown-update.',
   inputSchema,
   outputSchema: z.object({
     result: outputSchema,
