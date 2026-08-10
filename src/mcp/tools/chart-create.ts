@@ -108,7 +108,8 @@ async function handler({ id, gid, chartType, dataRange, title, position, legend 
     }
 
     const sheetTitle = sheet.properties.title ?? gid;
-    const sheetId = sheet.properties.sheetId;
+    // googleapis types sheetId as `number | null | undefined`; coerce for rangeReferenceToGridRange below (same pattern as values-batch-update.ts's sheetGid).
+    const sheetId = sheet.properties.sheetId ?? 0;
     const sheetUrl = `https://docs.google.com/spreadsheets/d/${id}/edit#gid=${sheetId}`;
 
     // Validate 3D only for PIE charts

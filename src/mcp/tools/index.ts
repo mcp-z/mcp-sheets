@@ -22,5 +22,6 @@ export { default as validationSet } from './validation-set.ts';
 export { default as valuesBatchUpdate } from './values-batch-update.ts';
 export { default as valuesClear } from './values-clear.ts';
 export { default as valuesCsvUpdate } from './values-csv-update.ts';
+export { default as valuesMarkdownUpdate } from './values-markdown-update.ts';
 export { default as valuesReplace } from './values-replace.ts';
 export { default as valuesSearch } from './values-search.ts';

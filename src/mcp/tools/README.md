@@ -67,7 +67,7 @@ OPERATION TOOLS (require direct IDs from lookup tools)
 - `sheet-copy` - Copy sheet within same spreadsheet
 - `sheet-copy-to` - Copy sheet to different spreadsheet
 
-#### Data Operations (12)
+#### Data Operations (13)
 - `rows-get` - Read row data from range
 - `rows-append` - Append rows with deduplication
 - `rows-csv-append` - Append rows from CSV
@@ -77,6 +77,7 @@ OPERATION TOOLS (require direct IDs from lookup tools)
 - `values-batch-update` - Update multiple ranges
 - `values-clear` - Clear cell values
 - `values-csv-update` - Update from CSV
+- `values-markdown-update` - Write cell text parsed from inline markdown (multiple clickable links, bold, italic, strikethrough)
 - `values-replace` - Find and replace values
 
 #### Formatting Operations (3)

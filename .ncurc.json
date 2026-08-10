@@ -1,0 +1,4 @@
+{
+  "upgrade": true,
+  "reject": ["google-auth-library", "googleapis"]
+}

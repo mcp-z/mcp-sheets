@@ -104,7 +104,8 @@ async function handler({ id, gid, requests }: Input, extra: EnrichedExtra): Prom
     }
 
     const sheetTitle = sheet.properties.title ?? gid;
-    const sheetId = sheet.properties.sheetId;
+    // googleapis types sheetId as `number | null | undefined`; coerce for rangeReferenceToGridRange below (same pattern as values-batch-update.ts's sheetGid).
+    const sheetId = sheet.properties.sheetId ?? 0;
     const sheetUrl = `https://docs.google.com/spreadsheets/d/${id}/edit#gid=${sheetId}`;
 
     // Build batch update requests
