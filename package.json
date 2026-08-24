@@ -50,12 +50,10 @@
     "./package.json": "./package.json"
   },
   "main": "./dist/cjs/index.js",
-  "module": "./dist/esm/index.js",
   "types": "./dist/esm/index.d.ts",
   "bin": "bin/server.js",
   "files": [
-    "dist",
-    "bin"
+    "dist"
   ],
   "scripts": {
     "build": "tsds validate",
@@ -99,6 +97,12 @@
   },
   "engines": {
     "node": ">=20"
+  },
+  "allowScripts": {
+    "node-filename-to-dist-paths": true,
+    "node-semvers": true,
+    "node-version-use": true,
+    "thread-sleep-compat": true
   },
   "mcpName": "io.github.mcp-z/mcp-sheets",
   "tsds": {
