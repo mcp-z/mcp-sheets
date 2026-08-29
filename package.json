@@ -60,11 +60,9 @@
     "format": "tsds format",
     "prepublish:check": "ncp",
     "prepublishOnly": "tsds validate",
-    "test": "npm run test:unit && npm run test:integration",
-    "test:engines": "nvu engines tsds test:node --no-timeouts 'test/**/*.test.ts'",
-    "test:integration": "tsds test:node --no-timeouts 'test/integration/**/*.test.ts'",
+    "test": "tsds test:node --no-timeouts",
+    "test:engines": "nvu engines tsds test:node --no-timeouts",
     "test:setup": "node scripts/setup-test.ts",
-    "test:unit": "tsds test:node --no-timeouts 'test/unit/**/*.test.ts'",
     "version": "tsds version"
   },
   "dependencies": {
