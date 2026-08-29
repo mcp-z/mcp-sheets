@@ -1,1 +1,1 @@
-ignores: ["node-version-use", "ts-dev-stack", "@types/node", "@types/mocha", "typescript"]
+ignores: ["@mcp-z/mcp-sheets", "node-version-use", "ts-dev-stack", "@types/node", "@types/mocha", "typescript"]
