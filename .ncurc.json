@@ -1,4 +1,4 @@
 {
   "upgrade": true,
-  "reject": ["get-port", "google-auth-library", "googleapis"]
+  "reject": ["get-port", "google-auth-library", "googleapis", "keyv-file"]
 }
