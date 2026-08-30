@@ -209,3 +209,21 @@ mcp-z call sheets spreadsheet-find '{"spreadsheetRef":"Quarterly Report"}'
 ## Configuration reference
 
 See `server.json` for all supported environment variables, CLI arguments, and defaults.
+
+## Storage backends
+
+OAuth tokens (`TOKEN_STORE_URI`) and DCR registrations (`DCR_STORE_URI`) are stored through
+[keyv-registry](https://www.npmjs.com/package/keyv-registry), which picks an adapter from the URI protocol.
+
+`file://` (the default, under `~/.mcp-z/`) and `memory://` work with no extra setup.
+
+Any other backend needs its adapter installed alongside this server. Adapters are resolved with
+`require()`, so a globally installed server finds a globally installed adapter:
+
+```bash
+npm install -g @mcp-z/mcp-sheets @keyv/redis
+
+TOKEN_STORE_URI=redis://localhost:6379 mcp-sheets
+```
+
+A protocol whose adapter is missing fails at startup naming the package to install.

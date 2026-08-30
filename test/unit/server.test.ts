@@ -1,6 +1,7 @@
 import assert from 'assert';
 import { randomUUID } from 'crypto';
 import * as fs from 'fs';
+import { safeRmSync } from 'fs-remove-compat';
 import getPort from 'get-port';
 import * as path from 'path';
 import { createHTTPServer } from '../../src/setup/http.ts';
@@ -28,7 +29,7 @@ describe('createHTTPServer - transport initialization', () => {
 
     // Clean up isolated test context
     if (testContextPath && fs.existsSync(testContextPath)) {
-      fs.rmSync(testContextPath, { recursive: true, force: true });
+      safeRmSync(testContextPath, { recursive: true, force: true });
     }
   });
 

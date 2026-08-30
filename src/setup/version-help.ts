@@ -4,7 +4,7 @@ import * as path from 'path';
 import * as url from 'url';
 import { parseArgs } from 'util';
 
-// Kept dependency-free (fs/path/url/module-root-sync only) so `--version`/`--help`/`version`
+// Kept dependency-free (fs/path/url/module-root-sync only) so `--version`/`--help`
 // resolve nothing beyond Node startup: config.ts's parseConfig pulls in @mcp-z/oauth-google and
 // @mcp-z/server, which this path must not touch.
 const pkg = JSON.parse(fs.readFileSync(path.join(moduleRoot(url.fileURLToPath(import.meta.url)), 'package.json'), 'utf-8'));
@@ -15,8 +15,8 @@ Usage: mcp-sheets [options]
 MCP server for Google Sheets spreadsheet management with OAuth authentication.
 
 Options:
-  --version              Show version number
-  --help                 Show this help message
+  --version, -v          Show version number
+  --help, -h             Show this help message
   --auth=<mode>          Authentication mode (default: loopback-oauth)
                          Modes: loopback-oauth, service-account, dcr
   --headless             Disable browser auto-open, return auth URL instead
@@ -29,9 +29,6 @@ Options:
   --log-level=<level>    Logging level (default: info)
   --resource-store-uri=<uri>    Resource store URI for CSV file storage (default: file://~/.mcp-z/mcp-sheets/files)
   --base-url=<url>       Base URL for HTTP file serving (optional)
-
-Commands:
-  version                Show version number
 
 Environment Variables:
   GOOGLE_CLIENT_ID       OAuth client ID (REQUIRED)
@@ -47,12 +44,18 @@ Environment Variables:
   RESOURCE_STORE_URI            Resource store URI (optional, file://)
   BASE_URL               Base URL for HTTP file serving (optional)
 
+Storage Backends:
+  TOKEN_STORE_URI and DCR_STORE_URI accept any keyv-registry protocol.
+  file:// (the default) and memory:// work out of the box. Any other backend
+  needs its adapter installed alongside this server:
+    npm install -g @keyv/redis
+    TOKEN_STORE_URI=redis://localhost:6379 mcp-sheets
+
 OAuth Scopes:
   openid https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/drive
 
 Examples:
   mcp-sheets                           # Use default settings
-  mcp-sheets version                   # Print version number
   mcp-sheets --auth=service-account    # Use service account auth
   mcp-sheets --port=3000               # HTTP transport on port 3000
   mcp-sheets --resource-store-uri=file:///tmp/sheets    # Custom resource store URI
@@ -65,21 +68,21 @@ export function readPkg(): { name: string; version: string; repository?: string 
 }
 
 /**
- * Handle --version/--help flags and the `version` subcommand before config parsing.
+ * Handle --version/--help flags before config parsing.
  * These must work without requiring any configuration or heavy dependency.
  */
 export function handleVersionHelp(args: string[]): { handled: boolean; output?: string } {
-  const { values, positionals } = parseArgs({
+  const { values } = parseArgs({
     args,
     options: {
-      version: { type: 'boolean' },
-      help: { type: 'boolean' },
+      version: { type: 'boolean', short: 'v' },
+      help: { type: 'boolean', short: 'h' },
     },
     strict: false,
     allowPositionals: true,
   });
 
-  if (values.version || positionals[0] === 'version') return { handled: true, output: pkg.version };
+  if (values.version) return { handled: true, output: pkg.version };
   if (values.help) return { handled: true, output: HELP_TEXT };
   return { handled: false };
 }
