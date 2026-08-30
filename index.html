@@ -122,6 +122,16 @@ Cloud: set REDIRECT_URI to your public /oauth/callback and expose the service pu
 </ol>
 <h2 id="configuration-reference" class="tsd-anchor-link">Configuration reference<a href="#configuration-reference" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
 <p>See <code>server.json</code> for all supported environment variables, CLI arguments, and defaults.</p>
+<h2 id="storage-backends" class="tsd-anchor-link">Storage backends<a href="#storage-backends" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
+<p>OAuth tokens (<code>TOKEN_STORE_URI</code>) and DCR registrations (<code>DCR_STORE_URI</code>) are stored through
+<a href="https://www.npmjs.com/package/keyv-registry">keyv-registry</a>, which picks an adapter from the URI protocol.</p>
+<p><code>file://</code> (the default, under <code>~/.mcp-z/</code>) and <code>memory://</code> work with no extra setup.</p>
+<p>Any other backend needs its adapter installed alongside this server. Adapters are resolved with
+<code>require()</code>, so a globally installed server finds a globally installed adapter:</p>
+<pre><code class="bash"><span class="hl-5">npm</span><span class="hl-0"> </span><span class="hl-2">install</span><span class="hl-0"> </span><span class="hl-6">-g</span><span class="hl-0"> </span><span class="hl-2">@mcp-z/mcp-sheets</span><span class="hl-0"> </span><span class="hl-2">@keyv/redis</span><br/><br/><span class="hl-3">TOKEN_STORE_URI</span><span class="hl-0">=</span><span class="hl-2">redis://localhost:6379</span><span class="hl-0"> </span><span class="hl-5">mcp-sheets</span>
+</code><button type="button">Copy</button></pre>
+
+<p>A protocol whose adapter is missing fails at startup naming the package to install.</p>
 </div></div>
 <div class="col-sidebar">
 <div class="page-menu">
@@ -151,7 +161,8 @@ Cloud: set REDIRECT_URI to your public /oauth/callback and expose the service pu
 <li><a href="#tools"><span>Tools</span></a></li>
 <li><a href="#resources"><span>Resources</span></a></li>
 <li><a href="#prompts"><span>Prompts</span></a></li>
-<li><a href="#configuration-reference"><span>Configuration reference</span></a></li></ul></div></details></div>
+<li><a href="#configuration-reference"><span>Configuration reference</span></a></li>
+<li><a href="#storage-backends"><span>Storage backends</span></a></li></ul></div></details></div>
 <div class="site-menu">
 <nav class="tsd-navigation"><a href="modules.html">@mcp-z/mcp-sheets</a>
 <ul class="tsd-small-nested-navigation" id="tsd-nav-container">
