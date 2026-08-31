@@ -1,10 +1,11 @@
+import { mcp } from '@mcp-z/mcp-sheets';
 import type { Logger, LoopbackOAuthProvider } from '@mcp-z/oauth-google';
 import assert from 'assert';
 import crypto from 'crypto';
 import fs from 'fs/promises';
 import * as path from 'path';
-import createTool, { type Input, type Output } from '../../../../src/mcp/tools/rows-append.ts';
-import createRowsGetTool, { type Input as RowsGetInput, type Output as RowsGetOutput } from '../../../../src/mcp/tools/rows-get.ts';
+import type { Input, Output } from '../../../../src/mcp/tools/rows-append.ts';
+import type { Input as RowsGetInput, Output as RowsGetOutput } from '../../../../src/mcp/tools/rows-get.ts';
 import { createExtra, type TypedHandler } from '../../../lib/create-extra.ts';
 import createMiddlewareContext from '../../../lib/create-middleware-context.ts';
 import { createTestSpreadsheet, deleteTestSpreadsheet } from '../../../lib/spreadsheet-helpers.ts';
@@ -46,11 +47,11 @@ describe('rows-append tool (service-backed tests)', () => {
       logger = middlewareContext.logger;
       const middleware = middlewareContext.middleware;
       accountId = middlewareContext.accountId;
-      const tool = createTool();
+      const tool = mcp.toolFactories.rowsAppend();
       const wrappedTool = middleware.withToolAuth(tool);
       handler = wrappedTool.handler;
       // Initialize rows-get tool for validation
-      const rowsGetTool = createRowsGetTool();
+      const rowsGetTool = mcp.toolFactories.rowsGet();
       const wrappedRowsGetTool = middleware.withToolAuth(rowsGetTool);
       rowsGetHandler = wrappedRowsGetTool.handler;
 

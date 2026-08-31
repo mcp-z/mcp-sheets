@@ -1,10 +1,11 @@
+import { mcp } from '@mcp-z/mcp-sheets';
 import type { EnrichedExtra, Logger, LoopbackOAuthProvider } from '@mcp-z/oauth-google';
 import type { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 import assert from 'assert';
 import crypto from 'crypto';
 import fs from 'fs/promises';
 import * as path from 'path';
-import createTool, { type Input, type Output } from '../../../../src/mcp/tools/spreadsheet-find.ts';
+import type { Input, Output } from '../../../../src/mcp/tools/spreadsheet-find.ts';
 import { createExtra } from '../../../lib/create-extra.ts';
 import createMiddlewareContext from '../../../lib/create-middleware-context.ts';
 import { createTestSpreadsheet, deleteTestSpreadsheet } from '../../../lib/spreadsheet-helpers.ts';
@@ -29,7 +30,7 @@ before(async () => {
     logger = middlewareContext.logger;
     const middleware = middlewareContext.middleware;
     accountId = middlewareContext.accountId;
-    const tool = createTool();
+    const tool = mcp.toolFactories.spreadsheetFind();
     const wrappedTool = middleware.withToolAuth(tool);
     handler = wrappedTool.handler;
 

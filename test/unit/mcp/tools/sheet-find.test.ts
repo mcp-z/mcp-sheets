@@ -1,10 +1,11 @@
+import { mcp } from '@mcp-z/mcp-sheets';
 import type { Logger, LoopbackOAuthProvider } from '@mcp-z/oauth-google';
 import assert from 'assert';
 import crypto from 'crypto';
 import fs from 'fs/promises';
 import * as path from 'path';
-import createTool, { type Input as SheetCreateInput, type Output as SheetCreateOutput } from '../../../../src/mcp/tools/sheet-create.ts';
-import createSheetFindTool, { type Input, type Output as SheetFindOutput } from '../../../../src/mcp/tools/sheet-find.ts';
+import type { Input as SheetCreateInput, Output as SheetCreateOutput } from '../../../../src/mcp/tools/sheet-create.ts';
+import type { Input, Output as SheetFindOutput } from '../../../../src/mcp/tools/sheet-find.ts';
 import { createExtra, type TypedHandler } from '../../../lib/create-extra.ts';
 import createMiddlewareContext from '../../../lib/create-middleware-context.ts';
 import { createTestSpreadsheet, deleteTestSpreadsheet } from '../../../lib/spreadsheet-helpers.ts';
@@ -30,10 +31,10 @@ before(async () => {
     logger = middlewareContext.logger;
     const middleware = middlewareContext.middleware;
     accountId = middlewareContext.accountId;
-    const tool = createTool();
+    const tool = mcp.toolFactories.sheetCreate();
     const wrappedtool = middleware.withToolAuth(tool);
     sheetCreateHandler = wrappedtool.handler;
-    const toolFind = createSheetFindTool();
+    const toolFind = mcp.toolFactories.sheetFind();
     const wrappedTool = middleware.withToolAuth(toolFind);
     handler = wrappedTool.handler;
 

@@ -1,3 +1,4 @@
+import { mcp } from '@mcp-z/mcp-sheets';
 import type { Logger, LoopbackOAuthProvider } from '@mcp-z/oauth-google';
 import assert from 'assert';
 import crypto from 'crypto';
@@ -5,7 +6,7 @@ import fs from 'fs/promises';
 import type { OAuth2Client } from 'google-auth-library';
 import { google } from 'googleapis';
 import * as path from 'path';
-import createSearchTool, { type Input, type Output } from '../../../../src/mcp/tools/values-search.ts';
+import type { Input, Output } from '../../../../src/mcp/tools/values-search.ts';
 import { createExtra, type TypedHandler } from '../../../lib/create-extra.ts';
 import createMiddlewareContext from '../../../lib/create-middleware-context.ts';
 import { createTestSpreadsheet, deleteTestSpreadsheet } from '../../../lib/spreadsheet-helpers.ts';
@@ -53,7 +54,7 @@ describe('search tool (service-backed tests)', () => {
     auth = middlewareContext.auth;
     const middleware = middlewareContext.middleware;
     accountId = middlewareContext.accountId;
-    const tool = createSearchTool();
+    const tool = mcp.toolFactories.valuesSearch();
     const wrappedTool = middleware.withToolAuth(tool);
     handler = wrappedTool.handler;
     const title = `ci-search-tests-${Date.now()}`;
