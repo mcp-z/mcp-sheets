@@ -1,9 +1,10 @@
+import { mcp } from '@mcp-z/mcp-sheets';
 import type { Logger, LoopbackOAuthProvider } from '@mcp-z/oauth-google';
 import assert from 'assert';
 import crypto from 'crypto';
 import fs from 'fs/promises';
 import * as path from 'path';
-import createRowsCsvAppendTool, { type Input, type Output } from '../../../../src/mcp/tools/rows-csv-append.ts';
+import type { Input, Output } from '../../../../src/mcp/tools/rows-csv-append.ts';
 import { createExtra, type TypedHandler } from '../../../lib/create-extra.ts';
 import createMiddlewareContext from '../../../lib/create-middleware-context.ts';
 import { createTestSheet, createTestSpreadsheet, deleteTestSpreadsheet } from '../../../lib/spreadsheet-helpers.ts';
@@ -29,7 +30,7 @@ before(async () => {
     const middleware = middlewareContext.middleware;
     accountId = middlewareContext.accountId;
 
-    const tool = createRowsCsvAppendTool();
+    const tool = mcp.toolFactories.rowsCsvAppend();
     const wrappedTool = middleware.withToolAuth(tool);
     handler = wrappedTool.handler;
 

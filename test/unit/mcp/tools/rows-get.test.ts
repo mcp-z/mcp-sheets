@@ -1,8 +1,9 @@
+import { mcp } from '@mcp-z/mcp-sheets';
 import type { Logger, LoopbackOAuthProvider } from '@mcp-z/oauth-google';
 import assert from 'assert';
 import type { OAuth2Client } from 'google-auth-library';
 import { google } from 'googleapis';
-import createRowsGetTool, { type Input, type Output } from '../../../../src/mcp/tools/rows-get.ts';
+import type { Input, Output } from '../../../../src/mcp/tools/rows-get.ts';
 import { createExtra, type TypedHandler } from '../../../lib/create-extra.ts';
 import createMiddlewareContext from '../../../lib/create-middleware-context.ts';
 import { createTestSpreadsheet, deleteTestSpreadsheet } from '../../../lib/spreadsheet-helpers.ts';
@@ -57,7 +58,7 @@ describe('rows-get tool (service-backed tests)', () => {
     auth = middlewareContext.auth;
     const middleware = middlewareContext.middleware;
     accountId = middlewareContext.accountId;
-    const tool = createRowsGetTool();
+    const tool = mcp.toolFactories.rowsGet();
     const wrappedTool = middleware.withToolAuth(tool);
     rowsGetHandler = wrappedTool.handler;
     const title = `ci-rows-get-tests-${Date.now()}`;

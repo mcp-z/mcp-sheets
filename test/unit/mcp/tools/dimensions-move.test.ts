@@ -1,9 +1,10 @@
+import { mcp } from '@mcp-z/mcp-sheets';
 import type { Logger, LoopbackOAuthProvider } from '@mcp-z/oauth-google';
 import assert from 'assert';
 import type { OAuth2Client } from 'google-auth-library';
 import { google } from 'googleapis';
-import createDimensionsMoveTool, { type Input, type Output } from '../../../../src/mcp/tools/dimensions-move.ts';
-import createRowsGetTool, { type Input as RowsGetInput, type Output as RowsGetOutput } from '../../../../src/mcp/tools/rows-get.ts';
+import type { Input, Output } from '../../../../src/mcp/tools/dimensions-move.ts';
+import type { Input as RowsGetInput, Output as RowsGetOutput } from '../../../../src/mcp/tools/rows-get.ts';
 import { createExtra, type TypedHandler } from '../../../lib/create-extra.ts';
 import createMiddlewareContext from '../../../lib/create-middleware-context.ts';
 import { createTestSpreadsheet, deleteTestSpreadsheet } from '../../../lib/spreadsheet-helpers.ts';
@@ -51,11 +52,11 @@ describe('dimensions-move tool (service-backed tests)', () => {
     const middleware = middlewareContext.middleware;
     accountId = middlewareContext.accountId;
 
-    const dimensionsMoveTool = createDimensionsMoveTool();
+    const dimensionsMoveTool = mcp.toolFactories.dimensionsMove();
     const wrappedDimensionsMoveTool = middleware.withToolAuth(dimensionsMoveTool);
     dimensionsMoveHandler = wrappedDimensionsMoveTool.handler;
 
-    const rowsGetTool = createRowsGetTool();
+    const rowsGetTool = mcp.toolFactories.rowsGet();
     const wrappedRowsGetTool = middleware.withToolAuth(rowsGetTool);
     rowsGetHandler = wrappedRowsGetTool.handler;
 

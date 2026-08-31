@@ -1,8 +1,9 @@
+import { mcp } from '@mcp-z/mcp-sheets';
 import assert from 'assert';
 import crypto from 'crypto';
 import fs from 'fs/promises';
 import * as path from 'path';
-import createCsvGetColumnsTool, { type Input, type Output } from '../../../../src/mcp/tools/csv-get-columns.ts';
+import type { Input, Output } from '../../../../src/mcp/tools/csv-get-columns.ts';
 import { createExtra, type TypedHandler } from '../../../lib/create-extra.ts';
 import createMiddlewareContext from '../../../lib/create-middleware-context.ts';
 
@@ -18,7 +19,7 @@ before(async () => {
     // Create tool with middleware
     const middlewareContext = await createMiddlewareContext();
     const middleware = middlewareContext.middleware;
-    const tool = createCsvGetColumnsTool();
+    const tool = mcp.toolFactories.csvGetColumns();
     const wrappedTool = middleware.withToolAuth(tool);
     handler = wrappedTool.handler;
   } catch (error) {

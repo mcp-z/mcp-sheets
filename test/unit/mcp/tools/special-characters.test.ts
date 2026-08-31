@@ -1,9 +1,10 @@
+import { mcp } from '@mcp-z/mcp-sheets';
 import type { Logger, LoopbackOAuthProvider } from '@mcp-z/oauth-google';
 import assert from 'assert';
 import type { OAuth2Client } from 'google-auth-library';
 import { google } from 'googleapis';
-import createValuesReplaceTool, { type Input as ReplaceInput, type Output as ReplaceOutput } from '../../../../src/mcp/tools/values-replace.ts';
-import createSearchTool, { type Input as SearchInput, type Output as SearchOutput } from '../../../../src/mcp/tools/values-search.ts';
+import type { Input as ReplaceInput, Output as ReplaceOutput } from '../../../../src/mcp/tools/values-replace.ts';
+import type { Input as SearchInput, Output as SearchOutput } from '../../../../src/mcp/tools/values-search.ts';
 import { createExtra, type TypedHandler } from '../../../lib/create-extra.ts';
 import createMiddlewareContext from '../../../lib/create-middleware-context.ts';
 import { createTestSpreadsheet, deleteTestSpreadsheet } from '../../../lib/spreadsheet-helpers.ts';
@@ -50,11 +51,11 @@ describe('special characters handling (service-backed tests)', () => {
     const middleware = middlewareContext.middleware;
     accountId = middlewareContext.accountId;
 
-    const valuesReplaceTool = createValuesReplaceTool();
+    const valuesReplaceTool = mcp.toolFactories.valuesReplace();
     const wrappedReplaceTool = middleware.withToolAuth(valuesReplaceTool);
     valuesReplaceHandler = wrappedReplaceTool.handler;
 
-    const searchTool = createSearchTool();
+    const searchTool = mcp.toolFactories.valuesSearch();
     const wrappedSearchTool = middleware.withToolAuth(searchTool);
     valuesSearchHandler = wrappedSearchTool.handler;
 

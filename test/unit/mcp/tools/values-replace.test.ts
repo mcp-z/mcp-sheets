@@ -1,8 +1,9 @@
+import { mcp } from '@mcp-z/mcp-sheets';
 import type { Logger, LoopbackOAuthProvider } from '@mcp-z/oauth-google';
 import assert from 'assert';
 import type { OAuth2Client } from 'google-auth-library';
 import { google } from 'googleapis';
-import createValuesReplaceTool, { type Input, type Output } from '../../../../src/mcp/tools/values-replace.ts';
+import type { Input, Output } from '../../../../src/mcp/tools/values-replace.ts';
 import { createExtra, type TypedHandler } from '../../../lib/create-extra.ts';
 import createMiddlewareContext from '../../../lib/create-middleware-context.ts';
 import { createTestSpreadsheet, deleteTestSpreadsheet } from '../../../lib/spreadsheet-helpers.ts';
@@ -52,7 +53,7 @@ describe('values-replace tool (service-backed tests)', () => {
     const middleware = middlewareContext.middleware;
     accountId = middlewareContext.accountId;
 
-    const valuesReplaceTool = createValuesReplaceTool();
+    const valuesReplaceTool = mcp.toolFactories.valuesReplace();
     const wrappedTool = middleware.withToolAuth(valuesReplaceTool);
     valuesReplaceHandler = wrappedTool.handler;
 

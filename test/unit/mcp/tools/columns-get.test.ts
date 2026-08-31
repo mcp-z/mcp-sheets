@@ -1,3 +1,4 @@
+import { mcp } from '@mcp-z/mcp-sheets';
 import type { Logger, LoopbackOAuthProvider } from '@mcp-z/oauth-google';
 import assert from 'assert';
 import crypto from 'crypto';
@@ -5,8 +6,8 @@ import fs from 'fs/promises';
 import { OAuth2Client } from 'google-auth-library';
 import { google } from 'googleapis';
 import * as path from 'path';
-import createColumnsGetTool, { type Output as ColumnsGetOutput, type Input } from '../../../../src/mcp/tools/columns-get.ts';
-import createRowsAppendTool, { type Input as RowsAppendInput, type Output as RowsAppendOutput } from '../../../../src/mcp/tools/rows-append.ts';
+import type { Output as ColumnsGetOutput, Input } from '../../../../src/mcp/tools/columns-get.ts';
+import type { Input as RowsAppendInput, Output as RowsAppendOutput } from '../../../../src/mcp/tools/rows-append.ts';
 import { createExtra, type TypedHandler } from '../../../lib/create-extra.ts';
 import createMiddlewareContext from '../../../lib/create-middleware-context.ts';
 import { createTestSpreadsheet, deleteTestSpreadsheet } from '../../../lib/spreadsheet-helpers.ts';
@@ -34,11 +35,11 @@ before(async () => {
     const middleware = middlewareContext.middleware;
     accountId = middlewareContext.accountId;
 
-    const tool = createColumnsGetTool();
+    const tool = mcp.toolFactories.columnsGet();
     const wrappedTool = middleware.withToolAuth(tool);
     handler = wrappedTool.handler;
 
-    const rowsAppendTool = createRowsAppendTool();
+    const rowsAppendTool = mcp.toolFactories.rowsAppend();
     const wrappedRowsAppendTool = middleware.withToolAuth(rowsAppendTool);
     rowsAppendHandler = wrappedRowsAppendTool.handler;
 

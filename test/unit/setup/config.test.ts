@@ -1,9 +1,9 @@
+import { setup } from '@mcp-z/mcp-sheets';
 import assert from 'assert';
-import { parseConfig } from '../../../src/setup/config.ts';
 
-describe('parseConfig', () => {
+describe('setup.parseConfig', () => {
   it('defaults to stdio transport with no args or env', () => {
-    const config = parseConfig([], {
+    const config = setup.parseConfig([], {
       GOOGLE_CLIENT_ID: 'test-client-id',
       GOOGLE_CLIENT_SECRET: 'test-client-secret',
     });
@@ -12,7 +12,7 @@ describe('parseConfig', () => {
   });
 
   it('defaults headless to true for tests', () => {
-    const config = parseConfig([], {
+    const config = setup.parseConfig([], {
       GOOGLE_CLIENT_ID: 'test-client-id',
       GOOGLE_CLIENT_SECRET: 'test-client-secret',
       HEADLESS: 'true', // Explicit HEADLESS env var (no NODE_ENV magic)
@@ -22,7 +22,7 @@ describe('parseConfig', () => {
   });
 
   it('uses --headless CLI arg to override env var', () => {
-    const config = parseConfig(['--headless'], {
+    const config = setup.parseConfig(['--headless'], {
       GOOGLE_CLIENT_ID: 'test-client-id',
       GOOGLE_CLIENT_SECRET: 'test-client-secret',
       HEADLESS: 'false', // Env says false, but CLI arg overrides
@@ -38,14 +38,14 @@ describe('parseConfig', () => {
       GOOGLE_CLIENT_SECRET: 'test-client-secret',
     };
 
-    const config = parseConfig([], testEnv);
+    const config = setup.parseConfig([], testEnv);
 
     assert.strictEqual(config.clientId, 'test-client-id');
     assert.strictEqual(config.clientSecret, 'test-client-secret');
   });
 
   it('uses empty array for args when no CLI arguments provided', () => {
-    const config = parseConfig([], {
+    const config = setup.parseConfig([], {
       GOOGLE_CLIENT_ID: 'test-client-id',
       GOOGLE_CLIENT_SECRET: 'test-client-secret',
     });
@@ -55,7 +55,7 @@ describe('parseConfig', () => {
   });
 
   it('parses HTTP port from CLI --port flag', () => {
-    const config = parseConfig(['--port=4000'], {
+    const config = setup.parseConfig(['--port=4000'], {
       GOOGLE_CLIENT_ID: 'test-client-id',
       GOOGLE_CLIENT_SECRET: 'test-client-secret',
     });
@@ -67,7 +67,7 @@ describe('parseConfig', () => {
   });
 
   it('parses HTTP port from PORT env var', () => {
-    const config = parseConfig([], {
+    const config = setup.parseConfig([], {
       PORT: '4000',
       GOOGLE_CLIENT_ID: 'test-client-id',
       GOOGLE_CLIENT_SECRET: 'test-client-secret',
@@ -80,7 +80,7 @@ describe('parseConfig', () => {
   });
 
   it('CLI --port flag overrides PORT env var', () => {
-    const config = parseConfig(['--port=5000'], {
+    const config = setup.parseConfig(['--port=5000'], {
       PORT: '4000',
       GOOGLE_CLIENT_ID: 'test-client-id',
       GOOGLE_CLIENT_SECRET: 'test-client-secret',
@@ -93,7 +93,7 @@ describe('parseConfig', () => {
   });
 
   it('parses --redirect-uri when explicitly provided', () => {
-    const config = parseConfig(['--redirect-uri=https://example.com/callback'], {
+    const config = setup.parseConfig(['--redirect-uri=https://example.com/callback'], {
       GOOGLE_CLIENT_ID: 'test-client-id',
       GOOGLE_CLIENT_SECRET: 'test-client-secret',
     });
@@ -102,7 +102,7 @@ describe('parseConfig', () => {
   });
 
   it('parses --stdio explicitly', () => {
-    const config = parseConfig(['--stdio'], {
+    const config = setup.parseConfig(['--stdio'], {
       GOOGLE_CLIENT_ID: 'test-client-id',
       GOOGLE_CLIENT_SECRET: 'test-client-secret',
     });
@@ -111,7 +111,7 @@ describe('parseConfig', () => {
   });
 
   it('defaults to loopback-oauth auth mode', () => {
-    const config = parseConfig([], {
+    const config = setup.parseConfig([], {
       GOOGLE_CLIENT_ID: 'test-client-id',
       GOOGLE_CLIENT_SECRET: 'test-client-secret',
     });
@@ -120,7 +120,7 @@ describe('parseConfig', () => {
   });
 
   it('defaults to loopback-oauth auth mode', () => {
-    const config = parseConfig([], {
+    const config = setup.parseConfig([], {
       GOOGLE_CLIENT_ID: 'test-client-id',
       GOOGLE_CLIENT_SECRET: 'test-client-secret',
     });
@@ -129,7 +129,7 @@ describe('parseConfig', () => {
   });
 
   it('parses --auth=loopback-oauth', () => {
-    const config = parseConfig(['--auth=loopback-oauth'], {
+    const config = setup.parseConfig(['--auth=loopback-oauth'], {
       GOOGLE_CLIENT_ID: 'test-client-id',
       GOOGLE_CLIENT_SECRET: 'test-client-secret',
     });
@@ -138,7 +138,7 @@ describe('parseConfig', () => {
   });
 
   it('defaults logLevel to info', () => {
-    const config = parseConfig([], {
+    const config = setup.parseConfig([], {
       GOOGLE_CLIENT_ID: 'test-client-id',
       GOOGLE_CLIENT_SECRET: 'test-client-secret',
     });
@@ -147,7 +147,7 @@ describe('parseConfig', () => {
   });
 
   it('parses LOG_LEVEL from env', () => {
-    const config = parseConfig([], {
+    const config = setup.parseConfig([], {
       GOOGLE_CLIENT_ID: 'test-client-id',
       GOOGLE_CLIENT_SECRET: 'test-client-secret',
       LOG_LEVEL: 'debug',
@@ -157,7 +157,7 @@ describe('parseConfig', () => {
   });
 
   it('parses --log-level from CLI', () => {
-    const config = parseConfig(['--log-level=error'], {
+    const config = setup.parseConfig(['--log-level=error'], {
       GOOGLE_CLIENT_ID: 'test-client-id',
       GOOGLE_CLIENT_SECRET: 'test-client-secret',
     });
@@ -166,7 +166,7 @@ describe('parseConfig', () => {
   });
 
   it('CLI --log-level overrides LOG_LEVEL env var', () => {
-    const config = parseConfig(['--log-level=warn'], {
+    const config = setup.parseConfig(['--log-level=warn'], {
       GOOGLE_CLIENT_ID: 'test-client-id',
       GOOGLE_CLIENT_SECRET: 'test-client-secret',
       LOG_LEVEL: 'debug',

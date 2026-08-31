@@ -1,6 +1,7 @@
+import { mcp } from '@mcp-z/mcp-sheets';
 import type { Logger, LoopbackOAuthProvider } from '@mcp-z/oauth-google';
 import assert from 'assert';
-import createTool, { type Input, type Output } from '../../../../src/mcp/tools/spreadsheet-create.ts';
+import type { Input, Output } from '../../../../src/mcp/tools/spreadsheet-create.ts';
 import { createExtra, type TypedHandler } from '../../../lib/create-extra.ts';
 import createMiddlewareContext from '../../../lib/create-middleware-context.ts';
 import { deleteTestSpreadsheet } from '../../../lib/spreadsheet-helpers.ts';
@@ -19,7 +20,7 @@ describe('spreadsheet-create', () => {
     accountId = middlewareContext.accountId;
     logger = middlewareContext.logger;
     const middleware = middlewareContext.middleware;
-    const tool = createTool();
+    const tool = mcp.toolFactories.spreadsheetCreate();
     const wrappedTool = middleware.withToolAuth(tool);
     handler = wrappedTool.handler;
   });

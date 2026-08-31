@@ -1,10 +1,11 @@
+import { mcp } from '@mcp-z/mcp-sheets';
 import type { Logger, LoopbackOAuthProvider } from '@mcp-z/oauth-google';
 import assert from 'assert';
 import crypto from 'crypto';
 import fs from 'fs/promises';
 import { google } from 'googleapis';
 import * as path from 'path';
-import createValuesCsvUpdateTool, { type Input, type Output } from '../../../../src/mcp/tools/values-csv-update.ts';
+import type { Input, Output } from '../../../../src/mcp/tools/values-csv-update.ts';
 import { createExtra, type TypedHandler } from '../../../lib/create-extra.ts';
 import createMiddlewareContext from '../../../lib/create-middleware-context.ts';
 import { createTestSpreadsheet, deleteTestSpreadsheet } from '../../../lib/spreadsheet-helpers.ts';
@@ -29,7 +30,7 @@ before(async () => {
     const middleware = middlewareContext.middleware;
     accountId = middlewareContext.accountId;
 
-    const tool = createValuesCsvUpdateTool();
+    const tool = mcp.toolFactories.valuesCsvUpdate();
     const wrappedTool = middleware.withToolAuth(tool);
     handler = wrappedTool.handler;
 

@@ -1,3 +1,4 @@
+import { mcp } from '@mcp-z/mcp-sheets';
 import type { Logger, LoopbackOAuthProvider } from '@mcp-z/oauth-google';
 import assert from 'assert';
 import crypto from 'crypto';
@@ -5,7 +6,7 @@ import fs from 'fs/promises';
 import type { OAuth2Client } from 'google-auth-library';
 import { google } from 'googleapis';
 import * as path from 'path';
-import createTool, { type Input, type Output } from '../../../../src/mcp/tools/sheet-copy.ts';
+import type { Input, Output } from '../../../../src/mcp/tools/sheet-copy.ts';
 import { createExtra, type TypedHandler } from '../../../lib/create-extra.ts';
 import createMiddlewareContext from '../../../lib/create-middleware-context.ts';
 import { createTestSheet, createTestSpreadsheet, deleteTestSpreadsheet } from '../../../lib/spreadsheet-helpers.ts';
@@ -45,7 +46,7 @@ before(async () => {
     auth = middlewareContext.auth;
     logger = middlewareContext.logger;
     const middleware = middlewareContext.middleware;
-    const tool = createTool();
+    const tool = mcp.toolFactories.sheetCopy();
     const wrappedTool = middleware.withToolAuth(tool);
     handler = wrappedTool.handler;
     authProvider = middlewareContext.authProvider;

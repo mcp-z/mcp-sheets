@@ -9,7 +9,7 @@ describe('Sheets MCP Server Component Tests', () => {
 
   before(async () => {
     // Resolve paths relative to server root
-    const serverRoot = path.resolve(import.meta.dirname, '../../..');
+    const serverRoot = path.resolve(import.meta.dirname, '../..');
     const envFile = path.join(serverRoot, '.env.test');
     const serverPath = path.join(serverRoot, 'bin/server.js');
 
