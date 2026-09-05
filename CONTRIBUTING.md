@@ -1,69 +1,43 @@
-# Contributing to MCP-Z
+# Contributing to @mcp-z/mcp-sheets
+
+MCP server for Google Sheets integration with OAuth authentication, spreadsheet management, batch operations, and advanced formatting
 
 ## Before Starting
 
-**MUST READ**:
-- [QUALITY.MD](QUALITY.md) - Quality principles (summarize before starting work)
+A few conventions here differ from what you might expect:
+
+- **Breaking changes over compatibility.** This project has no compatibility burden yet. Do not add back-compat layers, migration utilities, or wrappers for deprecated APIs - change the API cleanly and bump the major.
+- **Keep it approachable.** This is a small community project, not an enterprise codebase. Prefer the simplest solution that fits in the existing files over new abstractions, frameworks, or shared infrastructure.
+- **Tests run against real services, not mocks.** Suites call live provider APIs with real credentials, so you need your own test account configured (copy `.env.test.example` to `.env.test`). A test that fails on credentials is reported, not skipped or loosened.
+- **Never write to stdout in server code.** MCP speaks JSON-RPC over stdio; a stray `console.log` corrupts the protocol stream. Use the injected logger, which writes to stderr.
+- **Test scratch goes in the package's gitignored `.tmp/`**, never `os.tmpdir()`.
 
 ## Pre-Commit Commands
 
 Install ts-dev-stack globally if not already installed:
+
 ```bash
 npm install -g ts-dev-stack
 ```
 
-Run before committing:
+Run before committing - this builds, type-checks, lints, and tests:
+
 ```bash
 tsds validate
 ```
 
-## Pre-Publish Verification
+`tsds validate` also runs automatically on `npm publish` via the `prepublishOnly` hook; a failure blocks the publish.
 
-Before publishing packages to npm, verify each package builds and runs correctly:
+## Testing
 
 ```bash
-# Verify specific package
-cd servers/mcp-gmail && npm run verify
-
-# Verify all server packages
-for server in gmail outlook sheets drive workflows; do
-  echo "Verifying @mcp-z/mcp-$server..."
-  cd servers/$server && npm run verify && cd ../.. || exit 1
-done
+npm run test:setup    # Generate OAuth tokens (interactive, run once)
+npm test              # Run the test suite
+npm run test:engines  # Run the suite across every supported Node version
 ```
 
-**Two-Phase Verification:**
-
-**Phase 1: Built Package Verification** (fast)
-- ✅ Package builds successfully (TypeScript compilation)
-- ✅ Required files exist (bin/, dist/)
-- ✅ Server starts using @mcp-z/cli infrastructure
-- ✅ Tools respond correctly
-
-**Phase 2: npm pack + Install Verification** (comprehensive)
-- ✅ npm pack creates valid tarball
-- ✅ Installation from tarball succeeds (production dependencies only)
-- ✅ Installed package structure valid
-- ✅ Excluded files not present (scripts/, test/, src/)
-- ✅ Server starts from installed package
-- ✅ Runtime dependencies complete (no missing deps)
-
-**Production-Grade Error Handling:**
-Uses @mcp-z/cli infrastructure for:
-- ✅ Timeout protection (5s graceful shutdown)
-- ✅ SIGKILL fallback (prevents hanging)
-- ✅ No orphaned processes
-- ✅ Comprehensive cleanup
-
-**Automatic verification:**
-Verification runs automatically during `npm publish` via the `prepublishOnly` hook. If **either phase** fails, publish is blocked.
-
-**Execution time:** ~30-60 seconds per package (Phase 1: ~15s, Phase 2: ~30s)
+Specs live in `test/unit/`, mirroring `src/`. Cross-service specs live in `test/integration/`. Both run under `npm test`.
 
 ## Package Development
 
-See package documentation:
-- `README.md` - Package overview and usage
-- `QUALITY.md` - Quality principles and standards
-- `CLAUDE.md` - Development patterns and architecture guidance
-
+See `README.md` for package overview and usage.
