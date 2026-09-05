@@ -1,6 +1,5 @@
 # MCP Tools Design
 
-Docs: https://mcp-z.github.io/mcp-sheets
 ## Spreadsheet/Sheet Identification Pattern
 
 ### Design Principle

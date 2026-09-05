@@ -1,6 +1,6 @@
 # MCP Components: Unified Authentication Pattern
 
-Docs: https://mcp-z.github.io/mcp-sheets This directory contains MCP component implementations (tools, resources, prompts) for Google Sheets.
+This directory contains MCP component implementations (tools, resources, prompts) for Google Sheets.
 
 ## Unified Middleware Pattern
 

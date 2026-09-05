@@ -23,21 +23,33 @@ export async function createHTTPServer(config: ServerConfig, overrides?: Runtime
   registerPrompts(mcpServer, prompts);
 
   const app = express();
-  app.use(cors());
   app.use(express.json({ limit: '10mb' }));
 
+  // Must mount '/mcp' before any permissive app-level cors(), or that layer answers its
+  // preflight first; pass baseUrl's origin/host below or a public deployment 403s itself.
+  const publicUrl = config.baseUrl ? new URL(config.baseUrl) : undefined;
+  logger.info(`Starting ${config.name} MCP server (http)`);
+  const { close, httpServer } = await connectHttp(mcpServer, {
+    logger,
+    app,
+    port,
+    allowedOrigins: publicUrl ? [publicUrl.origin] : undefined,
+    allowedHosts: publicUrl ? [publicUrl.host] : undefined,
+  });
+
+  // The loopback OAuth callback and the DCR discovery/registration endpoints are
+  // meant to be reached from a browser on another origin. Keep cors() for them,
+  // scoped to their own routes - never in front of '/mcp'.
   if (runtime.deps.oauthAdapters.loopbackRouter) {
-    app.use('/', runtime.deps.oauthAdapters.loopbackRouter);
+    app.use('/', cors(), runtime.deps.oauthAdapters.loopbackRouter);
     logger.info('Mounted loopback OAuth callback router');
   }
 
   if (runtime.deps.oauthAdapters.dcrRouter) {
-    app.use('/', runtime.deps.oauthAdapters.dcrRouter);
+    app.use('/', cors(), runtime.deps.oauthAdapters.dcrRouter);
     logger.info('Mounted DCR router with OAuth endpoints');
   }
 
-  logger.info(`Starting ${config.name} MCP server (http)`);
-  const { close, httpServer } = await connectHttp(mcpServer, { logger, app, port });
   logger.info('http transport ready');
 
   return {

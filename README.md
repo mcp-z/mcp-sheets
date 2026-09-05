@@ -1,6 +1,6 @@
 # @mcp-z/mcp-sheets
 
-Docs: https://mcp-z.github.io/mcp-sheets Google Sheets MCP server for reading, writing, and formatting spreadsheets.
+MCP server for Google Sheets integration with OAuth authentication, spreadsheet management, batch operations, and advanced formatting
 
 ## Common uses
 
@@ -223,3 +223,7 @@ TOKEN_STORE_URI=redis://localhost:6379 mcp-sheets
 ```
 
 A protocol whose adapter is missing fails at startup naming the package to install.
+
+### Documentation
+
+[API Docs](https://mcp-z.github.io/mcp-sheets)

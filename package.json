@@ -68,7 +68,7 @@
   "dependencies": {
     "@mcp-z/oauth": "^1.0.5",
     "@mcp-z/oauth-google": "^1.1.3",
-    "@mcp-z/server": "^1.0.0",
+    "@mcp-z/server": "^1.2.0",
     "@modelcontextprotocol/sdk": "^1.0.0",
     "cors": "^2.0.0",
     "csv-parse": "^7.0.2",
@@ -97,12 +97,6 @@
   },
   "engines": {
     "node": ">=20"
-  },
-  "allowScripts": {
-    "node-filename-to-dist-paths": true,
-    "node-semvers": true,
-    "node-version-use": true,
-    "thread-sleep-compat": true
   },
   "mcpName": "io.github.mcp-z/mcp-sheets",
   "tsds": {
