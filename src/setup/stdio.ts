@@ -1,5 +1,4 @@
-import { composeMiddleware, connectStdio, registerPrompts, registerResources, registerTools } from '@mcp-z/server';
-import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
+import { composeMiddleware, connectStdio, McpServer, registerPrompts, registerResources, registerTools } from '@mcp-z/server';
 import type { RuntimeOverrides, ServerConfig } from '../types.ts';
 import { createDefaultRuntime } from './runtime.ts';
 

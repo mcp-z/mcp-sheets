@@ -152,7 +152,7 @@ describe('cells-format tool (service-backed tests)', () => {
     // Validate response structure
     assert.ok(response, 'Handler returned no result');
 
-    const structured = response.structuredContent?.result as Output | undefined;
+    const structured = (response.structuredContent as { result?: unknown } | undefined)?.result as Output | undefined;
     assert.ok(structured, 'Response missing structuredContent.result');
     assert.strictEqual(structured?.type, 'success', 'Expected success result');
 
@@ -189,7 +189,7 @@ describe('cells-format tool (service-backed tests)', () => {
       createExtra()
     );
 
-    const structured = response.structuredContent?.result as Output | undefined;
+    const structured = (response.structuredContent as { result?: unknown } | undefined)?.result as Output | undefined;
     assert.ok(structured, 'Response missing structuredContent.result');
     // Note: Partial failures should still return success type
     assert.strictEqual(structured?.type, 'success', 'Expected success result even with partial failure');
@@ -232,7 +232,7 @@ describe('cells-format tool (service-backed tests)', () => {
       createExtra()
     );
 
-    const structured = response.structuredContent?.result as Output | undefined;
+    const structured = (response.structuredContent as { result?: unknown } | undefined)?.result as Output | undefined;
     assert.ok(structured, 'Response missing structuredContent.result');
     assert.strictEqual(structured?.type, 'success', 'Expected success result');
     if (structured?.type === 'success') {
@@ -260,7 +260,7 @@ describe('cells-format tool (service-backed tests)', () => {
       createExtra()
     );
 
-    const structured = response.structuredContent?.result as Output | undefined;
+    const structured = (response.structuredContent as { result?: unknown } | undefined)?.result as Output | undefined;
     assert.ok(structured, 'Response missing structuredContent.result');
     assert.strictEqual(structured?.type, 'success', 'Expected success result');
 

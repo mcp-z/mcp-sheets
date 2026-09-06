@@ -129,7 +129,7 @@ describe('dimensions-move tool (service-backed tests)', () => {
       createExtra()
     );
 
-    const moveBranch = moveResult.structuredContent?.result as Output | undefined;
+    const moveBranch = (moveResult.structuredContent as { result?: unknown } | undefined)?.result as Output | undefined;
     assert.equal(moveBranch?.type, 'success', 'move should succeed');
 
     if (moveBranch?.type === 'success') {
@@ -142,7 +142,7 @@ describe('dimensions-move tool (service-backed tests)', () => {
 
     // Verify the rows were actually moved by reading the data
     const readResult = await rowsGetHandler({ id: sharedSpreadsheetId, gid: sharedGid, range: 'A1:A10' }, createExtra());
-    const readBranch = readResult.structuredContent?.result as RowsGetOutput | undefined;
+    const readBranch = (readResult.structuredContent as { result?: unknown } | undefined)?.result as RowsGetOutput | undefined;
     assert.equal(readBranch?.type, 'success', 'read should succeed');
 
     if (readBranch?.type === 'success') {
@@ -173,7 +173,7 @@ describe('dimensions-move tool (service-backed tests)', () => {
       createExtra()
     );
 
-    const moveBranch = moveResult.structuredContent?.result as Output | undefined;
+    const moveBranch = (moveResult.structuredContent as { result?: unknown } | undefined)?.result as Output | undefined;
     assert.equal(moveBranch?.type, 'success', 'move should succeed');
 
     if (moveBranch?.type === 'success') {
@@ -186,7 +186,7 @@ describe('dimensions-move tool (service-backed tests)', () => {
 
     // Verify the columns were actually moved by reading the header row
     const readResult = await rowsGetHandler({ id: sharedSpreadsheetId, gid: sharedGid, range: 'E1:J1' }, createExtra());
-    const readBranch = readResult.structuredContent?.result as RowsGetOutput | undefined;
+    const readBranch = (readResult.structuredContent as { result?: unknown } | undefined)?.result as RowsGetOutput | undefined;
     assert.equal(readBranch?.type, 'success', 'read should succeed');
 
     if (readBranch?.type === 'success' && readBranch.rows[0]) {

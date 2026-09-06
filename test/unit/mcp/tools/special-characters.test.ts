@@ -123,7 +123,7 @@ describe('special characters handling (service-backed tests)', () => {
         createExtra()
       );
 
-      const branch = result.structuredContent?.result as SearchOutput | undefined;
+      const branch = (result.structuredContent as { result?: unknown } | undefined)?.result as SearchOutput | undefined;
       assert.equal(branch?.type, 'success', 'search should succeed');
 
       if (branch?.type === 'success') {
@@ -144,7 +144,7 @@ describe('special characters handling (service-backed tests)', () => {
         createExtra()
       );
 
-      const branch = result.structuredContent?.result as SearchOutput | undefined;
+      const branch = (result.structuredContent as { result?: unknown } | undefined)?.result as SearchOutput | undefined;
       assert.equal(branch?.type, 'success', 'search should succeed');
 
       if (branch?.type === 'success') {
@@ -163,7 +163,7 @@ describe('special characters handling (service-backed tests)', () => {
         createExtra()
       );
 
-      const branch = result.structuredContent?.result as ReplaceOutput | undefined;
+      const branch = (result.structuredContent as { result?: unknown } | undefined)?.result as ReplaceOutput | undefined;
       assert.equal(branch?.type, 'success', 'replace should succeed');
 
       if (branch?.type === 'success') {
@@ -190,7 +190,7 @@ describe('special characters handling (service-backed tests)', () => {
         createExtra()
       );
 
-      const branch = result.structuredContent?.result as ReplaceOutput | undefined;
+      const branch = (result.structuredContent as { result?: unknown } | undefined)?.result as ReplaceOutput | undefined;
       assert.equal(branch?.type, 'success', 'replace should succeed');
 
       if (branch?.type === 'success') {
@@ -216,7 +216,7 @@ describe('special characters handling (service-backed tests)', () => {
         createExtra()
       );
 
-      const branch = result.structuredContent?.result as SearchOutput | undefined;
+      const branch = (result.structuredContent as { result?: unknown } | undefined)?.result as SearchOutput | undefined;
       assert.equal(branch?.type, 'success', 'search should succeed');
 
       if (branch?.type === 'success') {
@@ -235,7 +235,7 @@ describe('special characters handling (service-backed tests)', () => {
         createExtra()
       );
 
-      const branch = result.structuredContent?.result as ReplaceOutput | undefined;
+      const branch = (result.structuredContent as { result?: unknown } | undefined)?.result as ReplaceOutput | undefined;
       assert.equal(branch?.type, 'success', 'replace should succeed');
 
       if (branch?.type === 'success') {
@@ -256,7 +256,7 @@ describe('special characters handling (service-backed tests)', () => {
         createExtra()
       );
 
-      const branch = result.structuredContent?.result as ReplaceOutput | undefined;
+      const branch = (result.structuredContent as { result?: unknown } | undefined)?.result as ReplaceOutput | undefined;
       assert.equal(branch?.type, 'success', 'replace should succeed');
 
       if (branch?.type === 'success') {
@@ -282,7 +282,7 @@ describe('special characters handling (service-backed tests)', () => {
         createExtra()
       );
 
-      const branch = result.structuredContent?.result as SearchOutput | undefined;
+      const branch = (result.structuredContent as { result?: unknown } | undefined)?.result as SearchOutput | undefined;
       assert.equal(branch?.type, 'success', 'search should succeed');
 
       if (branch?.type === 'success') {
@@ -301,7 +301,7 @@ describe('special characters handling (service-backed tests)', () => {
         createExtra()
       );
 
-      const branch = result.structuredContent?.result as ReplaceOutput | undefined;
+      const branch = (result.structuredContent as { result?: unknown } | undefined)?.result as ReplaceOutput | undefined;
       assert.equal(branch?.type, 'success', 'replace should succeed');
 
       if (branch?.type === 'success') {
@@ -323,7 +323,7 @@ describe('special characters handling (service-backed tests)', () => {
         createExtra()
       );
 
-      const branch = result.structuredContent?.result as ReplaceOutput | undefined;
+      const branch = (result.structuredContent as { result?: unknown } | undefined)?.result as ReplaceOutput | undefined;
       assert.equal(branch?.type, 'success', 'replace should succeed');
 
       if (branch?.type === 'success') {
@@ -350,7 +350,7 @@ describe('special characters handling (service-backed tests)', () => {
         createExtra()
       );
 
-      const branch = result.structuredContent?.result as SearchOutput | undefined;
+      const branch = (result.structuredContent as { result?: unknown } | undefined)?.result as SearchOutput | undefined;
       assert.equal(branch?.type, 'success', 'search should succeed');
 
       if (branch?.type === 'success') {
@@ -369,7 +369,7 @@ describe('special characters handling (service-backed tests)', () => {
         createExtra()
       );
 
-      const branch = result.structuredContent?.result as ReplaceOutput | undefined;
+      const branch = (result.structuredContent as { result?: unknown } | undefined)?.result as ReplaceOutput | undefined;
       assert.equal(branch?.type, 'success', 'replace should succeed');
 
       if (branch?.type === 'success') {
@@ -391,7 +391,7 @@ describe('special characters handling (service-backed tests)', () => {
         createExtra()
       );
 
-      const branch = result.structuredContent?.result as ReplaceOutput | undefined;
+      const branch = (result.structuredContent as { result?: unknown } | undefined)?.result as ReplaceOutput | undefined;
       assert.equal(branch?.type, 'success', 'replace should succeed');
 
       if (branch?.type === 'success') {
@@ -417,7 +417,7 @@ describe('special characters handling (service-backed tests)', () => {
         createExtra()
       );
 
-      const branch = result.structuredContent?.result as SearchOutput | undefined;
+      const branch = (result.structuredContent as { result?: unknown } | undefined)?.result as SearchOutput | undefined;
       assert.equal(branch?.type, 'success', 'search should succeed');
 
       if (branch?.type === 'success') {
@@ -436,7 +436,7 @@ describe('special characters handling (service-backed tests)', () => {
         createExtra()
       );
 
-      const branch = result.structuredContent?.result as ReplaceOutput | undefined;
+      const branch = (result.structuredContent as { result?: unknown } | undefined)?.result as ReplaceOutput | undefined;
       assert.equal(branch?.type, 'success', 'replace should succeed');
 
       if (branch?.type === 'success') {
@@ -455,7 +455,7 @@ describe('special characters handling (service-backed tests)', () => {
         createExtra()
       );
 
-      const branch = result.structuredContent?.result as ReplaceOutput | undefined;
+      const branch = (result.structuredContent as { result?: unknown } | undefined)?.result as ReplaceOutput | undefined;
       assert.equal(branch?.type, 'success', 'replace should succeed');
 
       if (branch?.type === 'success') {
@@ -482,7 +482,7 @@ describe('special characters handling (service-backed tests)', () => {
         createExtra()
       );
 
-      const branch = result.structuredContent?.result as SearchOutput | undefined;
+      const branch = (result.structuredContent as { result?: unknown } | undefined)?.result as SearchOutput | undefined;
       assert.equal(branch?.type, 'success', 'search should succeed');
 
       if (branch?.type === 'success') {
@@ -504,7 +504,7 @@ describe('special characters handling (service-backed tests)', () => {
         createExtra()
       );
 
-      const branch = result.structuredContent?.result as SearchOutput | undefined;
+      const branch = (result.structuredContent as { result?: unknown } | undefined)?.result as SearchOutput | undefined;
       assert.equal(branch?.type, 'success', 'search should succeed');
 
       if (branch?.type === 'success') {
@@ -527,7 +527,7 @@ describe('special characters handling (service-backed tests)', () => {
         createExtra()
       );
 
-      const branch = result.structuredContent?.result as SearchOutput | undefined;
+      const branch = (result.structuredContent as { result?: unknown } | undefined)?.result as SearchOutput | undefined;
       assert.equal(branch?.type, 'success', 'search should succeed');
 
       if (branch?.type === 'success') {
@@ -557,7 +557,7 @@ describe('special characters handling (service-backed tests)', () => {
         createExtra()
       );
 
-      const searchBranch = searchResult.structuredContent?.result as SearchOutput | undefined;
+      const searchBranch = (searchResult.structuredContent as { result?: unknown } | undefined)?.result as SearchOutput | undefined;
       assert.equal(searchBranch?.type, 'success', 'search should succeed');
       if (searchBranch?.type === 'success') {
         assert.equal(searchBranch.count, 1, 'should find the literal string a*b?c');
@@ -575,7 +575,7 @@ describe('special characters handling (service-backed tests)', () => {
         createExtra()
       );
 
-      const regexBranch = regexResult.structuredContent?.result as ReplaceOutput | undefined;
+      const regexBranch = (regexResult.structuredContent as { result?: unknown } | undefined)?.result as ReplaceOutput | undefined;
       assert.equal(regexBranch?.type, 'success', 'regex replace should succeed');
       if (regexBranch?.type === 'success') {
         assert.equal(regexBranch.occurrencesChanged, 1, 'should match with escaped regex metacharacters');

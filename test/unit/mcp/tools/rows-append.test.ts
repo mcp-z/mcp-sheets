@@ -94,7 +94,7 @@ describe('rows-append tool (service-backed tests)', () => {
     // Validate complete response structure according to outputSchema
     assert.ok(test1Resp, 'Test1: Handler returned no result');
 
-    const test1Structured = test1Resp.structuredContent?.result as Output | undefined;
+    const test1Structured = (test1Resp.structuredContent as { result?: unknown } | undefined)?.result as Output | undefined;
     assert.ok(test1Structured, 'Test1: Response missing structuredContent.result');
     if (test1Structured?.type !== 'success') {
       assert.fail('Test1: rows-append operation failed');
@@ -124,7 +124,7 @@ describe('rows-append tool (service-backed tests)', () => {
       createExtra()
     );
 
-    const rowsGetStructured = rowsGetResp.structuredContent?.result as RowsGetOutput | undefined;
+    const rowsGetStructured = (rowsGetResp.structuredContent as { result?: unknown } | undefined)?.result as RowsGetOutput | undefined;
     assert.ok(rowsGetStructured, 'Test1: rows-get should return structuredContent.result');
     if (rowsGetStructured.type !== 'success') {
       assert.fail(`Test1: rows-get validation failed: expected success type but got ${rowsGetStructured.type}`);
@@ -164,7 +164,7 @@ describe('rows-append tool (service-backed tests)', () => {
 
     assert.ok(test2Resp, 'Test2: Handler returned no result');
 
-    const test2Structured = test2Resp.structuredContent?.result as Output | undefined;
+    const test2Structured = (test2Resp.structuredContent as { result?: unknown } | undefined)?.result as Output | undefined;
     assert.ok(test2Structured, 'Test2: Response missing structuredContent.result');
     if (test2Structured?.type !== 'success') {
       assert.fail('Test2: rows-append operation failed');
@@ -192,7 +192,7 @@ describe('rows-append tool (service-backed tests)', () => {
 
     assert.ok(test3Resp, 'Test3: Handler returned no result');
 
-    const test3Structured = test3Resp.structuredContent?.result as Output | undefined;
+    const test3Structured = (test3Resp.structuredContent as { result?: unknown } | undefined)?.result as Output | undefined;
     assert.ok(test3Structured, 'Test3: Response missing structuredContent.result');
     if (test3Structured?.type !== 'success') {
       assert.fail('Test3: Rows append write headers operation failed');
@@ -224,7 +224,7 @@ describe('rows-append tool (service-backed tests)', () => {
       createExtra()
     );
 
-    const firstWriteStructured = firstWriteResp.structuredContent?.result as Output | undefined;
+    const firstWriteStructured = (firstWriteResp.structuredContent as { result?: unknown } | undefined)?.result as Output | undefined;
 
     if (firstWriteStructured?.type !== 'success') {
       assert.fail('First write failed');
@@ -249,7 +249,7 @@ describe('rows-append tool (service-backed tests)', () => {
       createExtra()
     );
 
-    const secondWriteStructured = secondWriteResp.structuredContent?.result as Output | undefined;
+    const secondWriteStructured = (secondWriteResp.structuredContent as { result?: unknown } | undefined)?.result as Output | undefined;
     if (secondWriteStructured?.type !== 'success') {
       assert.fail('Second write failed');
     }
@@ -295,7 +295,7 @@ describe('rows-append tool (service-backed tests)', () => {
       createExtra()
     );
 
-    const firstRunStructured = firstRunResp.structuredContent?.result as Output | undefined;
+    const firstRunStructured = (firstRunResp.structuredContent as { result?: unknown } | undefined)?.result as Output | undefined;
     if (firstRunStructured?.type !== 'success') {
       assert.fail('Rows append test5 first run failed');
     }
@@ -318,7 +318,7 @@ describe('rows-append tool (service-backed tests)', () => {
       createExtra()
     );
 
-    const secondRunStructured = secondRunResp.structuredContent?.result as Output | undefined;
+    const secondRunStructured = (secondRunResp.structuredContent as { result?: unknown } | undefined)?.result as Output | undefined;
     if (secondRunStructured?.type !== 'success') {
       assert.fail('Second run failed');
     }
@@ -349,7 +349,7 @@ describe('rows-append tool (service-backed tests)', () => {
       createExtra()
     );
 
-    const thirdRunStructured = thirdRunResp.structuredContent?.result as Output | undefined;
+    const thirdRunStructured = (thirdRunResp.structuredContent as { result?: unknown } | undefined)?.result as Output | undefined;
     if (thirdRunStructured?.type !== 'success') {
       assert.fail('Third run failed');
     }
@@ -387,7 +387,7 @@ describe('rows-append tool (service-backed tests)', () => {
       createExtra()
     );
 
-    const test9FirstStructured = test9FirstResp.structuredContent?.result as Output | undefined;
+    const test9FirstStructured = (test9FirstResp.structuredContent as { result?: unknown } | undefined)?.result as Output | undefined;
     if (test9FirstStructured?.type !== 'success') {
       assert.fail('Test9: Complex deduplication failed');
     }
@@ -412,7 +412,7 @@ describe('rows-append tool (service-backed tests)', () => {
       createExtra()
     );
 
-    const test9SecondStructured = test9SecondResp.structuredContent?.result as Output | undefined;
+    const test9SecondStructured = (test9SecondResp.structuredContent as { result?: unknown } | undefined)?.result as Output | undefined;
     if (test9SecondStructured?.type !== 'success') {
       assert.fail('Test9: Second write failed');
     }
@@ -439,7 +439,7 @@ describe('rows-append tool (service-backed tests)', () => {
       createExtra()
     );
 
-    const test10Structured = test10Resp.structuredContent?.result as Output | undefined;
+    const test10Structured = (test10Resp.structuredContent as { result?: unknown } | undefined)?.result as Output | undefined;
     if (test10Structured?.type !== 'success') {
       assert.fail('Test10: Empty keys operation failed');
     }

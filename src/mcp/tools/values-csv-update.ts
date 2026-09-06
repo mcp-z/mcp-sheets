@@ -5,9 +5,8 @@ import { schemas } from '@mcp-z/oauth-google';
 
 const { AuthRequiredBranchSchema } = schemas;
 
-import type { ToolModule } from '@mcp-z/server';
-import type { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
-import { ErrorCode, McpError } from '@modelcontextprotocol/sdk/types.js';
+import type { CallToolResult, ToolModule } from '@mcp-z/server';
+import { ProtocolError, ProtocolErrorCode } from '@mcp-z/server';
 import { parse } from 'csv-parse';
 import { google } from 'googleapis';
 import { z } from 'zod';
@@ -71,7 +70,7 @@ async function handler({ id, gid, sourceUri, startRange, valueInputOption = 'USE
     // Find the sheet by gid
     const sheet = spreadsheetData.sheets?.find((s) => String(s.properties?.sheetId) === gid);
     if (!sheet?.properties) {
-      throw new McpError(ErrorCode.InvalidParams, `Sheet not found: ${gid}`);
+      throw new ProtocolError(ProtocolErrorCode.InvalidParams, `Sheet not found: ${gid}`);
     }
 
     const sheetTitle = sheet.properties.title ?? '';
@@ -121,7 +120,7 @@ async function handler({ id, gid, sourceUri, startRange, valueInputOption = 'USE
     }
 
     if (allRows.length === 0) {
-      throw new McpError(ErrorCode.InvalidParams, 'CSV file is empty');
+      throw new ProtocolError(ProtocolErrorCode.InvalidParams, 'CSV file is empty');
     }
 
     // Prepare data for update (all rows)
@@ -185,7 +184,7 @@ async function handler({ id, gid, sourceUri, startRange, valueInputOption = 'USE
     const message = error instanceof Error ? error.message : String(error);
     logger.error('sheets.values.csv-update error', { error: message });
 
-    throw new McpError(ErrorCode.InternalError, `Error updating values from CSV: ${message}`, {
+    throw new ProtocolError(ProtocolErrorCode.InternalError, `Error updating values from CSV: ${message}`, {
       stack: error instanceof Error ? error.stack : undefined,
     });
   }

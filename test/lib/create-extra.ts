@@ -1,5 +1,5 @@
 import type { EnrichedExtra } from '@mcp-z/oauth-google';
-import type { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
+import type { CallToolResult } from '@mcp-z/server';
 import pino from 'pino';
 
 /**
@@ -19,15 +19,21 @@ export type TypedHandler<I> = (input: I, extra: EnrichedExtra) => Promise<CallTo
  */
 export function createExtra(): EnrichedExtra {
   return {
-    signal: new AbortController().signal,
-    requestId: 'test-request-id',
-    sendNotification: async () => {},
-    sendRequest: async () => ({}) as unknown,
+    // v2 nests the per-request fields under mcpReq. Only the members handlers actually
+    // read are stubbed; the cast avoids restating the SDK's whole context in a fixture.
+    mcpReq: {
+      id: 'test-request-id',
+      method: 'tools/call',
+      signal: new AbortController().signal,
+      notify: async () => {},
+      requestState: () => undefined,
+      send: async () => ({}) as unknown,
+    },
     // Middleware injects these - placeholders for type compatibility
     authContext: {
       auth: {} as unknown, // Placeholder auth client
       accountId: 'test-account',
     },
     logger: pino({ level: 'silent' }),
-  } as EnrichedExtra;
+  } as unknown as EnrichedExtra;
 }

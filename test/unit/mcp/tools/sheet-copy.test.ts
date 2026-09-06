@@ -101,7 +101,7 @@ it('sheet_copy creates multiple copies in batch with data preserved', async () =
 
   assert.ok(res && res.structuredContent && res.content, 'missing structured result for sheet_copy');
 
-  const branch = res.structuredContent?.result as Output | undefined;
+  const branch = (res.structuredContent as { result?: unknown } | undefined)?.result as Output | undefined;
   assert.ok(branch, 'missing structured result for sheet_copy');
   assert.equal(branch.type, 'success');
 

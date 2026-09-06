@@ -3,9 +3,8 @@ import { schemas } from '@mcp-z/oauth-google';
 
 const { AuthRequiredBranchSchema } = schemas;
 
-import type { ToolModule } from '@mcp-z/server';
-import type { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
-import { ErrorCode, McpError } from '@modelcontextprotocol/sdk/types.js';
+import type { CallToolResult, ToolModule } from '@mcp-z/server';
+import { ProtocolError, ProtocolErrorCode } from '@mcp-z/server';
 import { google, type sheets_v4 } from 'googleapis';
 import { z } from 'zod';
 import { SheetGidOutput, SheetGidSchema, SpreadsheetIdOutput, SpreadsheetIdSchema } from '../../schemas/index.ts';
@@ -187,7 +186,7 @@ async function handler({ id, gid, requests }: Input, extra: EnrichedExtra): Prom
     const sheet = spreadsheetResponse.data.sheets?.find((s) => String(s.properties?.sheetId) === gid);
     if (!sheet?.properties) {
       logger.info('Sheet not found for validation set', { id, gid, requestCount: requests.length });
-      throw new McpError(ErrorCode.InvalidParams, `Sheet not found: ${gid}`);
+      throw new ProtocolError(ProtocolErrorCode.InvalidParams, `Sheet not found: ${gid}`);
     }
 
     const sheetTitle = sheet.properties.title ?? gid;
@@ -197,7 +196,7 @@ async function handler({ id, gid, requests }: Input, extra: EnrichedExtra): Prom
     // Validate sheetId exists
     if (sheetId === undefined || sheetId === null) {
       logger.error('Sheet ID not available for validation set', { id, gid, sheetTitle });
-      throw new McpError(ErrorCode.InternalError, `Sheet ID not available for ${gid}. Cannot perform validation operations without valid sheet ID.`);
+      throw new ProtocolError(ProtocolErrorCode.InternalError, `Sheet ID not available for ${gid}. Cannot perform validation operations without valid sheet ID.`);
     }
 
     // Build batch update requests
@@ -303,7 +302,7 @@ async function handler({ id, gid, requests }: Input, extra: EnrichedExtra): Prom
       error: message,
     });
 
-    throw new McpError(ErrorCode.InternalError, `Error setting validation: ${message}`, {
+    throw new ProtocolError(ProtocolErrorCode.InternalError, `Error setting validation: ${message}`, {
       stack: error instanceof Error ? error.stack : undefined,
     });
   }

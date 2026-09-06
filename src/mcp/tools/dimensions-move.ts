@@ -3,9 +3,8 @@ import { schemas } from '@mcp-z/oauth-google';
 
 const { AuthRequiredBranchSchema } = schemas;
 
-import type { ToolModule } from '@mcp-z/server';
-import type { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
-import { ErrorCode, McpError } from '@modelcontextprotocol/sdk/types.js';
+import type { CallToolResult, ToolModule } from '@mcp-z/server';
+import { ProtocolError, ProtocolErrorCode } from '@mcp-z/server';
 import { google } from 'googleapis';
 import { z } from 'zod';
 import { SheetGidOutput, SheetGidSchema, SpreadsheetIdOutput, SpreadsheetIdSchema } from '../../schemas/index.ts';
@@ -55,12 +54,12 @@ async function handler({ id, gid, dimension, startIndex, endIndex, destinationIn
 
   // Validate indices
   if (startIndex >= endIndex) {
-    throw new McpError(ErrorCode.InvalidParams, `startIndex (${startIndex}) must be less than endIndex (${endIndex})`);
+    throw new ProtocolError(ProtocolErrorCode.InvalidParams, `startIndex (${startIndex}) must be less than endIndex (${endIndex})`);
   }
 
   // Check if destination is within source range (invalid move)
   if (destinationIndex > startIndex && destinationIndex < endIndex) {
-    throw new McpError(ErrorCode.InvalidParams, `destinationIndex (${destinationIndex}) cannot be within the source range (${startIndex}-${endIndex})`);
+    throw new ProtocolError(ProtocolErrorCode.InvalidParams, `destinationIndex (${destinationIndex}) cannot be within the source range (${startIndex}-${endIndex})`);
   }
 
   try {
@@ -80,7 +79,7 @@ async function handler({ id, gid, dimension, startIndex, endIndex, destinationIn
     const sheet = spreadsheetData.sheets?.find((s) => String(s.properties?.sheetId) === gid);
     if (!sheet?.properties) {
       logger.info('Sheet not found for move', { id, gid, dimension });
-      throw new McpError(ErrorCode.InvalidParams, `Sheet not found: ${gid}`);
+      throw new ProtocolError(ProtocolErrorCode.InvalidParams, `Sheet not found: ${gid}`);
     }
 
     const sheetTitle = sheet.properties.title ?? gid;
@@ -140,13 +139,13 @@ async function handler({ id, gid, dimension, startIndex, endIndex, destinationIn
       structuredContent: { result },
     };
   } catch (error) {
-    if (error instanceof McpError) {
+    if (error instanceof ProtocolError) {
       throw error;
     }
     const message = error instanceof Error ? error.message : String(error);
     logger.error('Move operation failed', { id, gid, dimension, startIndex, endIndex, destinationIndex, error: message });
 
-    throw new McpError(ErrorCode.InternalError, `Error moving ${dimension.toLowerCase()}: ${message}`, {
+    throw new ProtocolError(ProtocolErrorCode.InternalError, `Error moving ${dimension.toLowerCase()}: ${message}`, {
       stack: error instanceof Error ? error.stack : undefined,
     });
   }

@@ -3,9 +3,8 @@ import { schemas } from '@mcp-z/oauth-google';
 
 const { AuthRequiredBranchSchema } = schemas;
 
-import type { ToolModule } from '@mcp-z/server';
-import type { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
-import { ErrorCode, McpError } from '@modelcontextprotocol/sdk/types.js';
+import type { CallToolResult, ToolModule } from '@mcp-z/server';
+import { ProtocolError, ProtocolErrorCode } from '@mcp-z/server';
 import { google } from 'googleapis';
 import { z } from 'zod';
 import { SheetGidOutput, SheetGidSchema, SpreadsheetIdOutput, SpreadsheetIdSchema } from '../../schemas/index.ts';
@@ -62,7 +61,7 @@ async function handler({ id, gid, rows, headers, deduplicateBy }: Input, extra: 
     const sheet = spreadsheetResponse.data.sheets?.find((s) => String(s.properties?.sheetId) === gid);
 
     if (!sheet) {
-      throw new McpError(ErrorCode.InvalidParams, 'Sheet not found');
+      throw new ProtocolError(ProtocolErrorCode.InvalidParams, 'Sheet not found');
     }
 
     const sheetTitle = sheet?.properties?.title ?? '';
@@ -130,7 +129,7 @@ async function handler({ id, gid, rows, headers, deduplicateBy }: Input, extra: 
     const message = error instanceof Error ? error.message : String(error);
     logger.error('sheets.rows.append error', { error: message });
 
-    throw new McpError(ErrorCode.InternalError, `Error appending rows: ${message}`, {
+    throw new ProtocolError(ProtocolErrorCode.InternalError, `Error appending rows: ${message}`, {
       stack: error instanceof Error ? error.stack : undefined,
     });
   }

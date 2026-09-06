@@ -3,9 +3,8 @@ import { schemas } from '@mcp-z/oauth-google';
 
 const { AuthRequiredBranchSchema } = schemas;
 
-import type { ToolModule } from '@mcp-z/server';
-import type { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
-import { ErrorCode, McpError } from '@modelcontextprotocol/sdk/types.js';
+import type { CallToolResult, ToolModule } from '@mcp-z/server';
+import { ProtocolError, ProtocolErrorCode } from '@mcp-z/server';
 import { google } from 'googleapis';
 import { z } from 'zod';
 import { A1NotationSchema, SheetGidOutput, SheetGidSchema, SpreadsheetIdOutput, SpreadsheetIdSchema } from '../../schemas/index.ts';
@@ -61,7 +60,7 @@ async function handler({ id, gid, ranges }: Input, extra: EnrichedExtra): Promis
     const sheet = spreadsheetData.sheets?.find((s) => String(s.properties?.sheetId) === gid);
     if (!sheet?.properties) {
       logger.info('Sheet not found for clear', { id, gid, rangeCount: ranges.length });
-      throw new McpError(ErrorCode.InvalidParams, `Sheet not found: ${gid}`);
+      throw new ProtocolError(ProtocolErrorCode.InvalidParams, `Sheet not found: ${gid}`);
     }
 
     const sheetTitle = sheet.properties.title ?? gid;
@@ -108,7 +107,7 @@ async function handler({ id, gid, ranges }: Input, extra: EnrichedExtra): Promis
     const message = error instanceof Error ? error.message : String(error);
     logger.error('Clear operation failed', { id, gid, rangeCount: ranges.length, error: message });
 
-    throw new McpError(ErrorCode.InternalError, `Error clearing values: ${message}`, {
+    throw new ProtocolError(ProtocolErrorCode.InternalError, `Error clearing values: ${message}`, {
       stack: error instanceof Error ? error.stack : undefined,
     });
   }

@@ -42,7 +42,7 @@ it('sheets-csv-get-columns reads columns from CSV with data', async () => {
   const sourceUri = `file://${csvPath}`;
   const resp = await handler({ sourceUri }, createExtra());
 
-  const structured = resp.structuredContent?.result as Output | undefined;
+  const structured = (resp.structuredContent as { result?: unknown } | undefined)?.result as Output | undefined;
   assert.equal(structured?.type, 'success', 'expected success type');
   if (structured?.type === 'success') {
     assert.deepEqual(structured.columns, ['Email', 'Name', 'Phone'], 'columns mismatch');
@@ -58,7 +58,7 @@ it('sheets-csv-get-columns returns empty for empty CSV', async () => {
   const sourceUri = `file://${csvPath}`;
   const resp = await handler({ sourceUri }, createExtra());
 
-  const structured = resp.structuredContent?.result as Output | undefined;
+  const structured = (resp.structuredContent as { result?: unknown } | undefined)?.result as Output | undefined;
   assert.equal(structured?.type, 'success', 'expected success type');
   if (structured?.type === 'success') {
     assert.deepEqual(structured.columns, [], 'expected empty columns');
@@ -78,7 +78,7 @@ it('sheets-csv-get-columns reads only first row (not all data)', async () => {
   const sourceUri = `file://${csvPath}`;
   const resp = await handler({ sourceUri }, createExtra());
 
-  const structured = resp.structuredContent?.result as Output | undefined;
+  const structured = (resp.structuredContent as { result?: unknown } | undefined)?.result as Output | undefined;
   assert.equal(structured?.type, 'success', 'expected success type');
   if (structured?.type === 'success') {
     assert.deepEqual(structured.columns, ['Header1', 'Header2', 'Header3'], 'columns mismatch');
@@ -94,7 +94,7 @@ it('sheets-csv-get-columns handles CSV with only columns (no data rows)', async 
   const sourceUri = `file://${csvPath}`;
   const resp = await handler({ sourceUri }, createExtra());
 
-  const structured = resp.structuredContent?.result as Output | undefined;
+  const structured = (resp.structuredContent as { result?: unknown } | undefined)?.result as Output | undefined;
   assert.equal(structured?.type, 'success', 'expected success type');
   if (structured?.type === 'success') {
     assert.deepEqual(structured.columns, ['Col1', 'Col2', 'Col3'], 'columns mismatch');

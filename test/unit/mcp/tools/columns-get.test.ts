@@ -79,7 +79,7 @@ it('sheets-columns-get reads columns from sheet with data', async () => {
     createExtra()
   );
 
-  const appendStructured = appendResp.structuredContent?.result as RowsAppendOutput | undefined;
+  const appendStructured = (appendResp.structuredContent as { result?: unknown } | undefined)?.result as RowsAppendOutput | undefined;
   assert.equal(appendStructured?.type, 'success', 'rows-append expected success type');
 
   // Get columns
@@ -91,7 +91,7 @@ it('sheets-columns-get reads columns from sheet with data', async () => {
     createExtra()
   );
 
-  const structured = resp.structuredContent?.result as ColumnsGetOutput | undefined;
+  const structured = (resp.structuredContent as { result?: unknown } | undefined)?.result as ColumnsGetOutput | undefined;
   assert.equal(structured?.type, 'success', 'expected success type');
   if (structured?.type === 'success') {
     assert.deepEqual(structured.columns, ['email', 'name', 'phone'], 'columns mismatch');
@@ -133,7 +133,7 @@ it('sheets-columns-get returns empty for empty sheet', async () => {
     createExtra()
   );
 
-  const structured = resp.structuredContent?.result as ColumnsGetOutput | undefined;
+  const structured = (resp.structuredContent as { result?: unknown } | undefined)?.result as ColumnsGetOutput | undefined;
   assert.equal(structured?.type, 'success', 'expected success type');
   if (structured?.type === 'success') {
     assert.deepEqual(structured.columns, [], 'expected empty columns');
@@ -151,7 +151,7 @@ it('sheets-columns-get uses direct gid lookup', async () => {
     createExtra()
   );
 
-  const structured = resp.structuredContent?.result as ColumnsGetOutput | undefined;
+  const structured = (resp.structuredContent as { result?: unknown } | undefined)?.result as ColumnsGetOutput | undefined;
   assert.equal(structured?.type, 'success', 'expected success type');
   // Sheet1 should have columns from first test
   if (structured?.type === 'success') {

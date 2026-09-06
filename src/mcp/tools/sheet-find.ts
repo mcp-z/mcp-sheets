@@ -3,9 +3,8 @@ import { schemas } from '@mcp-z/oauth-google';
 
 const { AuthRequiredBranchSchema } = schemas;
 
-import type { ToolModule } from '@mcp-z/server';
-import type { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
-import { ErrorCode, McpError } from '@modelcontextprotocol/sdk/types.js';
+import type { CallToolResult, ToolModule } from '@mcp-z/server';
+import { ProtocolError, ProtocolErrorCode } from '@mcp-z/server';
 import { google } from 'googleapis';
 import { z } from 'zod';
 import { SheetGidOutput, SheetRefSchema, SpreadsheetIdOutput, SpreadsheetIdSchema } from '../../schemas/index.ts';
@@ -47,7 +46,7 @@ async function handler({ id, sheetRef }: Input, extra: EnrichedExtra): Promise<C
     // Find sheet within the known spreadsheet
     const sheet = await findSheetByRef(sheets, id, sheetRef, logger);
     if (!sheet) {
-      throw new McpError(ErrorCode.InvalidParams, 'Sheet not found');
+      throw new ProtocolError(ProtocolErrorCode.InvalidParams, 'Sheet not found');
     }
 
     const title = sheet?.properties?.title ?? String(sheetRef);
@@ -72,7 +71,7 @@ async function handler({ id, sheetRef }: Input, extra: EnrichedExtra): Promise<C
     const message = error instanceof Error ? error.message : String(error);
     logger.error('sheets.sheet.find error', { error: message });
 
-    throw new McpError(ErrorCode.InternalError, `Error finding sheet: ${message}`, {
+    throw new ProtocolError(ProtocolErrorCode.InternalError, `Error finding sheet: ${message}`, {
       stack: error instanceof Error ? error.stack : undefined,
     });
   }

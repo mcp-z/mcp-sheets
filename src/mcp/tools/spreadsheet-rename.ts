@@ -3,9 +3,8 @@ import { schemas } from '@mcp-z/oauth-google';
 
 const { AuthRequiredBranchSchema } = schemas;
 
-import type { ToolModule } from '@mcp-z/server';
-import type { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
-import { ErrorCode, McpError } from '@modelcontextprotocol/sdk/types.js';
+import type { CallToolResult, ToolModule } from '@mcp-z/server';
+import { ProtocolError, ProtocolErrorCode } from '@mcp-z/server';
 import { google } from 'googleapis';
 import { z } from 'zod';
 import { SpreadsheetIdOutput, SpreadsheetIdSchema } from '../../schemas/index.ts';
@@ -99,7 +98,7 @@ async function handler({ id, newTitle }: Input, extra: EnrichedExtra): Promise<C
     const message = error instanceof Error ? error.message : String(error);
     logger.error('sheets.spreadsheet.rename error', { error: message });
 
-    throw new McpError(ErrorCode.InternalError, `Error renaming spreadsheet: ${message}`, {
+    throw new ProtocolError(ProtocolErrorCode.InternalError, `Error renaming spreadsheet: ${message}`, {
       stack: error instanceof Error ? error.stack : undefined,
     });
   }

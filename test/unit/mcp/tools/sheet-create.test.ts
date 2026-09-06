@@ -59,7 +59,7 @@ it('sheet_create adds a sheet (tab) to a spreadsheet and is removable', async ()
   const sheetTitle = `tab-${Date.now()}`;
   const res = await handler({ id: sharedSpreadsheetId, sheetTitle }, createExtra());
   assert.ok(res && res.structuredContent && res.content, 'missing structured result for sheet_create');
-  const branch = res.structuredContent?.result as Output | undefined;
+  const branch = (res.structuredContent as { result?: unknown } | undefined)?.result as Output | undefined;
   assert.ok(branch, 'missing structured result for sheet_create');
   assert.equal(branch.type, 'success');
   if (branch.type === 'success') {

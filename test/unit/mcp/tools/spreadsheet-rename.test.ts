@@ -78,7 +78,7 @@ it('spreadsheet_rename renames an existing spreadsheet', async () => {
   const res = await handler({ id: sharedSpreadsheetId, newTitle }, createExtra());
   assert.ok(res && res.structuredContent && res.content, 'missing structured result for spreadsheet_rename');
 
-  const branch = res.structuredContent?.result as Output | undefined;
+  const branch = (res.structuredContent as { result?: unknown } | undefined)?.result as Output | undefined;
   assert.ok(branch, 'missing structured result for spreadsheet_rename');
   assert.equal(branch.type, 'success');
 

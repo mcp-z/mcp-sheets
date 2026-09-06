@@ -3,9 +3,8 @@ import { schemas } from '@mcp-z/oauth-google';
 
 const { AuthRequiredBranchSchema } = schemas;
 
-import type { ToolModule } from '@mcp-z/server';
-import type { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
-import { ErrorCode, McpError } from '@modelcontextprotocol/sdk/types.js';
+import type { CallToolResult, ToolModule } from '@mcp-z/server';
+import { ProtocolError, ProtocolErrorCode } from '@mcp-z/server';
 import { google } from 'googleapis';
 import { z } from 'zod';
 import { SheetCellSchema, SheetGidOutput, SheetGidSchema, SpreadsheetIdOutput, SpreadsheetIdSchema } from '../../schemas/index.ts';
@@ -127,7 +126,7 @@ async function handler({ id, gid, rows, headers, updateBy, behavior = 'add-or-up
     if (emptyKeyErrors.length > 0) {
       const message = `Silent data loss prevented - empty key columns detected:\n${emptyKeyErrors.join('\n')}`;
       logger.error?.('sheets.columns.update error', { error: message });
-      throw new McpError(ErrorCode.InvalidParams, message);
+      throw new ProtocolError(ProtocolErrorCode.InvalidParams, message);
     }
 
     // Get spreadsheet and sheet info in single API call
@@ -144,7 +143,7 @@ async function handler({ id, gid, rows, headers, updateBy, behavior = 'add-or-up
     const sheet = spreadsheetData.sheets?.find((s) => String(s.properties?.sheetId) === gid);
     if (!sheet?.properties) {
       logger.warn?.('Sheet not found for columns update', { id, gid, rowCount: rows.length });
-      throw new McpError(ErrorCode.InvalidParams, `Sheet not found: ${gid}`);
+      throw new ProtocolError(ProtocolErrorCode.InvalidParams, `Sheet not found: ${gid}`);
     }
 
     const sheetTitle = sheet.properties.title ?? gid;
@@ -273,7 +272,7 @@ async function handler({ id, gid, rows, headers, updateBy, behavior = 'add-or-up
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     logger.error?.('sheets.columns.update error', { error: message });
-    throw new McpError(ErrorCode.InternalError, `Error updating columns: ${message}`, {
+    throw new ProtocolError(ProtocolErrorCode.InternalError, `Error updating columns: ${message}`, {
       stack: error instanceof Error ? error.stack : undefined,
     });
   }

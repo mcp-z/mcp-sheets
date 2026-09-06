@@ -3,9 +3,8 @@ import { schemas } from '@mcp-z/oauth-google';
 
 const { AuthRequiredBranchSchema } = schemas;
 
-import type { ToolModule } from '@mcp-z/server';
-import type { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
-import { ErrorCode, McpError } from '@modelcontextprotocol/sdk/types.js';
+import type { CallToolResult, ToolModule } from '@mcp-z/server';
+import { ProtocolError, ProtocolErrorCode } from '@mcp-z/server';
 import { google } from 'googleapis';
 import { z } from 'zod';
 import { SheetGidOutput, SpreadsheetIdOutput, SpreadsheetRefSchema } from '../../schemas/index.ts';
@@ -111,7 +110,7 @@ async function handler({ spreadsheetRef }: Input, extra: EnrichedExtra): Promise
     const message = error instanceof Error ? error.message : String(error);
     logger.error('sheets.spreadsheet.find error', { error: message });
 
-    throw new McpError(ErrorCode.InternalError, `Error finding spreadsheet: ${message}`, {
+    throw new ProtocolError(ProtocolErrorCode.InternalError, `Error finding spreadsheet: ${message}`, {
       stack: error instanceof Error ? error.stack : undefined,
     });
   }

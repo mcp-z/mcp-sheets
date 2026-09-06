@@ -225,7 +225,7 @@ describe('validation-set tool (service-backed tests)', () => {
     // Validate response structure
     assert.ok(response, 'Handler returned no result');
 
-    const structured = response.structuredContent?.result as Output | undefined;
+    const structured = (response.structuredContent as { result?: unknown } | undefined)?.result as Output | undefined;
     assert.ok(structured, 'Response missing structuredContent.result');
     if (structured?.type !== 'success') {
       assert.fail('Validation set consolidated batch operation failed');
@@ -273,7 +273,7 @@ describe('validation-set tool (service-backed tests)', () => {
       createExtra()
     );
 
-    const structured = response.structuredContent?.result as Output | undefined;
+    const structured = (response.structuredContent as { result?: unknown } | undefined)?.result as Output | undefined;
     assert.ok(structured, 'Response missing structuredContent.result');
     assert.strictEqual(structured.type, 'success', 'Expected success result even with partial failure');
 
@@ -313,7 +313,7 @@ describe('validation-set tool (service-backed tests)', () => {
       createExtra()
     );
 
-    const structured = response.structuredContent?.result as Output | undefined;
+    const structured = (response.structuredContent as { result?: unknown } | undefined)?.result as Output | undefined;
     assert.ok(structured, 'Response missing structuredContent.result');
     assert.strictEqual(structured.type, 'success', 'Expected success result');
 
