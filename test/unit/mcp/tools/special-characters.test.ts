@@ -1,7 +1,7 @@
+import { sheets as sheetsApi } from '@googleapis/sheets';
 import { mcp } from '@mcp-z/mcp-sheets';
 import type { Logger, LoopbackOAuthProvider } from '@mcp-z/oauth-google';
 import assert from 'assert';
-import { google } from 'googleapis';
 import type { Input as ReplaceInput, Output as ReplaceOutput } from '../../../../src/mcp/tools/values-replace.ts';
 import type { Input as SearchInput, Output as SearchOutput } from '../../../../src/mcp/tools/values-search.ts';
 import { createExtra, type TypedHandler } from '../../../lib/create-extra.ts';
@@ -63,7 +63,7 @@ describe('special characters handling (service-backed tests)', () => {
     sharedSpreadsheetId = await createTestSpreadsheet(accessToken, { title });
     sharedGid = '0';
 
-    const sheets = google.sheets({ version: 'v4', auth });
+    const sheets = sheetsApi({ version: 'v4', auth });
 
     // Write all test data with special characters
     await sheets.spreadsheets.values.batchUpdate({
@@ -170,7 +170,7 @@ describe('special characters handling (service-backed tests)', () => {
       }
 
       // Verify the replacement actually happened
-      const sheets = google.sheets({ version: 'v4', auth });
+      const sheets = sheetsApi({ version: 'v4', auth });
       const readResult = await sheets.spreadsheets.values.get({
         spreadsheetId: sharedSpreadsheetId,
         range: 'Sheet1!B1',

@@ -1,3 +1,4 @@
+import { sheets as sheetsApi } from '@googleapis/sheets';
 import type { EnrichedExtra } from '@mcp-z/oauth-google';
 import { schemas } from '@mcp-z/oauth-google';
 
@@ -5,7 +6,6 @@ const { AuthRequiredBranchSchema } = schemas;
 
 import type { CallToolResult, ToolModule } from '@mcp-z/server';
 import { ProtocolError, ProtocolErrorCode } from '@mcp-z/server';
-import { google } from 'googleapis';
 import { z } from 'zod';
 import { googleAuth } from '../../lib/google-auth.ts';
 import { SheetGidOutput, SheetGidSchema, SpreadsheetIdOutput, SpreadsheetIdSchema } from '../../schemas/index.ts';
@@ -49,7 +49,7 @@ async function handler({ id, gid, newTitle }: Input, extra: EnrichedExtra): Prom
   logger.info('sheets.sheet.rename called', { id, gid, newTitle });
 
   try {
-    const sheets = google.sheets({ version: 'v4', auth: googleAuth(extra.authContext.auth) });
+    const sheets = sheetsApi({ version: 'v4', auth: googleAuth(extra.authContext.auth) });
 
     // First, get the current sheet title
     const spreadsheetInfo = await sheets.spreadsheets.get({

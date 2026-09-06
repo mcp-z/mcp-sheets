@@ -1,9 +1,9 @@
+import { sheets as sheetsApi } from '@googleapis/sheets';
 import { mcp } from '@mcp-z/mcp-sheets';
 import type { Logger, LoopbackOAuthProvider } from '@mcp-z/oauth-google';
 import assert from 'assert';
 import crypto from 'crypto';
 import fs from 'fs/promises';
-import { google } from 'googleapis';
 import * as path from 'path';
 import type { Input, Output } from '../../../../src/mcp/tools/values-search.ts';
 import { createExtra, type TypedHandler } from '../../../lib/create-extra.ts';
@@ -63,7 +63,7 @@ describe('search tool (service-backed tests)', () => {
     // This saves tool overhead (schema validation, resolution, response formatting)
     // Each test uses a unique prefix to isolate its data
     try {
-      const sheets = google.sheets({ version: 'v4', auth });
+      const sheets = sheetsApi({ version: 'v4', auth });
       await sheets.spreadsheets.values.append({
         spreadsheetId: sharedSpreadsheetId,
         range: 'Sheet1!A1',

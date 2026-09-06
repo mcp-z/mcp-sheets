@@ -1,7 +1,7 @@
+import { sheets as sheetsApi } from '@googleapis/sheets';
 import { mcp } from '@mcp-z/mcp-sheets';
 import type { Logger, LoopbackOAuthProvider } from '@mcp-z/oauth-google';
 import assert from 'assert';
-import { google } from 'googleapis';
 import type { Input, Output } from '../../../../src/mcp/tools/values-replace.ts';
 import { createExtra, type TypedHandler } from '../../../lib/create-extra.ts';
 import createMiddlewareContext from '../../../lib/create-middleware-context.ts';
@@ -61,7 +61,7 @@ describe('values-replace tool (service-backed tests)', () => {
     sharedSpreadsheetId = await createTestSpreadsheet(accessToken, { title });
     sharedGid = '0';
 
-    const sheets = google.sheets({ version: 'v4', auth });
+    const sheets = sheetsApi({ version: 'v4', auth });
 
     // Create second sheet for allSheets scope testing
     const _addSheetResponse = await sheets.spreadsheets.batchUpdate({
@@ -141,7 +141,7 @@ describe('values-replace tool (service-backed tests)', () => {
     }
 
     // READ-BACK VERIFICATION: Don't just trust the count, verify actual replacement
-    const sheets = google.sheets({ version: 'v4', auth });
+    const sheets = sheetsApi({ version: 'v4', auth });
     const readResult = await sheets.spreadsheets.values.get({
       spreadsheetId: sharedSpreadsheetId,
       range: 'Sheet1!A1:C1',
@@ -242,7 +242,7 @@ describe('values-replace tool (service-backed tests)', () => {
     }
 
     // READ-BACK VERIFICATION: Verify formula text was actually modified
-    const sheets = google.sheets({ version: 'v4', auth });
+    const sheets = sheetsApi({ version: 'v4', auth });
     const readResult = await sheets.spreadsheets.values.get({
       spreadsheetId: sharedSpreadsheetId,
       range: 'Sheet1!A5:C5',

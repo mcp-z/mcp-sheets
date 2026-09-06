@@ -1,9 +1,9 @@
+import { sheets as sheetsApi } from '@googleapis/sheets';
 import { mcp } from '@mcp-z/mcp-sheets';
 import type { Logger, LoopbackOAuthProvider } from '@mcp-z/oauth-google';
 import assert from 'assert';
 import crypto from 'crypto';
 import fs from 'fs/promises';
-import { google } from 'googleapis';
 import * as path from 'path';
 import type { Input, Output } from '../../../../src/mcp/tools/sheet-copy-to.ts';
 import { createExtra, type TypedHandler } from '../../../lib/create-extra.ts';
@@ -64,7 +64,7 @@ before(async () => {
     sourceSheetId = await createTestSheet(accessToken, sourceSpreadsheetId, { title: 'SourceSheet' });
 
     // Add some data to the source sheet
-    const sheets = google.sheets({ version: 'v4', auth });
+    const sheets = sheetsApi({ version: 'v4', auth });
     await sheets.spreadsheets.values.update({
       spreadsheetId: sourceSpreadsheetId,
       range: 'SourceSheet!A1:B2',
@@ -123,7 +123,7 @@ it('sheet_copy_to copies a sheet to another spreadsheet with rename and data pre
 
     // OPTIMIZATION: Single API call to verify sheet exists with correct title AND data was copied
     // Uses includeGridData instead of separate get + values.get calls
-    const client = google.sheets({ version: 'v4', auth });
+    const client = sheetsApi({ version: 'v4', auth });
     const info = await client.spreadsheets.get({
       spreadsheetId: destinationSpreadsheetId,
       includeGridData: true,

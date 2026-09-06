@@ -1,9 +1,9 @@
+import { sheets as sheetsApi } from '@googleapis/sheets';
 import { mcp } from '@mcp-z/mcp-sheets';
 import type { Logger, LoopbackOAuthProvider } from '@mcp-z/oauth-google';
 import assert from 'assert';
 import crypto from 'crypto';
 import fs from 'fs/promises';
-import { google } from 'googleapis';
 import * as path from 'path';
 import type { Input, Output } from '../../../../src/mcp/tools/sheet-delete.ts';
 import { createExtra, type TypedHandler } from '../../../lib/create-extra.ts';
@@ -67,7 +67,7 @@ describe('sheet-delete tool (service-backed tests)', () => {
 
   it('sheet_delete creates and deletes a sheet successfully', async () => {
     // Step 1: Create a new sheet to delete
-    const sheets = google.sheets({ version: 'v4', auth: auth });
+    const sheets = sheetsApi({ version: 'v4', auth: auth });
     const addSheetResponse = await sheets.spreadsheets.batchUpdate({
       spreadsheetId: sharedSpreadsheetId,
       requestBody: {

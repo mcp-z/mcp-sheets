@@ -1,9 +1,9 @@
+import { sheets as sheetsApi } from '@googleapis/sheets';
 import { mcp } from '@mcp-z/mcp-sheets';
 import type { Logger, LoopbackOAuthProvider } from '@mcp-z/oauth-google';
 import assert from 'assert';
 import crypto from 'crypto';
 import fs from 'fs/promises';
-import { google } from 'googleapis';
 import * as path from 'path';
 import type { Input, Output } from '../../../../src/mcp/tools/validation-set.ts';
 import { createExtra, type TypedHandler } from '../../../lib/create-extra.ts';
@@ -320,7 +320,7 @@ describe('validation-set tool (service-backed tests)', () => {
       assert.strictEqual(structured.successCount, 1, 'Should set 1 validation rule');
 
       // Verify the validation was applied correctly by reading the sheet
-      const sheets = google.sheets({ version: 'v4', auth: auth });
+      const sheets = sheetsApi({ version: 'v4', auth: auth });
       const sheetData = await sheets.spreadsheets.get({
         spreadsheetId: sharedSpreadsheetId,
         includeGridData: true,

@@ -1,5 +1,11 @@
 # Changelog
 
+## [2.1.1] - 2026-09-06
+
+### Changed
+
+- Depends on `@googleapis/sheets` and `@googleapis/drive` instead of the `googleapis` meta-package. Same generated client and the same `*_v*` types, from the same source; `googleapis` ships every Google API, and this package uses one or two of them. The installed SDK drops from 206 MB to 4 MB.
+
 ## [2.1.0] - 2026-09-06
 
 ### Fixed

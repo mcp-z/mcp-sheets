@@ -1,9 +1,9 @@
+import { sheets as sheetsApi } from '@googleapis/sheets';
 import { mcp } from '@mcp-z/mcp-sheets';
 import type { Logger, LoopbackOAuthProvider } from '@mcp-z/oauth-google';
 import assert from 'assert';
 import crypto from 'crypto';
 import fs from 'fs/promises';
-import { google } from 'googleapis';
 import * as path from 'path';
 import type { Input, Output } from '../../../../src/mcp/tools/sheet-create.ts';
 import { createExtra, type TypedHandler } from '../../../lib/create-extra.ts';
@@ -67,7 +67,7 @@ it('sheet_create adds a sheet (tab) to a spreadsheet and is removable', async ()
     assert.equal(typeof branch.gid, 'string', 'gid should be a string');
 
     // Verify sheet exists via Sheets API
-    const client = google.sheets({ version: 'v4', auth });
+    const client = sheetsApi({ version: 'v4', auth });
     const info = await client.spreadsheets.get({ spreadsheetId: sharedSpreadsheetId, fields: 'sheets.properties' });
     const exists = Array.isArray(info.data.sheets) && info.data.sheets.some((s) => s?.properties?.title === sheetTitle);
     assert.ok(exists, 'Expected sheet tab to exist after sheet_create');

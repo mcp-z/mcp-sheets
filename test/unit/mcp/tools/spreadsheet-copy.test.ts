@@ -1,9 +1,9 @@
+import { sheets as sheetsApi } from '@googleapis/sheets';
 import { mcp } from '@mcp-z/mcp-sheets';
 import type { Logger, LoopbackOAuthProvider } from '@mcp-z/oauth-google';
 import assert from 'assert';
 import crypto from 'crypto';
 import fs from 'fs/promises';
-import { google } from 'googleapis';
 import * as path from 'path';
 import type { Input, Output } from '../../../../src/mcp/tools/spreadsheet-copy.ts';
 import { createExtra, type TypedHandler } from '../../../lib/create-extra.ts';
@@ -57,7 +57,7 @@ before(async () => {
     sourceSpreadsheetId = await createTestSpreadsheet(accessToken, { title: `ci-spreadsheet-copy-source-${Date.now()}` });
 
     // Add some data to the default sheet
-    const sheets = google.sheets({ version: 'v4', auth });
+    const sheets = sheetsApi({ version: 'v4', auth });
     await sheets.spreadsheets.values.update({
       spreadsheetId: sourceSpreadsheetId,
       range: 'Sheet1!A1:B2',
@@ -122,7 +122,7 @@ it('spreadsheet_copy copies a spreadsheet with custom name and data preserved', 
 
     // OPTIMIZATION: Single API call to verify spreadsheet exists with correct title AND data was copied
     // Uses includeGridData instead of separate get + values.get calls
-    const client = google.sheets({ version: 'v4', auth });
+    const client = sheetsApi({ version: 'v4', auth });
     const info = await client.spreadsheets.get({
       spreadsheetId: branch.newId,
       includeGridData: true,

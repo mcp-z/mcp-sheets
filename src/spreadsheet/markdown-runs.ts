@@ -1,3 +1,5 @@
+import type { sheets_v4 } from '@googleapis/sheets';
+
 /**
  * Inline Markdown → Google Sheets textFormatRuns
  *
@@ -28,8 +30,6 @@
  * containing astral characters (e.g. emoji), which are represented as
  * surrogate pairs (2 code units).
  */
-
-import type { sheets_v4 } from 'googleapis';
 
 // Default styling applied to link runs so they read as clickable links (Sheets'
 // own link color), matching what Sheets applies automatically for =HYPERLINK().

@@ -1,9 +1,9 @@
+import { sheets as sheetsApi } from '@googleapis/sheets';
 import { mcp } from '@mcp-z/mcp-sheets';
 import type { Logger, LoopbackOAuthProvider } from '@mcp-z/oauth-google';
 import assert from 'assert';
 import crypto from 'crypto';
 import fs from 'fs/promises';
-import { google } from 'googleapis';
 import * as path from 'path';
 import type { Input, Output } from '../../../../src/mcp/tools/values-markdown-update.ts';
 import { createExtra, type TypedHandler } from '../../../lib/create-extra.ts';
@@ -100,7 +100,7 @@ describe('values-markdown-update tool (service-backed tests)', () => {
     assert.strictEqual(written.linkCount, 2, 'Should report 2 links');
 
     // Read back what actually landed via the Sheets API — truth over a hopeful "done".
-    const sheets = google.sheets({ version: 'v4', auth });
+    const sheets = sheetsApi({ version: 'v4', auth });
     const sheetData = await sheets.spreadsheets.get({
       spreadsheetId: sharedSpreadsheetId,
       ranges: [`'${structured.sheetTitle}'!${cell}`],

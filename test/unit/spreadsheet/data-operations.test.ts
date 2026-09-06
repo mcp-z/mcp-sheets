@@ -1,7 +1,7 @@
+import { type drive_v3, drive as driveApi } from '@googleapis/drive';
+import { type sheets_v4, sheets as sheetsApi } from '@googleapis/sheets';
 import type { Logger } from '@mcp-z/oauth-google';
 import assert from 'assert';
-import type { drive_v3, sheets_v4 } from 'googleapis';
-import { google } from 'googleapis';
 import { appendRows } from '../../../src/spreadsheet/data-operations.ts';
 import { ensureTabAndHeaders } from '../../../src/spreadsheet/sheet-operations.ts';
 import createMiddlewareContext from '../../lib/create-middleware-context.ts';
@@ -15,8 +15,8 @@ before(async () => {
   const middlewareContext = await createMiddlewareContext();
   auth = middlewareContext.auth;
   logger = middlewareContext.logger;
-  sheets = google.sheets({ version: 'v4', auth: auth });
-  drive = google.drive({ version: 'v3', auth: auth });
+  sheets = sheetsApi({ version: 'v4', auth: auth });
+  drive = driveApi({ version: 'v3', auth: auth });
 });
 
 it('integration: ensureTabAndHeaders + appendRows', async () => {
