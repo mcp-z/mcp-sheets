@@ -3,9 +3,8 @@ import { schemas } from '@mcp-z/oauth-google';
 
 const { AuthRequiredBranchSchema } = schemas;
 
-import type { ToolModule } from '@mcp-z/server';
-import type { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
-import { ErrorCode, McpError } from '@modelcontextprotocol/sdk/types.js';
+import type { CallToolResult, ToolModule } from '@mcp-z/server';
+import { ProtocolError, ProtocolErrorCode } from '@mcp-z/server';
 import { google } from 'googleapis';
 import { z } from 'zod';
 import { A1NotationSchema, SheetCellSchema, SheetGidOutput, SheetGidSchema, SpreadsheetIdOutput, SpreadsheetIdSchema } from '../../schemas/index.ts';
@@ -96,7 +95,7 @@ async function handler({ id, gid, requests, valueInputOption = 'USER_ENTERED', i
     const sheet = spreadsheetData.sheets?.find((s) => String(s.properties?.sheetId) === gid);
     if (!sheet?.properties) {
       logger.info('Sheet not found for batch update', { id, gid, requestCount: requests.length });
-      throw new McpError(ErrorCode.InvalidParams, `Sheet not found: ${gid}`);
+      throw new ProtocolError(ProtocolErrorCode.InvalidParams, `Sheet not found: ${gid}`);
     }
 
     const sheetTitle = sheet.properties.title ?? gid;
@@ -143,7 +142,7 @@ async function handler({ id, gid, requests, valueInputOption = 'USER_ENTERED', i
         sheetTitle,
       });
 
-      throw new McpError(ErrorCode.InternalError, `Batch operation partially failed: ${actualCount}/${expectedCount} operations completed`);
+      throw new ProtocolError(ProtocolErrorCode.InternalError, `Batch operation partially failed: ${actualCount}/${expectedCount} operations completed`);
     }
 
     // Check for any failed operations (empty or null responses)
@@ -161,7 +160,7 @@ async function handler({ id, gid, requests, valueInputOption = 'USER_ENTERED', i
     });
 
     if (failedOperations.length > 0) {
-      throw new McpError(ErrorCode.InternalError, `${failedOperations.length} operations failed to update ranges`);
+      throw new ProtocolError(ProtocolErrorCode.InternalError, `${failedOperations.length} operations failed to update ranges`);
     }
 
     // Extract updated ranges and calculate totals
@@ -225,7 +224,7 @@ async function handler({ id, gid, requests, valueInputOption = 'USER_ENTERED', i
       error: message,
     });
 
-    throw new McpError(ErrorCode.InternalError, `Error batch updating values: ${message}`, {
+    throw new ProtocolError(ProtocolErrorCode.InternalError, `Error batch updating values: ${message}`, {
       stack: error instanceof Error ? error.stack : undefined,
     });
   }

@@ -133,7 +133,7 @@ describe('values-replace tool (service-backed tests)', () => {
       createExtra()
     );
 
-    const branch = result.structuredContent?.result as Output | undefined;
+    const branch = (result.structuredContent as { result?: unknown } | undefined)?.result as Output | undefined;
     assert.equal(branch?.type, 'success', 'replace should succeed');
 
     if (branch?.type === 'success') {
@@ -170,7 +170,7 @@ describe('values-replace tool (service-backed tests)', () => {
       createExtra()
     );
 
-    const branch = result.structuredContent?.result as Output | undefined;
+    const branch = (result.structuredContent as { result?: unknown } | undefined)?.result as Output | undefined;
     assert.equal(branch?.type, 'success');
 
     if (branch?.type === 'success') {
@@ -191,7 +191,7 @@ describe('values-replace tool (service-backed tests)', () => {
       createExtra()
     );
 
-    const branch = result.structuredContent?.result as Output | undefined;
+    const branch = (result.structuredContent as { result?: unknown } | undefined)?.result as Output | undefined;
     assert.equal(branch?.type, 'success');
 
     if (branch?.type === 'success') {
@@ -212,7 +212,7 @@ describe('values-replace tool (service-backed tests)', () => {
       createExtra()
     );
 
-    const branch = result.structuredContent?.result as Output | undefined;
+    const branch = (result.structuredContent as { result?: unknown } | undefined)?.result as Output | undefined;
     assert.equal(branch?.type, 'success');
 
     if (branch?.type === 'success') {
@@ -233,7 +233,7 @@ describe('values-replace tool (service-backed tests)', () => {
       createExtra()
     );
 
-    const branch = result.structuredContent?.result as Output | undefined;
+    const branch = (result.structuredContent as { result?: unknown } | undefined)?.result as Output | undefined;
     assert.equal(branch?.type, 'success');
 
     if (branch?.type === 'success') {
@@ -271,7 +271,7 @@ describe('values-replace tool (service-backed tests)', () => {
       createExtra()
     );
 
-    const branch = result.structuredContent?.result as Output | undefined;
+    const branch = (result.structuredContent as { result?: unknown } | undefined)?.result as Output | undefined;
     assert.equal(branch?.type, 'success');
 
     if (branch?.type === 'success') {
@@ -293,7 +293,7 @@ describe('values-replace tool (service-backed tests)', () => {
       createExtra()
     );
 
-    const branch = result.structuredContent?.result as Output | undefined;
+    const branch = (result.structuredContent as { result?: unknown } | undefined)?.result as Output | undefined;
     assert.equal(branch?.type, 'success');
 
     if (branch?.type === 'success') {
@@ -317,7 +317,7 @@ describe('values-replace tool (service-backed tests)', () => {
       createExtra()
     );
 
-    const branch = result.structuredContent?.result as Output | undefined;
+    const branch = (result.structuredContent as { result?: unknown } | undefined)?.result as Output | undefined;
     assert.equal(branch?.type, 'success');
 
     if (branch?.type === 'success') {
@@ -337,7 +337,7 @@ describe('values-replace tool (service-backed tests)', () => {
       createExtra()
     );
 
-    const branch = result.structuredContent?.result as Output | undefined;
+    const branch = (result.structuredContent as { result?: unknown } | undefined)?.result as Output | undefined;
     assert.equal(branch?.type, 'success');
 
     if (branch?.type === 'success') {

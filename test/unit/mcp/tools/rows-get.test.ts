@@ -114,7 +114,7 @@ describe('rows-get tool (service-backed tests)', () => {
     // Additional coverage through integration tests in rows-append.test.ts, etc.
     const result = await rowsGetHandler({ id: sharedSpreadsheetId, gid: sharedGid, range: 'A1:C3' }, createExtra());
 
-    const branch = result.structuredContent?.result as Output | undefined;
+    const branch = (result.structuredContent as { result?: unknown } | undefined)?.result as Output | undefined;
     assert.equal(branch?.type, 'success', 'should succeed');
 
     if (branch?.type === 'success') {
@@ -149,7 +149,7 @@ describe('rows-get tool (service-backed tests)', () => {
     // Tests render parameter - formula data written in batch during before() hook
     const result = await rowsGetHandler({ id: sharedSpreadsheetId, gid: sharedGid, range: 'E3:F3', render: 'FORMULA' }, createExtra());
 
-    const branch = result.structuredContent?.result as Output | undefined;
+    const branch = (result.structuredContent as { result?: unknown } | undefined)?.result as Output | undefined;
     assert.equal(branch?.type, 'success', 'should succeed');
 
     if (branch?.type === 'success') {
@@ -166,7 +166,7 @@ describe('rows-get tool (service-backed tests)', () => {
   it('sheets-rows-get with render=FORMATTED_VALUE returns calculated values', async () => {
     const result = await rowsGetHandler({ id: sharedSpreadsheetId, gid: sharedGid, range: 'E3:F3', render: 'FORMATTED_VALUE' }, createExtra());
 
-    const branch = result.structuredContent?.result as Output | undefined;
+    const branch = (result.structuredContent as { result?: unknown } | undefined)?.result as Output | undefined;
     assert.equal(branch?.type, 'success', 'should succeed');
 
     if (branch?.type === 'success') {

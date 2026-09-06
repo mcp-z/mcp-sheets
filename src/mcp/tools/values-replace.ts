@@ -3,9 +3,8 @@ import { schemas } from '@mcp-z/oauth-google';
 
 const { AuthRequiredBranchSchema } = schemas;
 
-import type { ToolModule } from '@mcp-z/server';
-import type { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
-import { ErrorCode, McpError } from '@modelcontextprotocol/sdk/types.js';
+import type { CallToolResult, ToolModule } from '@mcp-z/server';
+import { ProtocolError, ProtocolErrorCode } from '@mcp-z/server';
 import { google, type sheets_v4 } from 'googleapis';
 import { z } from 'zod';
 import { A1NotationSchema, SheetGidSchema, SpreadsheetIdOutput, SpreadsheetIdSchema } from '../../schemas/index.ts';
@@ -83,13 +82,13 @@ async function handler({ id, find, replacement, gid, range, matchCase, matchEnti
 
       const sheet = spreadsheetResponse.data.sheets?.find((s) => String(s.properties?.sheetId) === gid);
       if (!sheet) {
-        throw new McpError(ErrorCode.InvalidParams, `Sheet not found: ${gid}`);
+        throw new ProtocolError(ProtocolErrorCode.InvalidParams, `Sheet not found: ${gid}`);
       }
 
       // Note: sheetId can be 0 which is falsy, so check explicitly for undefined/null
       const sheetId = sheet.properties?.sheetId;
       if (sheetId === undefined || sheetId === null) {
-        throw new McpError(ErrorCode.InternalError, 'Sheet properties not available');
+        throw new ProtocolError(ProtocolErrorCode.InternalError, 'Sheet properties not available');
       }
 
       if (!range) {
@@ -134,7 +133,7 @@ async function handler({ id, find, replacement, gid, range, matchCase, matchEnti
       structuredContent: { result },
     };
   } catch (error) {
-    if (error instanceof McpError) {
+    if (error instanceof ProtocolError) {
       throw error;
     }
     const message = error instanceof Error ? error.message : String(error);
@@ -147,7 +146,7 @@ async function handler({ id, find, replacement, gid, range, matchCase, matchEnti
       error: message,
     });
 
-    throw new McpError(ErrorCode.InternalError, `Error replacing values: ${message}`, {
+    throw new ProtocolError(ProtocolErrorCode.InternalError, `Error replacing values: ${message}`, {
       stack: error instanceof Error ? error.stack : undefined,
     });
   }

@@ -112,7 +112,7 @@ describe('search tool (service-backed tests)', () => {
 
     const result = await handler({ id: sharedSpreadsheetId, gid: String(gid), select: 'cells' }, createExtra());
 
-    const branch = result.structuredContent?.result as Output | undefined;
+    const branch = (result.structuredContent as { result?: unknown } | undefined)?.result as Output | undefined;
     assert.equal(branch?.type, 'success', 'should succeed');
 
     if (branch?.type === 'success') {
@@ -128,7 +128,7 @@ describe('search tool (service-backed tests)', () => {
 
     const result = await handler({ id: sharedSpreadsheetId, gid: String(gid), query: 'search2-Test', select: 'cells', a1s: true }, createExtra());
 
-    const branch = result.structuredContent?.result as Output | undefined;
+    const branch = (result.structuredContent as { result?: unknown } | undefined)?.result as Output | undefined;
     assert.equal(branch?.type, 'success', 'should succeed');
 
     if (branch?.type === 'success') {
@@ -149,7 +149,7 @@ describe('search tool (service-backed tests)', () => {
 
     const result = await handler({ id: sharedSpreadsheetId, gid: String(gid), query: 'search3-Alice', select: 'cells', values: true }, createExtra());
 
-    const branch = result.structuredContent?.result as Output | undefined;
+    const branch = (result.structuredContent as { result?: unknown } | undefined)?.result as Output | undefined;
     assert.equal(branch?.type, 'success', 'should succeed');
 
     if (branch?.type === 'success') {
@@ -166,7 +166,7 @@ describe('search tool (service-backed tests)', () => {
 
     const result = await handler({ id: sharedSpreadsheetId, gid: String(gid), query: 'search4-Alice', select: 'rows', a1s: true, values: true }, createExtra());
 
-    const branch = result.structuredContent?.result as Output | undefined;
+    const branch = (result.structuredContent as { result?: unknown } | undefined)?.result as Output | undefined;
     assert.equal(branch?.type, 'success', 'should succeed');
 
     if (branch?.type === 'success') {
@@ -195,7 +195,7 @@ describe('search tool (service-backed tests)', () => {
 
     const result = await handler({ id: sharedSpreadsheetId, gid: String(gid), query: 'Age', select: 'columns', a1s: true }, createExtra());
 
-    const branch = result.structuredContent?.result as Output | undefined;
+    const branch = (result.structuredContent as { result?: unknown } | undefined)?.result as Output | undefined;
     assert.equal(branch?.type, 'success', 'should succeed');
 
     if (branch?.type === 'success') {
@@ -216,7 +216,7 @@ describe('search tool (service-backed tests)', () => {
 
     const result = await handler({ id: sharedSpreadsheetId, gid: String(gid), select: 'cells' }, createExtra());
 
-    const branch = result.structuredContent?.result as Output | undefined;
+    const branch = (result.structuredContent as { result?: unknown } | undefined)?.result as Output | undefined;
     assert.equal(branch?.type, 'success', 'should succeed');
 
     if (branch?.type === 'success') {

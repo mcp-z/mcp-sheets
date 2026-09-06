@@ -77,7 +77,7 @@ describe('values-batch-update tool (service-backed tests)', () => {
       createExtra()
     );
 
-    const userEnteredStructured = userEnteredResp.structuredContent?.result as Output | undefined;
+    const userEnteredStructured = (userEnteredResp.structuredContent as { result?: unknown } | undefined)?.result as Output | undefined;
     assert.ok(userEnteredStructured, 'Response missing structuredContent.result');
     assert.strictEqual(userEnteredStructured.type, 'success', 'USER_ENTERED should succeed');
 
@@ -104,7 +104,7 @@ describe('values-batch-update tool (service-backed tests)', () => {
       createExtra()
     );
 
-    const rawStructured = rawResp.structuredContent?.result as Output | undefined;
+    const rawStructured = (rawResp.structuredContent as { result?: unknown } | undefined)?.result as Output | undefined;
     assert.ok(rawStructured, 'Response missing structuredContent.result');
     assert.strictEqual(rawStructured.type, 'success', 'RAW should succeed');
 
@@ -171,7 +171,7 @@ describe('values-batch-update tool (service-backed tests)', () => {
     // Validate complete response structure
     assert.ok(batchUpdateResp, 'Handler returned no result');
 
-    const batchStructured = batchUpdateResp.structuredContent?.result as Output | undefined;
+    const batchStructured = (batchUpdateResp.structuredContent as { result?: unknown } | undefined)?.result as Output | undefined;
     assert.ok(batchStructured, 'Response missing structuredContent.result');
     assert.strictEqual(batchStructured.type, 'success', 'Expected success result');
 

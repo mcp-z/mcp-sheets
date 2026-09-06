@@ -58,12 +58,12 @@ it('sheets-sheet-find locates a sheet by title in a spreadsheet', async () => {
   // Create a new sheet in shared spreadsheet
   const sheetTitle = `InitTab-${Date.now()}`;
   const sheetCreateResp = await sheetCreateHandler({ id: sharedSpreadsheetId, sheetTitle }, createExtra());
-  const sheetCreateStructured = sheetCreateResp.structuredContent?.result as SheetCreateOutput | undefined;
+  const sheetCreateStructured = (sheetCreateResp.structuredContent as { result?: unknown } | undefined)?.result as SheetCreateOutput | undefined;
   assert.ok(sheetCreateStructured?.type === 'success', 'sheet create not ok');
 
   // Find the sheet by title
   const findResp = await handler({ id: sharedSpreadsheetId, sheetRef: sheetTitle }, createExtra());
-  const findStructured = findResp.structuredContent?.result as SheetFindOutput | undefined;
+  const findStructured = (findResp.structuredContent as { result?: unknown } | undefined)?.result as SheetFindOutput | undefined;
   if (findStructured?.type !== 'success') {
     assert.fail('Find sheet operation failed');
   }

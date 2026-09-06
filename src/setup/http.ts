@@ -1,5 +1,4 @@
-import { composeMiddleware, connectHttp, registerPrompts, registerResources, registerTools } from '@mcp-z/server';
-import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
+import { composeMiddleware, connectHttp, McpServer, registerPrompts, registerResources, registerTools } from '@mcp-z/server';
 import cors from 'cors';
 import express from 'express';
 import type { RuntimeOverrides, ServerConfig } from '../types.ts';

@@ -107,7 +107,7 @@ it('spreadsheet_copy copies a spreadsheet with custom name and data preserved', 
 
   assert.ok(res && res.structuredContent && res.content, 'missing structured result for spreadsheet_copy');
 
-  const branch = res.structuredContent?.result as Output | undefined;
+  const branch = (res.structuredContent as { result?: unknown } | undefined)?.result as Output | undefined;
   assert.ok(branch, 'missing structured result for spreadsheet_copy');
   assert.equal(branch.type, 'success');
 

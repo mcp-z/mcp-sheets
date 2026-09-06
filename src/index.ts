@@ -8,7 +8,7 @@ export * as setup from './setup/index.ts';
 export * from './types.ts';
 
 export async function startServer(config: ServerConfig): Promise<void> {
-  // createHTTPServer/createStdioServer pull in @modelcontextprotocol/sdk and every mcp/tools/*.ts
+  // createHTTPServer/createStdioServer pull in @mcp-z/server and every mcp/tools/*.ts
   // (googleapis included); deferred so a --version/--help run never reaches them.
   const { createHTTPServer } = await import('./setup/http.ts');
   const { createStdioServer } = await import('./setup/stdio.ts');

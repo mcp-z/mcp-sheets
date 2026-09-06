@@ -3,9 +3,8 @@ import { schemas } from '@mcp-z/oauth-google';
 
 const { AuthRequiredBranchSchema } = schemas;
 
-import type { ToolModule } from '@mcp-z/server';
-import type { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
-import { ErrorCode, McpError } from '@modelcontextprotocol/sdk/types.js';
+import type { CallToolResult, ToolModule } from '@mcp-z/server';
+import { ProtocolError, ProtocolErrorCode } from '@mcp-z/server';
 import { google } from 'googleapis';
 import { z } from 'zod';
 import { SheetGidOutput, SheetGidSchema, SpreadsheetIdOutput, SpreadsheetIdSchema } from '../../schemas/index.ts';
@@ -94,7 +93,7 @@ async function handler({ id, gid, requests }: Input, extra: EnrichedExtra): Prom
     const sheet = spreadsheetData.sheets?.find((s) => String(s.properties?.sheetId) === gid);
     if (!sheet?.properties) {
       logger.warn?.('Sheet not found for dimensions batch update', { id, gid, requestCount: requests.length });
-      throw new McpError(ErrorCode.InvalidParams, `Sheet not found: ${gid}`);
+      throw new ProtocolError(ProtocolErrorCode.InvalidParams, `Sheet not found: ${gid}`);
     }
 
     const sheetTitle = sheet.properties.title ?? gid;
@@ -102,7 +101,7 @@ async function handler({ id, gid, requests }: Input, extra: EnrichedExtra): Prom
 
     if (sheetId === undefined || sheetId === null) {
       logger.error?.('Sheet ID not available for dimensions batch update', { id, gid, sheetTitle });
-      throw new McpError(ErrorCode.InternalError, `Sheet ID not available for ${gid}. Cannot perform dimension operations without valid sheet ID.`);
+      throw new ProtocolError(ProtocolErrorCode.InternalError, `Sheet ID not available for ${gid}. Cannot perform dimension operations without valid sheet ID.`);
     }
 
     const sheetUrl = `https://docs.google.com/spreadsheets/d/${id}/edit#gid=${sheetId}`;
@@ -156,7 +155,7 @@ async function handler({ id, gid, requests }: Input, extra: EnrichedExtra): Prom
         sheetTitle,
         requestCount: requests.length,
       });
-      throw new McpError(ErrorCode.InternalError, 'Batch update failed: no response data received from Google Sheets API');
+      throw new ProtocolError(ProtocolErrorCode.InternalError, 'Batch update failed: no response data received from Google Sheets API');
     }
 
     const replies = updateResult.replies || [];
@@ -176,7 +175,7 @@ async function handler({ id, gid, requests }: Input, extra: EnrichedExtra): Prom
         })),
       });
 
-      throw new McpError(ErrorCode.InternalError, `Batch operation failed: expected ${expectedCount} operations, received ${actualCount} replies. This may indicate a partial failure or Google API issue.`);
+      throw new ProtocolError(ProtocolErrorCode.InternalError, `Batch operation failed: expected ${expectedCount} operations, received ${actualCount} replies. This may indicate a partial failure or Google API issue.`);
     }
 
     // Validate each reply exists - Google Sheets API may return empty objects for successful operations
@@ -192,7 +191,7 @@ async function handler({ id, gid, requests }: Input, extra: EnrichedExtra): Prom
           spreadsheetId: id,
           sheetTitle,
         });
-        throw new McpError(ErrorCode.InternalError, `Operation ${i} failed: missing request data`);
+        throw new ProtocolError(ProtocolErrorCode.InternalError, `Operation ${i} failed: missing request data`);
       }
 
       // Note: Google Sheets API often returns empty objects {} for successful dimension operations
@@ -205,7 +204,7 @@ async function handler({ id, gid, requests }: Input, extra: EnrichedExtra): Prom
           spreadsheetId: id,
           sheetTitle,
         });
-        throw new McpError(ErrorCode.InternalError, `Operation ${i} (${request.operation}) failed: null reply from Google Sheets API`);
+        throw new ProtocolError(ProtocolErrorCode.InternalError, `Operation ${i} (${request.operation}) failed: null reply from Google Sheets API`);
       }
     }
 
@@ -295,7 +294,7 @@ async function handler({ id, gid, requests }: Input, extra: EnrichedExtra): Prom
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     logger.error?.('sheets.dimensions.batchUpdate error', { error: message });
-    throw new McpError(ErrorCode.InternalError, `Error batch updating dimensions: ${message}`, {
+    throw new ProtocolError(ProtocolErrorCode.InternalError, `Error batch updating dimensions: ${message}`, {
       stack: error instanceof Error ? error.stack : undefined,
     });
   }

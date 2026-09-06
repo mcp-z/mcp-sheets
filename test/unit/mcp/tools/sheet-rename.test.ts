@@ -81,7 +81,7 @@ it('sheet_rename renames an existing sheet', async () => {
   const res = await handler({ id: sharedSpreadsheetId, gid: defaultSheetGid, newTitle }, createExtra());
   assert.ok(res && res.structuredContent && res.content, 'missing structured result for sheet_rename');
 
-  const branch = res.structuredContent?.result as Output | undefined;
+  const branch = (res.structuredContent as { result?: unknown } | undefined)?.result as Output | undefined;
   assert.ok(branch, 'missing structured result for sheet_rename');
   assert.equal(branch.type, 'success');
 

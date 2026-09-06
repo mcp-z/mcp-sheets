@@ -77,7 +77,7 @@ it('sheets-rows-csv-append imports CSV with header mapping (string names)', asyn
     createExtra()
   );
 
-  const structured = resp.structuredContent?.result as Output | undefined;
+  const structured = (resp.structuredContent as { result?: unknown } | undefined)?.result as Output | undefined;
   if (structured?.type !== 'success') {
     assert.fail('Operation failed');
   }
@@ -107,7 +107,7 @@ it('sheets-rows-csv-append supports numeric indices', async () => {
     createExtra()
   );
 
-  const structured = resp.structuredContent?.result as Output | undefined;
+  const structured = (resp.structuredContent as { result?: unknown } | undefined)?.result as Output | undefined;
   if (structured?.type !== 'success') {
     assert.fail('Operation failed');
   }
@@ -137,7 +137,7 @@ it('sheets-rows-csv-append deduplicates by column name', async () => {
     createExtra()
   );
 
-  const structured1 = resp1.structuredContent?.result as Output | undefined;
+  const structured1 = (resp1.structuredContent as { result?: unknown } | undefined)?.result as Output | undefined;
   if (structured1?.type !== 'success') {
     assert.fail('First import failed');
   }
@@ -160,7 +160,7 @@ it('sheets-rows-csv-append deduplicates by column name', async () => {
     createExtra()
   );
 
-  const structured2 = resp2.structuredContent?.result as Output | undefined;
+  const structured2 = (resp2.structuredContent as { result?: unknown } | undefined)?.result as Output | undefined;
   if (structured2?.type !== 'success') {
     assert.fail('Second import failed');
   }
@@ -190,7 +190,7 @@ it('sheets-rows-csv-append supports data-only mode (sourceHasHeaders=false)', as
     createExtra()
   );
 
-  const structured = resp.structuredContent?.result as Output | undefined;
+  const structured = (resp.structuredContent as { result?: unknown } | undefined)?.result as Output | undefined;
   if (structured?.type !== 'success') {
     assert.fail('Operation failed');
   }
@@ -251,7 +251,7 @@ it('sheets-rows-csv-append omits unmapped columns', async () => {
     createExtra()
   );
 
-  const structured = resp.structuredContent?.result as Output | undefined;
+  const structured = (resp.structuredContent as { result?: unknown } | undefined)?.result as Output | undefined;
   if (structured?.type !== 'success') {
     assert.fail('Operation failed');
   }
@@ -282,7 +282,7 @@ it('sheets-rows-csv-append supports mixed type headerMap (strings and numbers)',
     createExtra()
   );
 
-  const structured = resp.structuredContent?.result as Output | undefined;
+  const structured = (resp.structuredContent as { result?: unknown } | undefined)?.result as Output | undefined;
   if (structured?.type !== 'success') {
     assert.fail('Operation failed');
   }
@@ -312,7 +312,7 @@ it('sheets-rows-csv-append supports composite key deduplication', async () => {
     createExtra()
   );
 
-  const structured = resp.structuredContent?.result as Output | undefined;
+  const structured = (resp.structuredContent as { result?: unknown } | undefined)?.result as Output | undefined;
   if (structured?.type !== 'success') {
     assert.fail('Operation failed');
   }
@@ -345,7 +345,7 @@ it('sheets-rows-csv-append handles large CSV (streaming verification)', async ()
     createExtra()
   );
 
-  const structured = resp.structuredContent?.result as Output | undefined;
+  const structured = (resp.structuredContent as { result?: unknown } | undefined)?.result as Output | undefined;
   if (structured?.type !== 'success') {
     assert.fail('Operation failed');
   }
@@ -407,7 +407,7 @@ it('sheets-rows-csv-append handles column index out of bounds', async () => {
   );
 
   // Should handle gracefully (fill with null)
-  const structured = resp.structuredContent?.result as Output | undefined;
+  const structured = (resp.structuredContent as { result?: unknown } | undefined)?.result as Output | undefined;
   if (structured?.type !== 'success') {
     assert.fail('Operation failed');
   }
@@ -435,7 +435,7 @@ it('sheets-rows-csv-append supports file:// URIs', async () => {
     createExtra()
   );
 
-  const structured = resp.structuredContent?.result as Output | undefined;
+  const structured = (resp.structuredContent as { result?: unknown } | undefined)?.result as Output | undefined;
   if (structured?.type !== 'success') {
     assert.fail('Operation failed');
   }

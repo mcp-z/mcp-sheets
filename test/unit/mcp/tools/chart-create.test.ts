@@ -153,7 +153,7 @@ describe('chart-create tool (service-backed tests)', () => {
       createExtra()
     );
 
-    const structured2D = response2D.structuredContent?.result as Output | undefined;
+    const structured2D = (response2D.structuredContent as { result?: unknown } | undefined)?.result as Output | undefined;
     if (structured2D?.type === 'success') {
       assert.ok(typeof structured2D.chartId === 'number', 'Should return valid chartId');
       assert.strictEqual(structured2D.anchorCell, 'D2', 'Should anchor at D2');
@@ -180,7 +180,7 @@ describe('chart-create tool (service-backed tests)', () => {
       createExtra()
     );
 
-    const structured3D = response3D.structuredContent?.result as Output | undefined;
+    const structured3D = (response3D.structuredContent as { result?: unknown } | undefined)?.result as Output | undefined;
     if (structured3D?.type === 'success') {
       assert.ok(typeof structured3D.chartId === 'number', 'Should return valid chartId');
     } else {
@@ -208,7 +208,7 @@ describe('chart-create tool (service-backed tests)', () => {
       createExtra()
     );
 
-    const structuredBar = responseBar.structuredContent?.result as Output | undefined;
+    const structuredBar = (responseBar.structuredContent as { result?: unknown } | undefined)?.result as Output | undefined;
     if (structuredBar?.type === 'success') {
       assert.ok(typeof structuredBar.chartId === 'number', 'Should return valid chartId');
     } else {
@@ -234,7 +234,7 @@ describe('chart-create tool (service-backed tests)', () => {
       createExtra()
     );
 
-    const structuredColumn = responseColumn.structuredContent?.result as Output | undefined;
+    const structuredColumn = (responseColumn.structuredContent as { result?: unknown } | undefined)?.result as Output | undefined;
     if (structuredColumn?.type === 'success') {
       assert.ok(typeof structuredColumn.chartId === 'number', 'Should return valid chartId');
     } else {
@@ -260,7 +260,7 @@ describe('chart-create tool (service-backed tests)', () => {
       createExtra()
     );
 
-    const structuredLine = responseLine.structuredContent?.result as Output | undefined;
+    const structuredLine = (responseLine.structuredContent as { result?: unknown } | undefined)?.result as Output | undefined;
     if (structuredLine?.type === 'success') {
       assert.ok(typeof structuredLine.chartId === 'number', 'Should return valid chartId');
     } else {
@@ -288,7 +288,7 @@ describe('chart-create tool (service-backed tests)', () => {
       createExtra()
     );
 
-    const structuredOffset = responseOffset.structuredContent?.result as Output | undefined;
+    const structuredOffset = (responseOffset.structuredContent as { result?: unknown } | undefined)?.result as Output | undefined;
     if (structuredOffset?.type === 'success') {
       assert.strictEqual(structuredOffset.anchorCell, 'L2', 'Should anchor at L2');
     } else {
@@ -314,7 +314,7 @@ describe('chart-create tool (service-backed tests)', () => {
       createExtra()
     );
 
-    const structuredNoLegend = responseNoLegend.structuredContent?.result as Output | undefined;
+    const structuredNoLegend = (responseNoLegend.structuredContent as { result?: unknown } | undefined)?.result as Output | undefined;
     if (structuredNoLegend?.type !== 'success') {
       assert.fail('Expected success result with no legend');
     }
@@ -338,7 +338,7 @@ describe('chart-create tool (service-backed tests)', () => {
       createExtra()
     );
 
-    const structuredNoTitle = responseNoTitle.structuredContent?.result as Output | undefined;
+    const structuredNoTitle = (responseNoTitle.structuredContent as { result?: unknown } | undefined)?.result as Output | undefined;
     if (structuredNoTitle?.type === 'success') {
       assert.ok(typeof structuredNoTitle.chartId === 'number', 'Should return valid chartId');
     } else {
@@ -448,7 +448,7 @@ describe('chart-create tool (service-backed tests)', () => {
       createExtra()
     );
 
-    const structured = response.structuredContent?.result as Output | undefined;
+    const structured = (response.structuredContent as { result?: unknown } | undefined)?.result as Output | undefined;
     if (structured?.type !== 'success') {
       assert.fail(`Expected success but got: ${JSON.stringify(structured)}`);
     }
@@ -543,7 +543,7 @@ describe('chart-create tool (service-backed tests)', () => {
       createExtra()
     );
 
-    const structured = response.structuredContent?.result as Output | undefined;
+    const structured = (response.structuredContent as { result?: unknown } | undefined)?.result as Output | undefined;
     if (structured?.type !== 'success') {
       assert.fail('Expected success result');
     }

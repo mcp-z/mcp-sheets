@@ -3,9 +3,8 @@ import { schemas } from '@mcp-z/oauth-google';
 
 const { AuthRequiredBranchSchema } = schemas;
 
-import type { ToolModule } from '@mcp-z/server';
-import type { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
-import { ErrorCode, McpError } from '@modelcontextprotocol/sdk/types.js';
+import type { CallToolResult, ToolModule } from '@mcp-z/server';
+import { ProtocolError, ProtocolErrorCode } from '@mcp-z/server';
 import { google } from 'googleapis';
 import { z } from 'zod';
 import { SheetGidOutput, SheetGidSchema, SpreadsheetIdOutput, SpreadsheetIdSchema } from '../../schemas/index.ts';
@@ -59,7 +58,7 @@ async function handler({ id, gid, newTitle }: Input, extra: EnrichedExtra): Prom
 
     const sheetInfo = spreadsheetInfo.data.sheets?.find((s) => String(s.properties?.sheetId) === gid);
     if (!sheetInfo?.properties) {
-      throw new McpError(ErrorCode.InvalidParams, `Sheet with gid "${gid}" not found in spreadsheet`);
+      throw new ProtocolError(ProtocolErrorCode.InvalidParams, `Sheet with gid "${gid}" not found in spreadsheet`);
     }
 
     const oldTitle = sheetInfo.properties.title || '';
@@ -104,13 +103,13 @@ async function handler({ id, gid, newTitle }: Input, extra: EnrichedExtra): Prom
       structuredContent: { result },
     };
   } catch (error) {
-    if (error instanceof McpError) {
+    if (error instanceof ProtocolError) {
       throw error;
     }
     const message = error instanceof Error ? error.message : String(error);
     logger.error('sheets.sheet.rename error', { error: message });
 
-    throw new McpError(ErrorCode.InternalError, `Error renaming sheet: ${message}`, {
+    throw new ProtocolError(ProtocolErrorCode.InternalError, `Error renaming sheet: ${message}`, {
       stack: error instanceof Error ? error.stack : undefined,
     });
   }

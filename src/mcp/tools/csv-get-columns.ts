@@ -5,9 +5,8 @@ import { schemas } from '@mcp-z/oauth-google';
 
 const { AuthRequiredBranchSchema } = schemas;
 
-import type { ToolModule } from '@mcp-z/server';
-import type { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
-import { ErrorCode, McpError } from '@modelcontextprotocol/sdk/types.js';
+import type { CallToolResult, ToolModule } from '@mcp-z/server';
+import { ProtocolError, ProtocolErrorCode } from '@mcp-z/server';
 import { parse } from 'csv-parse';
 import { z } from 'zod';
 import { getCsvReadStream } from '../../spreadsheet/csv-streaming.ts';
@@ -84,7 +83,7 @@ async function handler({ sourceUri }: Input, extra: EnrichedExtra): Promise<Call
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     logger.error?.('sheets.csv.get-columns error', { error: message });
-    throw new McpError(ErrorCode.InternalError, `Error getting CSV columns: ${message}`, {
+    throw new ProtocolError(ProtocolErrorCode.InternalError, `Error getting CSV columns: ${message}`, {
       stack: error instanceof Error ? error.stack : undefined,
     });
   }

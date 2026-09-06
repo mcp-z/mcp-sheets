@@ -5,9 +5,8 @@ import { schemas } from '@mcp-z/oauth-google';
 
 const { AuthRequiredBranchSchema } = schemas;
 
-import type { ToolModule } from '@mcp-z/server';
-import type { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
-import { ErrorCode, McpError } from '@modelcontextprotocol/sdk/types.js';
+import type { CallToolResult, ToolModule } from '@mcp-z/server';
+import { ProtocolError, ProtocolErrorCode } from '@mcp-z/server';
 import { parse } from 'csv-parse';
 import { google } from 'googleapis';
 import { z } from 'zod';
@@ -95,23 +94,23 @@ async function handler({ id, gid, sourceUri, sourceHasHeaders, headerMap, dedupl
 
   try {
     if (headerMap.length === 0) {
-      throw new McpError(ErrorCode.InvalidParams, 'headerMap cannot be empty');
+      throw new ProtocolError(ProtocolErrorCode.InvalidParams, 'headerMap cannot be empty');
     }
 
     // Validate: if sourceHasHeaders=false, all references must be numeric
     if (!sourceHasHeaders) {
       for (const { source, target } of headerMap) {
         if (typeof source === 'string') {
-          throw new McpError(ErrorCode.InvalidParams, `sourceHasHeaders=false requires numeric indices. Got string source: "${source}"`);
+          throw new ProtocolError(ProtocolErrorCode.InvalidParams, `sourceHasHeaders=false requires numeric indices. Got string source: "${source}"`);
         }
         if (typeof target === 'string') {
-          throw new McpError(ErrorCode.InvalidParams, `sourceHasHeaders=false requires numeric indices. Got string target: "${target}"`);
+          throw new ProtocolError(ProtocolErrorCode.InvalidParams, `sourceHasHeaders=false requires numeric indices. Got string target: "${target}"`);
         }
       }
       if (deduplicateBy) {
         for (const colRef of deduplicateBy) {
           if (typeof colRef === 'string') {
-            throw new McpError(ErrorCode.InvalidParams, `sourceHasHeaders=false requires numeric indices in deduplicateBy. Got string: "${colRef}"`);
+            throw new ProtocolError(ProtocolErrorCode.InvalidParams, `sourceHasHeaders=false requires numeric indices in deduplicateBy. Got string: "${colRef}"`);
           }
         }
       }
@@ -128,7 +127,7 @@ async function handler({ id, gid, sourceUri, sourceHasHeaders, headerMap, dedupl
     const sheet = spreadsheetResponse.data.sheets?.find((s) => String(s.properties?.sheetId) === gid);
 
     if (!sheet) {
-      throw new McpError(ErrorCode.InvalidParams, 'Sheet not found');
+      throw new ProtocolError(ProtocolErrorCode.InvalidParams, 'Sheet not found');
     }
 
     const sheetTitle = sheet?.properties?.title ?? '';
@@ -338,7 +337,7 @@ async function handler({ id, gid, sourceUri, sourceHasHeaders, headerMap, dedupl
     const message = error instanceof Error ? error.message : String(error);
     logger.error('sheets.rows.csv-append error', { error: message });
 
-    throw new McpError(ErrorCode.InternalError, `Error appending CSV rows: ${message}`, {
+    throw new ProtocolError(ProtocolErrorCode.InternalError, `Error appending CSV rows: ${message}`, {
       stack: error instanceof Error ? error.stack : undefined,
     });
   }

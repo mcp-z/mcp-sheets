@@ -3,9 +3,8 @@ import { schemas } from '@mcp-z/oauth-google';
 
 const { AuthRequiredBranchSchema } = schemas;
 
-import type { ToolModule } from '@mcp-z/server';
-import type { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
-import { ErrorCode, McpError } from '@modelcontextprotocol/sdk/types.js';
+import type { CallToolResult, ToolModule } from '@mcp-z/server';
+import { ProtocolError, ProtocolErrorCode } from '@mcp-z/server';
 import { google } from 'googleapis';
 import { z } from 'zod';
 import { SheetGidOutput, SheetGidSchema, SpreadsheetIdOutput, SpreadsheetIdSchema } from '../../schemas/index.ts';
@@ -81,7 +80,7 @@ async function handler({ id, gid, copies }: Input, extra: EnrichedExtra): Promis
 
     const sourceSheet = spreadsheetInfo.data.sheets?.find((s) => String(s.properties?.sheetId) === gid);
     if (!sourceSheet?.properties) {
-      throw new McpError(ErrorCode.InvalidParams, `Source sheet with gid "${gid}" not found in spreadsheet`);
+      throw new ProtocolError(ProtocolErrorCode.InvalidParams, `Source sheet with gid "${gid}" not found in spreadsheet`);
     }
 
     const sourceTitle = sourceSheet.properties.title || '';
@@ -162,13 +161,13 @@ async function handler({ id, gid, copies }: Input, extra: EnrichedExtra): Promis
       structuredContent: { result },
     };
   } catch (error) {
-    if (error instanceof McpError) {
+    if (error instanceof ProtocolError) {
       throw error;
     }
     const message = error instanceof Error ? error.message : String(error);
     logger.error('sheets.sheet.copy error', { error: message });
 
-    throw new McpError(ErrorCode.InternalError, `Error copying sheet: ${message}`, {
+    throw new ProtocolError(ProtocolErrorCode.InternalError, `Error copying sheet: ${message}`, {
       stack: error instanceof Error ? error.stack : undefined,
     });
   }

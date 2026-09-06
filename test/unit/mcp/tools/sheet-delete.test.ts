@@ -103,7 +103,7 @@ describe('sheet-delete tool (service-backed tests)', () => {
     assert.ok(deleteResponse, 'Handler returned no result');
 
     // Validate structuredContent.result matches outputSchema
-    const deleteStructured = deleteResponse.structuredContent?.result as Output | undefined;
+    const deleteStructured = (deleteResponse.structuredContent as { result?: unknown } | undefined)?.result as Output | undefined;
     assert.ok(deleteStructured, 'Response missing structuredContent.result');
     assert.strictEqual(deleteStructured.type, 'success', 'Expected success result');
 

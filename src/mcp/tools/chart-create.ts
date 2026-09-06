@@ -3,9 +3,8 @@ import { schemas } from '@mcp-z/oauth-google';
 
 const { AuthRequiredBranchSchema } = schemas;
 
-import type { ToolModule } from '@mcp-z/server';
-import type { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
-import { ErrorCode, McpError } from '@modelcontextprotocol/sdk/types.js';
+import type { CallToolResult, ToolModule } from '@mcp-z/server';
+import { ProtocolError, ProtocolErrorCode } from '@mcp-z/server';
 import { google, type sheets_v4 } from 'googleapis';
 import { z } from 'zod';
 import { SheetGidOutput, SheetGidSchema, SpreadsheetIdOutput, SpreadsheetIdSchema } from '../../schemas/index.ts';
@@ -104,7 +103,7 @@ async function handler({ id, gid, chartType, dataRange, title, position, legend 
     const sheet = spreadsheetResponse.data.sheets?.find((s) => String(s.properties?.sheetId) === gid);
     if (!sheet?.properties) {
       logger.info('Sheet not found for chart create', { id, gid, chartType });
-      throw new McpError(ErrorCode.InvalidParams, `Sheet not found: ${gid}`);
+      throw new ProtocolError(ProtocolErrorCode.InvalidParams, `Sheet not found: ${gid}`);
     }
 
     const sheetTitle = sheet.properties.title ?? gid;
@@ -119,7 +118,7 @@ async function handler({ id, gid, chartType, dataRange, title, position, legend 
         chartType,
         is3D,
       });
-      throw new McpError(ErrorCode.InvalidParams, `3D mode is only supported for PIE charts, not ${chartType}`);
+      throw new ProtocolError(ProtocolErrorCode.InvalidParams, `3D mode is only supported for PIE charts, not ${chartType}`);
     }
 
     // Parse anchor cell to row/column indices
@@ -135,7 +134,7 @@ async function handler({ id, gid, chartType, dataRange, title, position, legend 
         anchorCell: position.anchorCell,
         error: message,
       });
-      throw new McpError(ErrorCode.InvalidParams, `Failed to parse anchor cell: ${message}`);
+      throw new ProtocolError(ProtocolErrorCode.InvalidParams, `Failed to parse anchor cell: ${message}`);
     }
 
     // Parse data range to grid range
@@ -163,7 +162,7 @@ async function handler({ id, gid, chartType, dataRange, title, position, legend 
         dataRange,
         error: message,
       });
-      throw new McpError(ErrorCode.InvalidParams, `Failed to parse data range: ${message}`);
+      throw new ProtocolError(ProtocolErrorCode.InvalidParams, `Failed to parse data range: ${message}`);
     }
 
     // Extract validated properties with defined types
@@ -361,7 +360,7 @@ async function handler({ id, gid, chartType, dataRange, title, position, legend 
         sheetTitle,
         chartType,
       });
-      throw new McpError(ErrorCode.InternalError, 'Chart creation failed: no chart ID returned from Google Sheets API');
+      throw new ProtocolError(ProtocolErrorCode.InternalError, 'Chart creation failed: no chart ID returned from Google Sheets API');
     }
 
     const chartId = replies[0].addChart.chart.chartId;
@@ -399,7 +398,7 @@ async function handler({ id, gid, chartType, dataRange, title, position, legend 
       status: error.response?.status,
     });
 
-    throw new McpError(ErrorCode.InternalError, `Error creating chart: ${message}`, {
+    throw new ProtocolError(ProtocolErrorCode.InternalError, `Error creating chart: ${message}`, {
       stack: e instanceof Error ? e.stack : undefined,
     });
   }

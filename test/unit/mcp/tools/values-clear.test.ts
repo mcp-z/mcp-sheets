@@ -100,7 +100,7 @@ describe('values-clear tool (service-backed tests)', () => {
     // Clear A2:C3 (leave header row intact)
     const clearResult = await valuesClearHandler({ id: sharedSpreadsheetId, gid: sharedGid, ranges: ['A2:C3'] }, createExtra());
 
-    const clearBranch = clearResult.structuredContent?.result as Output | undefined;
+    const clearBranch = (clearResult.structuredContent as { result?: unknown } | undefined)?.result as Output | undefined;
     assert.equal(clearBranch?.type, 'success', 'clear should succeed');
 
     if (clearBranch?.type === 'success') {
@@ -113,7 +113,7 @@ describe('values-clear tool (service-backed tests)', () => {
     // Verify cells are cleared by reading them back
     const readResult = await rowsGetHandler({ id: sharedSpreadsheetId, gid: sharedGid, range: 'A1:C3' }, createExtra());
 
-    const readBranch = readResult.structuredContent?.result as RowsGetOutput | undefined;
+    const readBranch = (readResult.structuredContent as { result?: unknown } | undefined)?.result as RowsGetOutput | undefined;
     assert.equal(readBranch?.type, 'success', 'read should succeed');
 
     if (readBranch?.type === 'success') {
@@ -143,7 +143,7 @@ describe('values-clear tool (service-backed tests)', () => {
     // Clear E2:F3 and G2:G3 separately
     const clearResult = await valuesClearHandler({ id: sharedSpreadsheetId, gid: sharedGid, ranges: ['E2:F3', 'G2:G3'] }, createExtra());
 
-    const clearBranch = clearResult.structuredContent?.result as Output | undefined;
+    const clearBranch = (clearResult.structuredContent as { result?: unknown } | undefined)?.result as Output | undefined;
     assert.equal(clearBranch?.type, 'success', 'clear should succeed');
 
     if (clearBranch?.type === 'success') {
@@ -158,7 +158,7 @@ describe('values-clear tool (service-backed tests)', () => {
     // Verify headers preserved, data cleared
     const readResult = await rowsGetHandler({ id: sharedSpreadsheetId, gid: sharedGid, range: 'E1:G3' }, createExtra());
 
-    const readBranch = readResult.structuredContent?.result as RowsGetOutput | undefined;
+    const readBranch = (readResult.structuredContent as { result?: unknown } | undefined)?.result as RowsGetOutput | undefined;
     assert.equal(readBranch?.type, 'success', 'read should succeed');
 
     if (readBranch?.type === 'success') {

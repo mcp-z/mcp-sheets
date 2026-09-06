@@ -1,8 +1,6 @@
 import type { EnrichedExtra } from '@mcp-z/oauth-google';
-import type { ResourceConfig, ResourceModule } from '@mcp-z/server';
-import { ResourceTemplate } from '@modelcontextprotocol/sdk/server/mcp.js';
-import type { RequestHandlerExtra } from '@modelcontextprotocol/sdk/shared/protocol.js';
-import type { ReadResourceResult, ServerNotification, ServerRequest } from '@modelcontextprotocol/sdk/types.js';
+import type { ReadResourceResult, ResourceConfig, ResourceModule, ServerContext } from '@mcp-z/server';
+import { ResourceTemplate } from '@mcp-z/server';
 import { google, type sheets_v4 } from 'googleapis';
 import type { GoogleApiError } from '../../types.ts';
 
@@ -13,7 +11,7 @@ export default function createResource(): ResourceModule {
     mimeType: 'application/json',
   };
 
-  const handler = async (uri: URL, variables: Record<string, string | string[]>, extra: RequestHandlerExtra<ServerRequest, ServerNotification>): Promise<ReadResourceResult> => {
+  const handler = async (uri: URL, variables: Record<string, string | string[]>, extra: ServerContext): Promise<ReadResourceResult> => {
     const spreadsheetId = Array.isArray(variables.spreadsheetId) ? variables.spreadsheetId[0] : variables.spreadsheetId;
 
     if (!spreadsheetId) {

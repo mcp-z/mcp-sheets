@@ -99,7 +99,7 @@ describe('columns-update tool (service-backed tests)', () => {
         createExtra()
       );
 
-      const test1FirstStructured = test1FirstResult.structuredContent?.result as Output | undefined;
+      const test1FirstStructured = (test1FirstResult.structuredContent as { result?: unknown } | undefined)?.result as Output | undefined;
       if (test1FirstStructured?.type !== 'success') {
         assert.fail('Test1 first operation failed');
       }
@@ -126,7 +126,7 @@ describe('columns-update tool (service-backed tests)', () => {
         createExtra()
       );
 
-      const test1SecondStructured = test1SecondResult.structuredContent?.result as Output | undefined;
+      const test1SecondStructured = (test1SecondResult.structuredContent as { result?: unknown } | undefined)?.result as Output | undefined;
       if (test1SecondStructured?.type !== 'success') {
         assert.fail('Test1 second operation failed');
       }
@@ -154,7 +154,7 @@ describe('columns-update tool (service-backed tests)', () => {
         createExtra()
       );
 
-      const test3InitialStructured = test3InitialResult.structuredContent?.result as Output | undefined;
+      const test3InitialStructured = (test3InitialResult.structuredContent as { result?: unknown } | undefined)?.result as Output | undefined;
       if (test3InitialStructured?.type !== 'success') {
         assert.fail('Test3 initial data write failed');
       }
@@ -179,7 +179,7 @@ describe('columns-update tool (service-backed tests)', () => {
         createExtra()
       );
 
-      const test3ResultStructured = test3Result.structuredContent?.result as Output | undefined;
+      const test3ResultStructured = (test3Result.structuredContent as { result?: unknown } | undefined)?.result as Output | undefined;
       if (test3ResultStructured?.type !== 'success') {
         assert.fail('Test3 add-only operation failed');
       }
@@ -239,7 +239,7 @@ describe('columns-update tool (service-backed tests)', () => {
         createExtra()
       );
 
-      const resultStructured = result.structuredContent?.result as Output | undefined;
+      const resultStructured = (result.structuredContent as { result?: unknown } | undefined)?.result as Output | undefined;
       if (resultStructured?.type !== 'success') {
         assert.fail('Update-only operation failed');
       }
@@ -281,7 +281,7 @@ describe('columns-update tool (service-backed tests)', () => {
         createExtra()
       );
 
-      const firstStructured = firstResult.structuredContent?.result as Output | undefined;
+      const firstStructured = (firstResult.structuredContent as { result?: unknown } | undefined)?.result as Output | undefined;
       if (firstStructured?.type !== 'success') {
         assert.fail('First write failed');
       }
@@ -306,7 +306,7 @@ describe('columns-update tool (service-backed tests)', () => {
         createExtra()
       );
 
-      const secondStructured = secondResult.structuredContent?.result as Output | undefined;
+      const secondStructured = (secondResult.structuredContent as { result?: unknown } | undefined)?.result as Output | undefined;
       if (secondStructured?.type !== 'success') {
         assert.fail('Second composite key operation failed');
       }

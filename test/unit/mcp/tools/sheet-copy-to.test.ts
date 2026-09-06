@@ -107,7 +107,7 @@ it('sheet_copy_to copies a sheet to another spreadsheet with rename and data pre
 
   assert.ok(res && res.structuredContent && res.content, 'missing structured result for sheet_copy_to');
 
-  const branch = res.structuredContent?.result as Output | undefined;
+  const branch = (res.structuredContent as { result?: unknown } | undefined)?.result as Output | undefined;
   assert.ok(branch, 'missing structured result for sheet_copy_to');
   assert.equal(branch.type, 'success');
 

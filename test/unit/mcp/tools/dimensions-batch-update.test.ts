@@ -99,7 +99,7 @@ describe('dimensions-batch-update tool (service-backed tests)', () => {
     assert.ok(response, 'Handler returned no result');
 
     // Validate structuredContent.result matches outputSchema
-    const structured = response.structuredContent?.result as Output | undefined;
+    const structured = (response.structuredContent as { result?: unknown } | undefined)?.result as Output | undefined;
     assert.ok(structured, 'Response missing structuredContent.result');
 
     // Fail fast with clear error message if operation failed

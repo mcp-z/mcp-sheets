@@ -1,6 +1,6 @@
 import { mcp } from '@mcp-z/mcp-sheets';
 import type { EnrichedExtra, Logger, LoopbackOAuthProvider } from '@mcp-z/oauth-google';
-import type { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
+import type { CallToolResult } from '@mcp-z/server';
 import assert from 'assert';
 import crypto from 'crypto';
 import fs from 'fs/promises';
@@ -54,7 +54,7 @@ after(async () => {
 it('sheets-spreadsheet-find locates by id', async () => {
   // By id using shared spreadsheet
   const byId = await handler({ spreadsheetRef: sharedSpreadsheetId }, createExtra());
-  const byIdStructured = byId.structuredContent?.result as Output | undefined;
+  const byIdStructured = (byId.structuredContent as { result?: unknown } | undefined)?.result as Output | undefined;
   if (byIdStructured?.type !== 'success') {
     assert.fail('Spreadsheet find operation failed');
   }

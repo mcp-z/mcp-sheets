@@ -69,7 +69,7 @@ it('sheets-values-csv-update excludes source headers from data range', async () 
     createExtra()
   );
 
-  const structured = resp.structuredContent?.result as Output | undefined;
+  const structured = (resp.structuredContent as { result?: unknown } | undefined)?.result as Output | undefined;
   assert.equal(structured?.type, 'success', 'expected success type');
   if (structured?.type === 'success') {
     assert.equal(structured.updatedRows, 2, 'expected 2 data rows (source headers excluded)');
@@ -96,7 +96,7 @@ it('sheets-values-csv-update includes source first row as data', async () => {
     createExtra()
   );
 
-  const structured = resp.structuredContent?.result as Output | undefined;
+  const structured = (resp.structuredContent as { result?: unknown } | undefined)?.result as Output | undefined;
   assert.equal(structured?.type, 'success', 'expected success type');
   if (structured?.type === 'success') {
     assert.equal(structured.updatedRows, 3, 'expected 3 rows (all rows included)');
@@ -123,7 +123,7 @@ it('sheets-values-csv-update writes to custom range', async () => {
     createExtra()
   );
 
-  const structured = resp.structuredContent?.result as Output | undefined;
+  const structured = (resp.structuredContent as { result?: unknown } | undefined)?.result as Output | undefined;
   assert.equal(structured?.type, 'success', 'expected success type');
   if (structured?.type === 'success') {
     assert.ok(structured.updatedRange?.includes('D5'), 'expected range to start at D5');
@@ -178,7 +178,7 @@ it('sheets-values-csv-update uses RAW value input option', async () => {
     createExtra()
   );
 
-  const structured = resp.structuredContent?.result as Output | undefined;
+  const structured = (resp.structuredContent as { result?: unknown } | undefined)?.result as Output | undefined;
   assert.equal(structured?.type, 'success', 'expected success type');
   // Values should be written as text, not executed as formulas
 });
@@ -202,7 +202,7 @@ it('sheets-values-csv-update initializes sheet with headers from CSV', async () 
     createExtra()
   );
 
-  const structured = resp.structuredContent?.result as Output | undefined;
+  const structured = (resp.structuredContent as { result?: unknown } | undefined)?.result as Output | undefined;
   assert.equal(structured?.type, 'success', 'expected success type');
   if (structured?.type === 'success') {
     assert.equal(structured.updatedRows, 3, 'expected 3 rows (headers + 2 data rows)');

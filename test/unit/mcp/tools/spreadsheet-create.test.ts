@@ -35,7 +35,7 @@ describe('spreadsheet-create', () => {
       assert.ok(res, 'Handler returned no result');
 
       // Validate structuredContent.result matches outputSchema
-      const structured = res.structuredContent?.result as Output | undefined;
+      const structured = (res.structuredContent as { result?: unknown } | undefined)?.result as Output | undefined;
       assert.ok(structured, 'Response missing structuredContent.result');
       assert.strictEqual(structured.type, 'success', 'Expected success result');
       if (structured.type === 'success') {

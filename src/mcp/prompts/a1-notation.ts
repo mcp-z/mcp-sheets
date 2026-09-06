@@ -1,13 +1,11 @@
-import type { PromptModule } from '@mcp-z/server';
-import type { RequestHandlerExtra } from '@modelcontextprotocol/sdk/shared/protocol.js';
-import type { ServerNotification, ServerRequest } from '@modelcontextprotocol/sdk/types.js';
+import type { PromptModule, ServerContext } from '@mcp-z/server';
 
 export default function createPrompt() {
   const config = {
     description: 'Reference guide for Google Sheets A1 notation syntax',
   };
 
-  const handler = async (_args: { [x: string]: unknown }, _extra: RequestHandlerExtra<ServerRequest, ServerNotification>) => {
+  const handler = async (_args: { [x: string]: unknown }, _extra: ServerContext) => {
     return {
       messages: [
         {

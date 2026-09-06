@@ -3,9 +3,8 @@ import { schemas } from '@mcp-z/oauth-google';
 
 const { AuthRequiredBranchSchema } = schemas;
 
-import type { ToolModule } from '@mcp-z/server';
-import type { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
-import { ErrorCode, McpError } from '@modelcontextprotocol/sdk/types.js';
+import type { CallToolResult, ToolModule } from '@mcp-z/server';
+import { ProtocolError, ProtocolErrorCode } from '@mcp-z/server';
 import { google, type sheets_v4 } from 'googleapis';
 import { z } from 'zod';
 import { SheetGidOutput, SheetGidSchema, SpreadsheetIdOutput, SpreadsheetIdSchema } from '../../schemas/index.ts';
@@ -86,7 +85,7 @@ async function handler({ id, gid, requests }: Input, extra: EnrichedExtra): Prom
     const sheet = spreadsheetResponse.data.sheets?.find((s) => String(s.properties?.sheetId) === gid);
     if (!sheet?.properties) {
       logger.info('Sheet not found for markdown update', { id, gid, requestCount: requests.length });
-      throw new McpError(ErrorCode.InvalidParams, `Sheet not found: ${gid}`);
+      throw new ProtocolError(ProtocolErrorCode.InvalidParams, `Sheet not found: ${gid}`);
     }
 
     const sheetTitle = sheet.properties.title ?? gid;
@@ -195,8 +194,8 @@ async function handler({ id, gid, requests }: Input, extra: EnrichedExtra): Prom
       structuredContent: { result },
     };
   } catch (error) {
-    // Re-throw McpError as-is
-    if (error instanceof McpError) {
+    // Re-throw ProtocolError as-is
+    if (error instanceof ProtocolError) {
       throw error;
     }
 
@@ -208,7 +207,7 @@ async function handler({ id, gid, requests }: Input, extra: EnrichedExtra): Prom
       error: message,
     });
 
-    throw new McpError(ErrorCode.InternalError, `Error writing markdown to cells: ${message}`, {
+    throw new ProtocolError(ProtocolErrorCode.InternalError, `Error writing markdown to cells: ${message}`, {
       stack: error instanceof Error ? error.stack : undefined,
     });
   }
