@@ -1,7 +1,6 @@
 import { mcp } from '@mcp-z/mcp-sheets';
 import type { Logger, LoopbackOAuthProvider } from '@mcp-z/oauth-google';
 import assert from 'assert';
-import type { OAuth2Client } from 'google-auth-library';
 import { google } from 'googleapis';
 import type { Input as ReplaceInput, Output as ReplaceOutput } from '../../../../src/mcp/tools/values-replace.ts';
 import type { Input as SearchInput, Output as SearchOutput } from '../../../../src/mcp/tools/values-search.ts';
@@ -36,7 +35,7 @@ import { createTestSpreadsheet, deleteTestSpreadsheet } from '../../../lib/sprea
 describe('special characters handling (service-backed tests)', () => {
   let sharedSpreadsheetId: string;
   let sharedGid: string;
-  let auth: OAuth2Client;
+  let auth: Awaited<ReturnType<typeof createMiddlewareContext>>['auth'];
   let authProvider: LoopbackOAuthProvider;
   let logger: Logger;
   let accountId: string;

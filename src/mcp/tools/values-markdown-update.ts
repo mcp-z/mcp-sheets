@@ -7,6 +7,7 @@ import type { CallToolResult, ToolModule } from '@mcp-z/server';
 import { ProtocolError, ProtocolErrorCode } from '@mcp-z/server';
 import { google, type sheets_v4 } from 'googleapis';
 import { z } from 'zod';
+import { googleAuth } from '../../lib/google-auth.ts';
 import { SheetGidOutput, SheetGidSchema, SpreadsheetIdOutput, SpreadsheetIdSchema } from '../../schemas/index.ts';
 import { buildTextFormatRuns, parseInlineMarkdown } from '../../spreadsheet/markdown-runs.ts';
 import { parseA1Notation, rangeReferenceToGridRange } from '../../spreadsheet/range-operations.ts';
@@ -73,7 +74,7 @@ async function handler({ id, gid, requests }: Input, extra: EnrichedExtra): Prom
   });
 
   try {
-    const sheets = google.sheets({ version: 'v4', auth: extra.authContext.auth });
+    const sheets = google.sheets({ version: 'v4', auth: googleAuth(extra.authContext.auth) });
 
     // Get spreadsheet and sheet info in single API call
     const spreadsheetResponse = await sheets.spreadsheets.get({

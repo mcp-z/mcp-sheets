@@ -1,13 +1,12 @@
 import type { Logger } from '@mcp-z/oauth-google';
 import assert from 'assert';
-import type { OAuth2Client } from 'google-auth-library';
 import type { drive_v3, sheets_v4 } from 'googleapis';
 import { google } from 'googleapis';
 import { appendRows } from '../../../src/spreadsheet/data-operations.ts';
 import { ensureTabAndHeaders } from '../../../src/spreadsheet/sheet-operations.ts';
 import createMiddlewareContext from '../../lib/create-middleware-context.ts';
 
-let auth: OAuth2Client;
+let auth: Awaited<ReturnType<typeof createMiddlewareContext>>['auth'];
 let logger: Logger;
 let sheets: sheets_v4.Sheets;
 let drive: drive_v3.Drive;

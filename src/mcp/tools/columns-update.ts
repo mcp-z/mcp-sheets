@@ -7,6 +7,7 @@ import type { CallToolResult, ToolModule } from '@mcp-z/server';
 import { ProtocolError, ProtocolErrorCode } from '@mcp-z/server';
 import { google } from 'googleapis';
 import { z } from 'zod';
+import { googleAuth } from '../../lib/google-auth.ts';
 import { SheetCellSchema, SheetGidOutput, SheetGidSchema, SpreadsheetIdOutput, SpreadsheetIdSchema } from '../../schemas/index.ts';
 import { generateRowKey, type KeyGenerationStrategy, type Row, snapshotHeaderKeysAndPositions, type UpsertOptions, upsertByKey } from '../../spreadsheet/data-operations.ts';
 
@@ -105,7 +106,7 @@ async function handler({ id, gid, rows, headers, updateBy, behavior = 'add-or-up
   });
 
   try {
-    const sheets = google.sheets({ version: 'v4', auth: extra.authContext.auth });
+    const sheets = google.sheets({ version: 'v4', auth: googleAuth(extra.authContext.auth) });
 
     // Note: Basic input validation is now handled by the enhanced Zod schema
 

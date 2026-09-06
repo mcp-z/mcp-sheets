@@ -7,6 +7,7 @@ import type { CallToolResult, ToolModule } from '@mcp-z/server';
 import { ProtocolError, ProtocolErrorCode } from '@mcp-z/server';
 import { google } from 'googleapis';
 import { z } from 'zod';
+import { googleAuth } from '../../lib/google-auth.ts';
 import { SpreadsheetIdSchema } from '../../schemas/index.ts';
 
 // Note: Using contextual descriptions for sourceId/newId since they describe different spreadsheets
@@ -49,8 +50,8 @@ async function handler({ id, newTitle }: Input, extra: EnrichedExtra): Promise<C
   logger.info('sheets.spreadsheet.copy called', { id, newTitle });
 
   try {
-    const drive = google.drive({ version: 'v3', auth: extra.authContext.auth });
-    const sheets = google.sheets({ version: 'v4', auth: extra.authContext.auth });
+    const drive = google.drive({ version: 'v3', auth: googleAuth(extra.authContext.auth) });
+    const sheets = google.sheets({ version: 'v4', auth: googleAuth(extra.authContext.auth) });
 
     // Get the original spreadsheet title
     const sourceInfo = await sheets.spreadsheets.get({

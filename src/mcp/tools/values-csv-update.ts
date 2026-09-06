@@ -10,6 +10,7 @@ import { ProtocolError, ProtocolErrorCode } from '@mcp-z/server';
 import { parse } from 'csv-parse';
 import { google } from 'googleapis';
 import { z } from 'zod';
+import { googleAuth } from '../../lib/google-auth.ts';
 import { A1NotationSchema, SheetGidOutput, SheetGidSchema, SpreadsheetIdOutput, SpreadsheetIdSchema } from '../../schemas/index.ts';
 import { getCsvReadStream } from '../../spreadsheet/csv-streaming.ts';
 
@@ -57,7 +58,7 @@ async function handler({ id, gid, sourceUri, startRange, valueInputOption = 'USE
   logger.info('sheets.values.csv-update called', { id, gid, sourceUri, startRange, valueInputOption, sourceHasHeaders });
 
   try {
-    const sheets = google.sheets({ version: 'v4', auth: extra.authContext.auth });
+    const sheets = google.sheets({ version: 'v4', auth: googleAuth(extra.authContext.auth) });
 
     // Get spreadsheet and sheet info in single API call
     const spreadsheetResponse = await sheets.spreadsheets.get({

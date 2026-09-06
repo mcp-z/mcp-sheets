@@ -3,7 +3,6 @@ import type { Logger, LoopbackOAuthProvider } from '@mcp-z/oauth-google';
 import assert from 'assert';
 import crypto from 'crypto';
 import fs from 'fs/promises';
-import { OAuth2Client } from 'google-auth-library';
 import { google } from 'googleapis';
 import * as path from 'path';
 import type { Output as ColumnsGetOutput, Input } from '../../../../src/mcp/tools/columns-get.ts';
@@ -15,7 +14,7 @@ import { createTestSpreadsheet, deleteTestSpreadsheet } from '../../../lib/sprea
 let handler: TypedHandler<Input>;
 let rowsAppendHandler: TypedHandler<RowsAppendInput>;
 let sharedSpreadsheetId: string;
-let auth: OAuth2Client;
+let auth: Awaited<ReturnType<typeof createMiddlewareContext>>['auth'];
 let authProvider: LoopbackOAuthProvider;
 let accountId: string;
 let logger: Logger;
@@ -101,7 +100,7 @@ it('sheets-columns-get reads columns from sheet with data', async () => {
 
 it('sheets-columns-get returns empty for empty sheet', async () => {
   // Create new empty sheet
-  const tempAuth = new OAuth2Client();
+  const tempAuth = new google.auth.OAuth2();
   const accessToken = await authProvider.getAccessToken(accountId);
   tempAuth.setCredentials({ access_token: accessToken });
   const sheets = google.sheets({ version: 'v4', auth });

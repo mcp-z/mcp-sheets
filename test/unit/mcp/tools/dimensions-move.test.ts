@@ -1,7 +1,6 @@
 import { mcp } from '@mcp-z/mcp-sheets';
 import type { Logger, LoopbackOAuthProvider } from '@mcp-z/oauth-google';
 import assert from 'assert';
-import type { OAuth2Client } from 'google-auth-library';
 import { google } from 'googleapis';
 import type { Input, Output } from '../../../../src/mcp/tools/dimensions-move.ts';
 import type { Input as RowsGetInput, Output as RowsGetOutput } from '../../../../src/mcp/tools/rows-get.ts';
@@ -37,7 +36,7 @@ import { createTestSpreadsheet, deleteTestSpreadsheet } from '../../../lib/sprea
 describe('dimensions-move tool (service-backed tests)', () => {
   let sharedSpreadsheetId: string;
   let sharedGid: string;
-  let auth: OAuth2Client;
+  let auth: Awaited<ReturnType<typeof createMiddlewareContext>>['auth'];
   let authProvider: LoopbackOAuthProvider;
   let logger: Logger;
   let accountId: string;

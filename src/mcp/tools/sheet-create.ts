@@ -7,6 +7,7 @@ import type { CallToolResult, ToolModule } from '@mcp-z/server';
 import { ProtocolError, ProtocolErrorCode } from '@mcp-z/server';
 import { google } from 'googleapis';
 import { z } from 'zod';
+import { googleAuth } from '../../lib/google-auth.ts';
 import { SheetGidOutput, SpreadsheetIdOutput, SpreadsheetIdSchema } from '../../schemas/index.ts';
 
 const inputSchema = z.object({
@@ -46,7 +47,7 @@ async function handler({ id, sheetTitle }: Input, extra: EnrichedExtra): Promise
   logger.info('sheets.sheet.create called', { id, sheetTitle });
 
   try {
-    const sheets = google.sheets({ version: 'v4', auth: extra.authContext.auth });
+    const sheets = google.sheets({ version: 'v4', auth: googleAuth(extra.authContext.auth) });
     const response = await sheets.spreadsheets.batchUpdate({
       spreadsheetId: id,
       requestBody: {

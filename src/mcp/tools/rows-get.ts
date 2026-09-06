@@ -7,6 +7,7 @@ import type { CallToolResult, ToolModule } from '@mcp-z/server';
 import { ProtocolError, ProtocolErrorCode } from '@mcp-z/server';
 import { google } from 'googleapis';
 import { z } from 'zod';
+import { googleAuth } from '../../lib/google-auth.ts';
 import { SheetCellSchema, SheetGidSchema, SpreadsheetIdSchema } from '../../schemas/index.ts';
 
 const inputSchema = z.object({
@@ -42,7 +43,7 @@ async function handler({ id, gid, range, render }: Input, extra: EnrichedExtra):
   logger.info('sheets.rows.get called', { id, gid, range, render });
 
   try {
-    const sheets = google.sheets({ version: 'v4', auth: extra.authContext.auth });
+    const sheets = google.sheets({ version: 'v4', auth: googleAuth(extra.authContext.auth) });
 
     // Get sheet details using the gid to get sheet title
     const spreadsheetResponse = await sheets.spreadsheets.get({

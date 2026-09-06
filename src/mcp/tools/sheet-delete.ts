@@ -7,6 +7,7 @@ import type { CallToolResult, ToolModule } from '@mcp-z/server';
 import { ProtocolError, ProtocolErrorCode } from '@mcp-z/server';
 import { google } from 'googleapis';
 import { z } from 'zod';
+import { googleAuth } from '../../lib/google-auth.ts';
 import { SheetGidSchema, SpreadsheetIdOutput, SpreadsheetIdSchema } from '../../schemas/index.ts';
 
 const MAX_BATCH_SIZE = 1000;
@@ -54,7 +55,7 @@ async function handler({ id, gids }: Input, extra: EnrichedExtra): Promise<CallT
   logger.info('sheets.sheet.delete called', { id, count: gids.length });
 
   try {
-    const sheets = google.sheets({ version: 'v4', auth: extra.authContext.auth });
+    const sheets = google.sheets({ version: 'v4', auth: googleAuth(extra.authContext.auth) });
 
     const results = await Promise.allSettled(
       gids.map(async (gid) => {

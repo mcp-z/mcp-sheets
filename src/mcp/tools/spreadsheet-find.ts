@@ -7,6 +7,7 @@ import type { CallToolResult, ToolModule } from '@mcp-z/server';
 import { ProtocolError, ProtocolErrorCode } from '@mcp-z/server';
 import { google } from 'googleapis';
 import { z } from 'zod';
+import { googleAuth } from '../../lib/google-auth.ts';
 import { SheetGidOutput, SpreadsheetIdOutput, SpreadsheetRefSchema } from '../../schemas/index.ts';
 import { findSpreadsheetsByRef } from '../../spreadsheet/spreadsheet-management.ts';
 
@@ -62,8 +63,8 @@ async function handler({ spreadsheetRef }: Input, extra: EnrichedExtra): Promise
   logger.info('sheets.spreadsheet.find called', { spreadsheetRef });
 
   try {
-    const sheets = google.sheets({ version: 'v4', auth: extra.authContext.auth });
-    const drive = google.drive({ version: 'v3', auth: extra.authContext.auth });
+    const sheets = google.sheets({ version: 'v4', auth: googleAuth(extra.authContext.auth) });
+    const drive = google.drive({ version: 'v3', auth: googleAuth(extra.authContext.auth) });
 
     const matches = (await findSpreadsheetsByRef(sheets, drive, spreadsheetRef)) as SpreadsheetMatch[];
 
