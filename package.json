@@ -59,7 +59,7 @@
     "build": "tsds validate",
     "format": "tsds format",
     "prepublish:check": "ncp",
-    "prepublishOnly": "tsds validate",
+    "prepublishOnly": "node scripts/require-dist-tag.cjs && tsds validate",
     "test": "tsds test:node --no-timeouts",
     "test:engines": "nvu engines tsds test:node --no-timeouts",
     "test:setup": "node scripts/setup-test.ts",
