@@ -1,7 +1,7 @@
+import { sheets as sheetsApi } from '@googleapis/sheets';
 import { mcp } from '@mcp-z/mcp-sheets';
 import type { Logger, LoopbackOAuthProvider } from '@mcp-z/oauth-google';
 import assert from 'assert';
-import { google } from 'googleapis';
 import type { Input, Output } from '../../../../src/mcp/tools/rows-get.ts';
 import { createExtra, type TypedHandler } from '../../../lib/create-extra.ts';
 import createMiddlewareContext from '../../../lib/create-middleware-context.ts';
@@ -69,7 +69,7 @@ describe('rows-get tool (service-backed tests)', () => {
     // Add test data using googleapis directly (faster than using tool)
     // Using batchUpdate to write all test data in a single API call
     try {
-      const sheets = google.sheets({ version: 'v4', auth });
+      const sheets = sheetsApi({ version: 'v4', auth });
       await sheets.spreadsheets.values.batchUpdate({
         spreadsheetId: sharedSpreadsheetId,
         requestBody: {

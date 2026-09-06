@@ -1,9 +1,9 @@
+import { sheets as sheetsApi } from '@googleapis/sheets';
 import { mcp } from '@mcp-z/mcp-sheets';
 import type { Logger, LoopbackOAuthProvider } from '@mcp-z/oauth-google';
 import assert from 'assert';
 import crypto from 'crypto';
 import fs from 'fs/promises';
-import { google } from 'googleapis';
 import * as path from 'path';
 import type { Input, Output } from '../../../../src/mcp/tools/chart-create.ts';
 import type { Input as ValuesBatchUpdateInput } from '../../../../src/mcp/tools/values-batch-update.ts';
@@ -454,7 +454,7 @@ describe('chart-create tool (service-backed tests)', () => {
     assert.ok(structured.chartId, 'Chart should have been created with an ID');
 
     // Fetch the spreadsheet to verify chart configuration
-    const sheets = google.sheets({ version: 'v4', auth: auth });
+    const sheets = sheetsApi({ version: 'v4', auth: auth });
     const getResponse = await sheets.spreadsheets.get({
       spreadsheetId: sharedSpreadsheetId,
       includeGridData: false,
@@ -491,7 +491,7 @@ describe('chart-create tool (service-backed tests)', () => {
 
   it('[R2] chart_create respects A1 range for data and does not use entire sheet', async () => {
     // Add additional data in columns I-J that should NOT be included in chart
-    const sheets = google.sheets({ version: 'v4', auth: auth });
+    const sheets = sheetsApi({ version: 'v4', auth: auth });
 
     // Get spreadsheet metadata to find sheet by ID
     const spreadsheet = await sheets.spreadsheets.get({

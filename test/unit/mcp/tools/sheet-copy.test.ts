@@ -1,9 +1,9 @@
+import { sheets as sheetsApi } from '@googleapis/sheets';
 import { mcp } from '@mcp-z/mcp-sheets';
 import type { Logger, LoopbackOAuthProvider } from '@mcp-z/oauth-google';
 import assert from 'assert';
 import crypto from 'crypto';
 import fs from 'fs/promises';
-import { google } from 'googleapis';
 import * as path from 'path';
 import type { Input, Output } from '../../../../src/mcp/tools/sheet-copy.ts';
 import { createExtra, type TypedHandler } from '../../../lib/create-extra.ts';
@@ -60,7 +60,7 @@ before(async () => {
     sourceSheetId = await createTestSheet(accessToken, sharedSpreadsheetId, { title: 'SourceTemplate' });
 
     // Add some data to the source sheet
-    const sheets = google.sheets({ version: 'v4', auth });
+    const sheets = sheetsApi({ version: 'v4', auth });
     await sheets.spreadsheets.values.update({
       spreadsheetId: sharedSpreadsheetId,
       range: 'SourceTemplate!A1:B2',
@@ -120,7 +120,7 @@ it('sheet_copy creates multiple copies in batch with data preserved', async () =
 
     // OPTIMIZATION: Single API call to verify sheets exist AND data was copied
     // Uses includeGridData with range for one sheet to verify data, and fields for sheet list
-    const client = google.sheets({ version: 'v4', auth });
+    const client = sheetsApi({ version: 'v4', auth });
     const info = await client.spreadsheets.get({
       spreadsheetId: sharedSpreadsheetId,
       includeGridData: true,

@@ -1,4 +1,4 @@
-import type { sheets_v4 } from 'googleapis';
+import type { sheets_v4 } from '@googleapis/sheets';
 import type { Logger } from '../types.ts';
 import { a1Col } from './column-utilities.ts';
 

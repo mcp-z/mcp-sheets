@@ -1,3 +1,4 @@
+import { sheets as sheetsApi } from '@googleapis/sheets';
 import type { EnrichedExtra } from '@mcp-z/oauth-google';
 import { schemas } from '@mcp-z/oauth-google';
 
@@ -5,7 +6,6 @@ const { AuthRequiredBranchSchema } = schemas;
 
 import type { CallToolResult, ToolModule } from '@mcp-z/server';
 import { ProtocolError, ProtocolErrorCode } from '@mcp-z/server';
-import { google } from 'googleapis';
 import { z } from 'zod';
 import { googleAuth } from '../../lib/google-auth.ts';
 import { SheetGidSchema, SpreadsheetIdOutput, SpreadsheetIdSchema } from '../../schemas/index.ts';
@@ -55,7 +55,7 @@ async function handler({ id, gids }: Input, extra: EnrichedExtra): Promise<CallT
   logger.info('sheets.sheet.delete called', { id, count: gids.length });
 
   try {
-    const sheets = google.sheets({ version: 'v4', auth: googleAuth(extra.authContext.auth) });
+    const sheets = sheetsApi({ version: 'v4', auth: googleAuth(extra.authContext.auth) });
 
     const results = await Promise.allSettled(
       gids.map(async (gid) => {

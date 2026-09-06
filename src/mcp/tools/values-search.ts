@@ -1,3 +1,4 @@
+import { sheets as sheetsApi } from '@googleapis/sheets';
 import type { EnrichedExtra } from '@mcp-z/oauth-google';
 import { schemas } from '@mcp-z/oauth-google';
 
@@ -5,7 +6,6 @@ const { AuthRequiredBranchSchema } = schemas;
 
 import type { CallToolResult, ToolModule } from '@mcp-z/server';
 import { ProtocolError, ProtocolErrorCode } from '@mcp-z/server';
-import { google } from 'googleapis';
 import { z } from 'zod';
 import { googleAuth } from '../../lib/google-auth.ts';
 import { SheetCellSchema, SheetGidSchema, SpreadsheetIdSchema } from '../../schemas/index.ts';
@@ -61,7 +61,7 @@ async function handler({ id, gid, query, select, values = false, a1s = false, re
   logger.info('sheets.values-search called', { id, gid, query, select, values, a1s, render, matchCase });
 
   try {
-    const sheets = google.sheets({ version: 'v4', auth: googleAuth(extra.authContext.auth) });
+    const sheets = sheetsApi({ version: 'v4', auth: googleAuth(extra.authContext.auth) });
 
     // Get sheet details including grid dimensions
     const spreadsheetResponse = await sheets.spreadsheets.get({

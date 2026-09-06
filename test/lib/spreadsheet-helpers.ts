@@ -3,15 +3,16 @@
  * Keeps setup DRY for tests inside servers/mcp-sheets.
  */
 
-import { google } from 'googleapis';
+import { drive as driveApi } from '@googleapis/drive';
+import { auth as googleAuthPlus, sheets as sheetsApi } from '@googleapis/sheets';
 import type { GoogleApiError, Logger } from '../../src/types.ts';
 
 export async function createTestSpreadsheet(accessToken: string, opts: { title?: string } = {}): Promise<string> {
   const title = opts.title || `ci-test-spreadsheet-${Date.now()}`;
 
-  const auth = new google.auth.OAuth2();
+  const auth = new googleAuthPlus.OAuth2();
   auth.setCredentials({ access_token: accessToken });
-  const sheets = google.sheets({ version: 'v4', auth });
+  const sheets = sheetsApi({ version: 'v4', auth });
   const response = await sheets.spreadsheets.create({ requestBody: { properties: { title } } });
   const id = response.data.spreadsheetId;
   if (!id) throw new Error('createTestSpreadsheet: expected spreadsheet id');
@@ -24,9 +25,9 @@ export async function createTestSpreadsheet(accessToken: string, opts: { title?:
  */
 export async function deleteTestSpreadsheet(accessToken: string, id: string, logger: Logger): Promise<void> {
   try {
-    const auth = new google.auth.OAuth2();
+    const auth = new googleAuthPlus.OAuth2();
     auth.setCredentials({ access_token: accessToken });
-    const drive = google.drive({ version: 'v3', auth });
+    const drive = driveApi({ version: 'v3', auth });
     await drive.files.delete({ fileId: id });
     logger.debug('Test spreadsheet close successful', { spreadsheetId: id });
   } catch (e: unknown) {
@@ -48,9 +49,9 @@ export async function deleteTestSpreadsheet(accessToken: string, id: string, log
 export async function createTestSheet(accessToken: string, spreadsheetId: string, opts: { title?: string } = {}): Promise<number> {
   const title = opts.title || `ci-test-sheet-${Date.now()}`;
 
-  const auth = new google.auth.OAuth2();
+  const auth = new googleAuthPlus.OAuth2();
   auth.setCredentials({ access_token: accessToken });
-  const sheets = google.sheets({ version: 'v4', auth });
+  const sheets = sheetsApi({ version: 'v4', auth });
   const resp = await sheets.spreadsheets.batchUpdate({ spreadsheetId, requestBody: { requests: [{ addSheet: { properties: { title } } }] } });
   const sid = resp.data.replies?.[0]?.addSheet?.properties?.sheetId;
   return Number(sid);

@@ -1,9 +1,9 @@
+import { sheets as sheetsApi } from '@googleapis/sheets';
 import { mcp } from '@mcp-z/mcp-sheets';
 import type { Logger, LoopbackOAuthProvider } from '@mcp-z/oauth-google';
 import assert from 'assert';
 import crypto from 'crypto';
 import fs from 'fs/promises';
-import { google } from 'googleapis';
 import * as path from 'path';
 import type { Input, Output } from '../../../../src/mcp/tools/sheet-rename.ts';
 import { createExtra, type TypedHandler } from '../../../lib/create-extra.ts';
@@ -92,7 +92,7 @@ it('sheet_rename renames an existing sheet', async () => {
     assert.ok(branch.sheetUrl.includes(sharedSpreadsheetId), 'sheetUrl should contain spreadsheet id');
 
     // Verify sheet was renamed via Sheets API
-    const client = google.sheets({ version: 'v4', auth });
+    const client = sheetsApi({ version: 'v4', auth });
     const info = await client.spreadsheets.get({ spreadsheetId: sharedSpreadsheetId, fields: 'sheets.properties' });
     const renamedSheet = info.data.sheets?.find((s) => s?.properties?.sheetId === 0);
     assert.equal(renamedSheet?.properties?.title, newTitle, 'Sheet title should be updated in Google Sheets');

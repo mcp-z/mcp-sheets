@@ -1,7 +1,7 @@
+import { sheets as sheetsApi } from '@googleapis/sheets';
 import { mcp } from '@mcp-z/mcp-sheets';
 import type { Logger, LoopbackOAuthProvider } from '@mcp-z/oauth-google';
 import assert from 'assert';
-import { google } from 'googleapis';
 import type { Input, Output } from '../../../../src/mcp/tools/dimensions-move.ts';
 import type { Input as RowsGetInput, Output as RowsGetOutput } from '../../../../src/mcp/tools/rows-get.ts';
 import { createExtra, type TypedHandler } from '../../../lib/create-extra.ts';
@@ -66,7 +66,7 @@ describe('dimensions-move tool (service-backed tests)', () => {
 
     // Add all test data in a single batch write
     try {
-      const sheets = google.sheets({ version: 'v4', auth });
+      const sheets = sheetsApi({ version: 'v4', auth });
       await sheets.spreadsheets.values.batchUpdate({
         spreadsheetId: sharedSpreadsheetId,
         requestBody: {

@@ -1,9 +1,9 @@
+import { auth as googleAuthPlus, sheets as sheetsApi } from '@googleapis/sheets';
 import { mcp } from '@mcp-z/mcp-sheets';
 import type { Logger, LoopbackOAuthProvider } from '@mcp-z/oauth-google';
 import assert from 'assert';
 import crypto from 'crypto';
 import fs from 'fs/promises';
-import { google } from 'googleapis';
 import * as path from 'path';
 import type { Output as ColumnsGetOutput, Input } from '../../../../src/mcp/tools/columns-get.ts';
 import type { Input as RowsAppendInput, Output as RowsAppendOutput } from '../../../../src/mcp/tools/rows-append.ts';
@@ -100,10 +100,10 @@ it('sheets-columns-get reads columns from sheet with data', async () => {
 
 it('sheets-columns-get returns empty for empty sheet', async () => {
   // Create new empty sheet
-  const tempAuth = new google.auth.OAuth2();
+  const tempAuth = new googleAuthPlus.OAuth2();
   const accessToken = await authProvider.getAccessToken(accountId);
   tempAuth.setCredentials({ access_token: accessToken });
-  const sheets = google.sheets({ version: 'v4', auth });
+  const sheets = sheetsApi({ version: 'v4', auth });
 
   const addSheetResp = await sheets.spreadsheets.batchUpdate({
     spreadsheetId: sharedSpreadsheetId,

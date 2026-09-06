@@ -1,5 +1,5 @@
+import { auth as googleAuthPlus } from '@googleapis/sheets';
 import { attachTokenProvider, type GoogleAuthProvider } from '@mcp-z/oauth-google';
-import { google } from 'googleapis';
 
 /**
  * A Google API client bound to this request's token provider.
@@ -9,5 +9,5 @@ import { google } from 'googleapis';
  * `google-auth-library` in the tree by construction rather than by matching pins.
  */
 export function googleAuth(auth: GoogleAuthProvider) {
-  return attachTokenProvider(new google.auth.OAuth2(), auth);
+  return attachTokenProvider(new googleAuthPlus.OAuth2(), auth);
 }

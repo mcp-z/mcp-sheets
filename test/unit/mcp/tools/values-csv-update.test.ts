@@ -1,9 +1,9 @@
+import { auth as googleAuthPlus, sheets as sheetsApi } from '@googleapis/sheets';
 import { mcp } from '@mcp-z/mcp-sheets';
 import type { Logger, LoopbackOAuthProvider } from '@mcp-z/oauth-google';
 import assert from 'assert';
 import crypto from 'crypto';
 import fs from 'fs/promises';
-import { google } from 'googleapis';
 import * as path from 'path';
 import type { Input, Output } from '../../../../src/mcp/tools/values-csv-update.ts';
 import { createExtra, type TypedHandler } from '../../../lib/create-extra.ts';
@@ -210,9 +210,9 @@ it('sheets-values-csv-update initializes sheet with headers from CSV', async () 
   }
 
   // Verify actual cell content using direct API
-  const auth = new google.auth.OAuth2();
+  const auth = new googleAuthPlus.OAuth2();
   auth.setCredentials({ access_token: await authProvider.getAccessToken(accountId) });
-  const sheets = google.sheets({ version: 'v4', auth });
+  const sheets = sheetsApi({ version: 'v4', auth });
   const valuesResponse = await sheets.spreadsheets.values.get({
     spreadsheetId: sharedSpreadsheetId,
     range: 'Sheet1!A10:C12',
