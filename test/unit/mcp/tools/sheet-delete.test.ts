@@ -3,7 +3,6 @@ import type { Logger, LoopbackOAuthProvider } from '@mcp-z/oauth-google';
 import assert from 'assert';
 import crypto from 'crypto';
 import fs from 'fs/promises';
-import type { OAuth2Client } from 'google-auth-library';
 import { google } from 'googleapis';
 import * as path from 'path';
 import type { Input, Output } from '../../../../src/mcp/tools/sheet-delete.ts';
@@ -26,7 +25,7 @@ import { createTestSpreadsheet, deleteTestSpreadsheet } from '../../../lib/sprea
 describe('sheet-delete tool (service-backed tests)', () => {
   // Shared test resources
   let sharedSpreadsheetId: string;
-  let auth: OAuth2Client;
+  let auth: Awaited<ReturnType<typeof createMiddlewareContext>>['auth'];
   let authProvider: LoopbackOAuthProvider;
   let logger: Logger;
   let accountId: string;

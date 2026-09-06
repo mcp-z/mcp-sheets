@@ -7,6 +7,7 @@ import type { CallToolResult, ToolModule } from '@mcp-z/server';
 import { ProtocolError, ProtocolErrorCode } from '@mcp-z/server';
 import { google } from 'googleapis';
 import { z } from 'zod';
+import { googleAuth } from '../../lib/google-auth.ts';
 import { SheetGidOutput, SheetRefSchema, SpreadsheetIdOutput, SpreadsheetIdSchema } from '../../schemas/index.ts';
 import { findSheetByRef } from '../../spreadsheet/sheet-operations.ts';
 
@@ -41,7 +42,7 @@ async function handler({ id, sheetRef }: Input, extra: EnrichedExtra): Promise<C
   logger.info('sheets.sheet.find called', { id, sheetRef });
 
   try {
-    const sheets = google.sheets({ version: 'v4', auth: extra.authContext.auth });
+    const sheets = google.sheets({ version: 'v4', auth: googleAuth(extra.authContext.auth) });
 
     // Find sheet within the known spreadsheet
     const sheet = await findSheetByRef(sheets, id, sheetRef, logger);

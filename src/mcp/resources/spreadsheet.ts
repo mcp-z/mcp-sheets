@@ -2,6 +2,7 @@ import type { EnrichedExtra } from '@mcp-z/oauth-google';
 import type { ReadResourceResult, ResourceConfig, ResourceModule, ServerContext } from '@mcp-z/server';
 import { ResourceTemplate } from '@mcp-z/server';
 import { google, type sheets_v4 } from 'googleapis';
+import { googleAuth } from '../../lib/google-auth.ts';
 import type { GoogleApiError } from '../../types.ts';
 
 export default function createResource(): ResourceModule {
@@ -29,7 +30,7 @@ export default function createResource(): ResourceModule {
     try {
       // Safe type guard to access middleware-enriched extra
       const { logger, authContext } = extra as unknown as EnrichedExtra;
-      const sheets = google.sheets({ version: 'v4', auth: authContext.auth });
+      const sheets = google.sheets({ version: 'v4', auth: googleAuth(authContext.auth) });
       const resp = await sheets.spreadsheets.get({
         spreadsheetId,
         fields: 'spreadsheetId,properties.title,sheets.properties',

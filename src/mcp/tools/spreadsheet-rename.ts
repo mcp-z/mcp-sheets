@@ -7,6 +7,7 @@ import type { CallToolResult, ToolModule } from '@mcp-z/server';
 import { ProtocolError, ProtocolErrorCode } from '@mcp-z/server';
 import { google } from 'googleapis';
 import { z } from 'zod';
+import { googleAuth } from '../../lib/google-auth.ts';
 import { SpreadsheetIdOutput, SpreadsheetIdSchema } from '../../schemas/index.ts';
 
 const inputSchema = z.object({
@@ -46,7 +47,7 @@ async function handler({ id, newTitle }: Input, extra: EnrichedExtra): Promise<C
   logger.info('sheets.spreadsheet.rename called', { id, newTitle });
 
   try {
-    const sheets = google.sheets({ version: 'v4', auth: extra.authContext.auth });
+    const sheets = google.sheets({ version: 'v4', auth: googleAuth(extra.authContext.auth) });
 
     // First, get the current spreadsheet title
     const spreadsheetInfo = await sheets.spreadsheets.get({

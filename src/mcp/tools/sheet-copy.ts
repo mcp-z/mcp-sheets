@@ -7,6 +7,7 @@ import type { CallToolResult, ToolModule } from '@mcp-z/server';
 import { ProtocolError, ProtocolErrorCode } from '@mcp-z/server';
 import { google } from 'googleapis';
 import { z } from 'zod';
+import { googleAuth } from '../../lib/google-auth.ts';
 import { SheetGidOutput, SheetGidSchema, SpreadsheetIdOutput, SpreadsheetIdSchema } from '../../schemas/index.ts';
 
 const MAX_BATCH_SIZE = 100;
@@ -70,7 +71,7 @@ async function handler({ id, gid, copies }: Input, extra: EnrichedExtra): Promis
   logger.info('sheets.sheet.copy called', { id, gid, copyCount: copies.length });
 
   try {
-    const sheets = google.sheets({ version: 'v4', auth: extra.authContext.auth });
+    const sheets = google.sheets({ version: 'v4', auth: googleAuth(extra.authContext.auth) });
 
     // First, get the source sheet info
     const spreadsheetInfo = await sheets.spreadsheets.get({

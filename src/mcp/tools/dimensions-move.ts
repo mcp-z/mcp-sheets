@@ -7,6 +7,7 @@ import type { CallToolResult, ToolModule } from '@mcp-z/server';
 import { ProtocolError, ProtocolErrorCode } from '@mcp-z/server';
 import { google } from 'googleapis';
 import { z } from 'zod';
+import { googleAuth } from '../../lib/google-auth.ts';
 import { SheetGidOutput, SheetGidSchema, SpreadsheetIdOutput, SpreadsheetIdSchema } from '../../schemas/index.ts';
 
 const inputSchema = z.object({
@@ -63,7 +64,7 @@ async function handler({ id, gid, dimension, startIndex, endIndex, destinationIn
   }
 
   try {
-    const sheets = google.sheets({ version: 'v4', auth: extra.authContext.auth });
+    const sheets = google.sheets({ version: 'v4', auth: googleAuth(extra.authContext.auth) });
 
     // Get spreadsheet and sheet info in single API call
     const spreadsheetResponse = await sheets.spreadsheets.get({

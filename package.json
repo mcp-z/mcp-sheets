@@ -67,18 +67,17 @@
   },
   "dependencies": {
     "@mcp-z/oauth": "^2.0.0",
-    "@mcp-z/oauth-google": "^2.0.0",
+    "@mcp-z/oauth-google": "^2.0.1",
     "@mcp-z/server": "^2.0.0",
     "cors": "^2.0.0",
     "csv-parse": "^7.0.2",
     "express": "^5.0.0",
-    "google-auth-library": "10.5.0",
     "googleapis": "174.0.1",
     "keyv-file": "5.3.3",
     "keyv-registry": "^2.0.0",
     "module-root-sync": "^2.0.0",
     "pino": "^10.0.0",
-    "zod": "^4.0.0"
+    "zod": "^4.2.0"
   },
   "devDependencies": {
     "@mcp-z/client": "^2.0.0",

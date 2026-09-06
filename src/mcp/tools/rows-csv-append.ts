@@ -10,6 +10,7 @@ import { ProtocolError, ProtocolErrorCode } from '@mcp-z/server';
 import { parse } from 'csv-parse';
 import { google } from 'googleapis';
 import { z } from 'zod';
+import { googleAuth } from '../../lib/google-auth.ts';
 import { SheetGidOutput, SheetGidSchema, SpreadsheetIdOutput, SpreadsheetIdSchema } from '../../schemas/index.ts';
 import { getCsvReadStream } from '../../spreadsheet/csv-streaming.ts';
 import { buildDeduplicationKey } from '../../spreadsheet/deduplication-utils.ts';
@@ -116,7 +117,7 @@ async function handler({ id, gid, sourceUri, sourceHasHeaders, headerMap, dedupl
       }
     }
 
-    const sheets = google.sheets({ version: 'v4', auth: extra.authContext.auth });
+    const sheets = google.sheets({ version: 'v4', auth: googleAuth(extra.authContext.auth) });
 
     // Get sheet details using the gid
     const spreadsheetResponse = await sheets.spreadsheets.get({

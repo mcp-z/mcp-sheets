@@ -10,6 +10,7 @@ import { LoopbackOAuthProvider } from '@mcp-z/oauth-google';
 import type { Keyv } from 'keyv';
 import { GOOGLE_SCOPE } from '../../src/constants.ts';
 import createStore from '../../src/lib/create-store.ts';
+import { googleAuth } from '../../src/lib/google-auth.ts';
 import type { Logger } from '../../src/types.ts';
 import { createConfig } from './config.ts';
 
@@ -83,7 +84,9 @@ export default async function createMiddlewareContext() {
   // This allows tests to use middleware pattern for tools AND get direct auth for test setup
   return {
     middleware,
-    auth: authProvider.toAuth(accountId),
+    // Attached here so every suite gets a ready Google client: the provider mints
+    // tokens, googleAuth binds it to this package's own googleapis (see src/lib).
+    auth: googleAuth(authProvider.toAuthProvider(accountId)),
     authProvider,
     logger,
     accountId,

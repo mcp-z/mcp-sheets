@@ -7,6 +7,7 @@ import type { CallToolResult, ToolModule } from '@mcp-z/server';
 import { ProtocolError, ProtocolErrorCode } from '@mcp-z/server';
 import { google } from 'googleapis';
 import { z } from 'zod';
+import { googleAuth } from '../../lib/google-auth.ts';
 import { SheetGidSchema, SpreadsheetIdSchema } from '../../schemas/index.ts';
 
 // Note: Using contextual descriptions for source/destination IDs since they describe different spreadsheets/sheets
@@ -54,7 +55,7 @@ async function handler({ sourceId, sourceGid, destinationId, newTitle }: Input, 
   logger.info('sheets.sheet.copyTo called', { sourceId, sourceGid, destinationId, newTitle });
 
   try {
-    const sheets = google.sheets({ version: 'v4', auth: extra.authContext.auth });
+    const sheets = google.sheets({ version: 'v4', auth: googleAuth(extra.authContext.auth) });
 
     // Get source sheet info
     const sourceInfo = await sheets.spreadsheets.get({

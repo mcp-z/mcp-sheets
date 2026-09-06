@@ -7,6 +7,7 @@ import type { CallToolResult, ToolModule } from '@mcp-z/server';
 import { ProtocolError, ProtocolErrorCode } from '@mcp-z/server';
 import { google, type sheets_v4 } from 'googleapis';
 import { z } from 'zod';
+import { googleAuth } from '../../lib/google-auth.ts';
 import { A1NotationSchema, SheetGidSchema, SpreadsheetIdOutput, SpreadsheetIdSchema } from '../../schemas/index.ts';
 import { parseA1Notation, rangeReferenceToGridRange } from '../../spreadsheet/range-operations.ts';
 
@@ -57,7 +58,7 @@ async function handler({ id, find, replacement, gid, range, matchCase, matchEnti
   logger.info('sheets.values-replace called', { id, find, replacement, gid, range });
 
   try {
-    const sheets = google.sheets({ version: 'v4', auth: extra.authContext.auth });
+    const sheets = google.sheets({ version: 'v4', auth: googleAuth(extra.authContext.auth) });
 
     // Build FindReplaceRequest - only include defined options
     const findReplaceRequest: sheets_v4.Schema$FindReplaceRequest = {
