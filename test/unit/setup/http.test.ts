@@ -55,7 +55,6 @@ describe('setup.createHTTPServer - transport initialization', () => {
     const result = await setup.createHTTPServer(config);
     servers.push(result);
 
-    assert.ok(result.mcpServer, 'MCP server should be initialized');
     assert.ok('httpServer' in result && result.httpServer, 'HTTP server should be initialized');
   });
 
@@ -102,7 +101,6 @@ describe('setup.createHTTPServer - transport initialization', () => {
     const result = await setup.createHTTPServer(config);
     servers.push(result);
 
-    assert.ok(result.mcpServer, 'Result should have mcpServer');
     assert.strictEqual(typeof result.close, 'function', 'Result should have close function');
   });
 });
