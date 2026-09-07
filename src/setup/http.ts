@@ -16,10 +16,17 @@ export async function createHTTPServer(config: ServerConfig, overrides?: Runtime
   const tools = [...composed.tools, ...runtime.deps.oauthAdapters.accountTools];
   const prompts = [...composed.prompts, ...runtime.deps.oauthAdapters.accountPrompts];
 
-  const mcpServer = new McpServer({ name: config.name, version: config.version });
-  registerTools(mcpServer, tools);
-  registerResources(mcpServer, composed.resources);
-  registerPrompts(mcpServer, prompts);
+  // Built per request (HTTP) and per connection (stdio), not shared. The SDK caches the
+  // negotiated protocol revision on the McpServer instance - its own docs say a negotiated
+  // session never re-routes a method onto the other era - so one shared instance pins itself
+  // to whichever revision reaches it first and answers the other with -32601.
+  const buildServer = () => {
+    const mcpServer = new McpServer({ name: config.name, version: config.version });
+    registerTools(mcpServer, tools);
+    registerResources(mcpServer, composed.resources);
+    registerPrompts(mcpServer, prompts);
+    return mcpServer;
+  };
 
   const app = express();
   app.use(express.json({ limit: '10mb' }));
@@ -28,7 +35,7 @@ export async function createHTTPServer(config: ServerConfig, overrides?: Runtime
   // preflight first; pass baseUrl's origin/host below or a public deployment 403s itself.
   const publicUrl = config.baseUrl ? new URL(config.baseUrl) : undefined;
   logger.info(`Starting ${config.name} MCP server (http)`);
-  const { close, httpServer } = await connectHttp(mcpServer, {
+  const { close, httpServer } = await connectHttp(buildServer, {
     logger,
     app,
     port,
@@ -53,7 +60,6 @@ export async function createHTTPServer(config: ServerConfig, overrides?: Runtime
 
   return {
     httpServer,
-    mcpServer,
     logger,
     close: async () => {
       await close();

@@ -20,14 +20,22 @@ const match = /^support\/(\d+)\.x$/.exec(branch);
 if (!match) process.exit(0);
 
 const expected = `support-${match[1]}`;
-let argv = [];
-try {
-  argv = JSON.parse(process.env.npm_config_argv || '{}').original || [];
-} catch {}
-const named = argv.some((arg, i) => arg === '--tag' && argv[i + 1] === expected) || argv.includes(`--tag=${expected}`);
 
-if (!named) {
+// npm exposes the resolved --tag as npm_config_tag. npm_config_argv carried it
+// before npm 7 and is undefined since, so it is only a fallback: reading it alone
+// refuses every publish, correct ones included.
+let tag = process.env.npm_config_tag;
+if (!tag) {
+  try {
+    const argv = JSON.parse(process.env.npm_config_argv || '{}').original || [];
+    const i = argv.indexOf('--tag');
+    tag = i !== -1 ? argv[i + 1] : argv.find((a) => a.startsWith('--tag='))?.slice('--tag='.length);
+  } catch {}
+}
+
+if (tag !== expected) {
   console.error(`Publishing from ${branch} requires --tag ${expected}.`);
   console.error("A bare publish moves the 'latest' dist-tag to this line, so every plain install serves it.");
+  if (tag) console.error(`Got --tag ${tag}.`);
   process.exit(1);
 }
