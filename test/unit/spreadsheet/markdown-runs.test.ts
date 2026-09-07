@@ -1,3 +1,4 @@
+import '../../lib/env-loader.ts';
 import assert from 'assert';
 import { buildTextFormatRuns, type MarkdownSpan, type ParsedMarkdown, parseInlineMarkdown } from '../../../src/spreadsheet/markdown-runs.ts';
 

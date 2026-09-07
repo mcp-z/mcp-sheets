@@ -1,3 +1,4 @@
+import '../../lib/env-loader.ts';
 import { type drive_v3, drive as driveApi } from '@googleapis/drive';
 import { type sheets_v4, sheets as sheetsApi } from '@googleapis/sheets';
 import type { Logger } from '@mcp-z/oauth-google';
