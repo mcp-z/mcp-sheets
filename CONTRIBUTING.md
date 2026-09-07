@@ -2,6 +2,21 @@
 
 MCP server for Google Sheets integration with OAuth authentication, spreadsheet management, batch operations, and advanced formatting
 
+## Branches
+
+Two lines. `master` is the current major and where all new work goes; `support/1.x` maintains the 1.x line for consumers who have not migrated.
+
+    master          2.x    current
+    support/1.x     1.x    security fixes and bugs only
+
+Check which one you are on before editing:
+
+```bash
+git rev-parse --abbrev-ref HEAD
+```
+
+Features, migrations and new APIs go to `master` only. A fix that also affects the 1.x line is cherry-picked to `support/1.x`, never merged across. Releases from `support/1.x` publish under the `support-1` dist-tag, never `latest`; `prepublishOnly` refuses a bare publish from this branch.
+
 ## Before Starting
 
 A few conventions here differ from what you might expect:

@@ -1,4 +1,5 @@
 {
   "upgrade": true,
+  "target": "minor",
   "reject": ["get-port", "google-auth-library", "googleapis", "keyv-file"]
 }
