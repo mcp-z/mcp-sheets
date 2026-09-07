@@ -1,3 +1,4 @@
+import '../../lib/env-loader.ts';
 import type { ServerConfig } from '@mcp-z/mcp-sheets';
 import { setup } from '@mcp-z/mcp-sheets';
 import assert from 'assert';

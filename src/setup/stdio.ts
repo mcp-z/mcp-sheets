@@ -1,4 +1,4 @@
-import { composeMiddleware, connectStdio, McpServer, registerPrompts, registerResources, registerTools } from '@mcp-z/server';
+import { composeMiddleware, connectStdio, defaultCacheHints, McpServer, registerPrompts, registerResources, registerTools } from '@mcp-z/server';
 import type { RuntimeOverrides, ServerConfig } from '../types.ts';
 import { createDefaultRuntime } from './runtime.ts';
 
@@ -17,7 +17,7 @@ export async function createStdioServer(config: ServerConfig, overrides?: Runtim
   // session never re-routes a method onto the other era - so one shared instance pins itself
   // to whichever revision reaches it first and answers the other with -32601.
   const buildServer = () => {
-    const mcpServer = new McpServer({ name: config.name, version: config.version });
+    const mcpServer = new McpServer({ name: config.name, version: config.version }, { cacheHints: defaultCacheHints });
     registerTools(mcpServer, tools);
     registerResources(mcpServer, composed.resources);
     registerPrompts(mcpServer, prompts);

@@ -1,3 +1,4 @@
+import '../../lib/env-loader.ts';
 import assert from 'assert';
 import {
   // Batch operation builders

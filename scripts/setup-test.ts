@@ -9,6 +9,7 @@
  *   npm run test:setup
  */
 
+import '../test/lib/env-loader.ts';
 import { LoopbackOAuthProvider } from '@mcp-z/oauth-google';
 import { GOOGLE_SCOPE } from '../src/constants.ts';
 import createStore from '../src/lib/create-store.ts';

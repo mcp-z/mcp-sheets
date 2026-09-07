@@ -1,3 +1,4 @@
+import '../../../lib/env-loader.ts';
 import { auth as googleAuthPlus, sheets as sheetsApi } from '@googleapis/sheets';
 import { mcp } from '@mcp-z/mcp-sheets';
 import type { Logger, LoopbackOAuthProvider } from '@mcp-z/oauth-google';

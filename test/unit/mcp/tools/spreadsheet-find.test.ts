@@ -1,3 +1,4 @@
+import '../../../lib/env-loader.ts';
 import { mcp } from '@mcp-z/mcp-sheets';
 import type { EnrichedExtra, Logger, LoopbackOAuthProvider } from '@mcp-z/oauth-google';
 import type { CallToolResult } from '@mcp-z/server';
