@@ -1,5 +1,27 @@
 # Changelog
 
+## [1.3.0] - 2026-09-08 — final 1.x release
+
+**This is the last release on the 1.x line, and it is the 2.x code.** The entries below document
+what is in it; the 1.x entries that used to head this file are on the `v1.2.4` tag.
+
+The 1.x line is now end-of-life. Rather than backport fixes to it one at a time, this release
+carries the whole 2.x tree, so a 1.x consumer gets every fix in one upgrade.
+
+### Changed
+
+- Internals moved from `@modelcontextprotocol/sdk` v1 to the v2 SDK, and the package now serves both
+  the 2025 and 2026-07-28 protocol revisions. See the 2.x entries below for what changed.
+
+### Migrating to 2.x
+
+`npm install @mcp-z/mcp-sheets@latest`. If you import types from `@mcp-z/server`, two names moved:
+`McpError` → `ProtocolError` and `RequestHandlerExtra` → `ServerContext`.
+
+### Support
+
+None. There will be no further 1.x releases, including for security. Fixes land on 2.x.
+
 ## [2.3.0] - 2026-09-07
 
 ### Changed
