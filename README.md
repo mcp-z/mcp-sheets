@@ -2,6 +2,8 @@
 
 MCP server for Google Sheets integration with OAuth authentication, spreadsheet management, batch operations, and advanced formatting
 
+Requires Node.js >=20. The examples use `npx`, included with npm, to run this server and `@mcp-z/cli`.
+
 ## Common uses
 
 - Find spreadsheets and sheets
@@ -11,6 +13,11 @@ MCP server for Google Sheets integration with OAuth authentication, spreadsheet 
 ## Transports
 
 MCP supports stdio and HTTP.
+
+Both the 2025 and 2026-07-28 protocol revisions are served, over either transport, from the same
+server. Your client negotiates whichever it speaks. A 2025 client keeps working with no change,
+and support for it is not being dropped. The 2026-07-28 revision is stateless, so a client speaking
+it sends no `initialize` handshake and carries no session id.
 
 **Stdio**
 ```json
@@ -40,7 +47,7 @@ MCP supports stdio and HTTP.
 }
 ```
 
-`start` is an extension used by `npx @mcp-z/cli up` to launch HTTP servers for you.
+`start` is an extension used by `npx @mcp-z/cli up` to launch HTTP servers for you. The HTTP endpoint is `/mcp`.
 
 ## Create a Google Cloud app
 
@@ -49,10 +56,10 @@ MCP supports stdio and HTTP.
 3. Enable the Google Sheets API.
 4. Create OAuth 2.0 credentials (Desktop app).
 5. Copy the Client ID and Client Secret.
-6. Select your MCP transport (stdio for local and http for remote) and platform
-- For stdio, choose "APIs & Services", + Create client, "Desktop app" type
-- For http, choose "APIs & Services", + Create client, "Web application" type, add your URL (default is http://localhost:3000/oauth/callback based on the --port or PORT)
-- For local hosting, add "http://127.0.0.1" for [Ephemeral redirect URL](https://en.wikipedia.org/wiki/Ephemeral_port)
+6. Select the credential type that matches your transport:
+   - For stdio, choose "Desktop app" under APIs & Services.
+   - For HTTP, choose "Web application" and add your public `/oauth/callback` URL. Local HTTP uses the port configured with `--port` or `PORT`.
+   - For local hosting, add `http://127.0.0.1` for the [ephemeral redirect URL](https://en.wikipedia.org/wiki/Ephemeral_port).
 7. Enable OAuth2 [scopes](https://console.cloud.google.com/auth/scopes): openid https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/drive
 8. Add [test emails](https://console.cloud.google.com/auth/audience)
 
@@ -90,7 +97,7 @@ Example (http) - Create .mcp.json:
   "mcpServers": {
     "sheets": {
       "type": "http",
-      "url": "http://localhost:3000",
+      "url": "http://localhost:3000/mcp",
       "start": {
         "command": "npx",
         "args": ["-y", "@mcp-z/mcp-sheets", "--port=3000"],
@@ -105,7 +112,7 @@ Example (http) - Create .mcp.json:
 
 Local (default): omit REDIRECT_URI → ephemeral loopback. Cloud: set REDIRECT_URI to your public /oauth/callback and expose the service publicly.
 
-Note: start block is a helper in "npx @mcp-z/cli up" for starting an http server from your .mpc.json. See [@mcp-z/cli](https://github.com/mcp-z/cli) for details.
+Note: the `start` block is a helper in `npx @mcp-z/cli up` for starting an HTTP server from your `.mcp.json`. See [@mcp-z/cli](https://github.com/mcp-z/cli) for details.
 
 ### Service account
 
@@ -160,10 +167,10 @@ HTTP only. Requires a public base URL.
 
 ```bash
 # List tools
-mcp-z inspect --servers sheets --tools
+npx -y @mcp-z/cli inspect --servers sheets --tools
 
 # Find a spreadsheet
-mcp-z call sheets spreadsheet-find '{"spreadsheetRef":"Quarterly Report"}'
+npx -y @mcp-z/cli call-tool sheets spreadsheet-find '{"spreadsheetRef":"Quarterly Report"}'
 ```
 
 ## Tools
@@ -206,7 +213,7 @@ mcp-z call sheets spreadsheet-find '{"spreadsheetRef":"Quarterly Report"}'
 
 ## Configuration reference
 
-See `server.json` for all supported environment variables, CLI arguments, and defaults.
+See [`server.json`](https://github.com/mcp-z/mcp-sheets/blob/master/server.json) for all supported environment variables, CLI arguments, and defaults.
 
 ## Storage backends
 
@@ -224,6 +231,6 @@ TOKEN_STORE_URI=redis://localhost:6379 mcp-sheets
 
 A protocol whose adapter is missing fails at startup naming the package to install.
 
-### Documentation
+## Documentation
 
 [API Docs](https://mcp-z.github.io/mcp-sheets)

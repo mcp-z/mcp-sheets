@@ -1,11 +1,11 @@
-import '../../lib/env-loader.ts';
+import '../lib/env-loader.ts';
 import { type drive_v3, drive as driveApi } from '@googleapis/drive';
 import { type sheets_v4, sheets as sheetsApi } from '@googleapis/sheets';
 import type { Logger } from '@mcp-z/oauth-google';
 import assert from 'assert';
-import { appendRows } from '../../../src/spreadsheet/data-operations.ts';
-import { ensureTabAndHeaders } from '../../../src/spreadsheet/sheet-operations.ts';
-import createMiddlewareContext from '../../lib/create-middleware-context.ts';
+import { appendRows } from '../../src/spreadsheet/data-operations.ts';
+import { ensureTabAndHeaders } from '../../src/spreadsheet/sheet-operations.ts';
+import createMiddlewareContext from '../lib/create-middleware-context.ts';
 
 let auth: Awaited<ReturnType<typeof createMiddlewareContext>>['auth'];
 let logger: Logger;
