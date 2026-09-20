@@ -1,3 +1,4 @@
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import type * as OAuthGoogle from '@mcp-z/oauth-google';
 import type * as McpServer from '@mcp-z/server';
 import { Module } from 'module';
@@ -115,14 +116,14 @@ function normalizeResourceStoreUri(resourceStoreUri: string): string {
   const filePrefix = 'file://';
   if (resourceStoreUri.startsWith(filePrefix)) {
     const rawPath = resourceStoreUri.slice(filePrefix.length);
-    const expandedPath = rawPath.startsWith('~') ? rawPath.replace(/^~/, homedir()) : rawPath;
-    return `${filePrefix}${path.resolve(expandedPath)}`;
+    const filePath = rawPath.startsWith('~') ? rawPath.replace(/^~/, homedir()) : rawPath.startsWith('/') ? fileURLToPath(resourceStoreUri) : rawPath;
+    return pathToFileURL(path.resolve(filePath)).href;
   }
 
   if (resourceStoreUri.includes('://')) return resourceStoreUri;
 
   const expandedPath = resourceStoreUri.startsWith('~') ? resourceStoreUri.replace(/^~/, homedir()) : resourceStoreUri;
-  return `${filePrefix}${path.resolve(expandedPath)}`;
+  return pathToFileURL(path.resolve(expandedPath)).href;
 }
 
 /**

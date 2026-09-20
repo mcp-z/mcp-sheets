@@ -60,14 +60,16 @@
     "format": "tsds format",
     "prepublish:check": "ncp",
     "prepublishOnly": "node scripts/require-dist-tag.cjs && tsds validate",
-    "test": "tsds test:node --no-timeouts",
-    "test:engines": "nvu engines tsds test:node --no-timeouts",
+    "test": "tsds test:node --require test/lib/env-loader.ts --no-timeouts",
+    "test:ci": "tsds test:node --require test/lib/env-loader.ts --no-timeouts --ignore \"test/integration/**\" --ignore \"test/unit/mcp/tools/csv-get-columns.test.ts\"",
+    "test:ci:engines": "nvu engines tsds test:node --require test/lib/env-loader.ts --no-timeouts --ignore \"test/integration/**\" --ignore \"test/unit/mcp/tools/csv-get-columns.test.ts\"",
+    "test:engines": "nvu engines tsds test:node --require test/lib/env-loader.ts --no-timeouts",
     "test:setup": "node scripts/setup-test.ts",
     "version": "tsds version"
   },
   "dependencies": {
-    "@googleapis/drive": "^25.0.0",
-    "@googleapis/sheets": "^17.0.0",
+    "@googleapis/drive": "^26.0.0",
+    "@googleapis/sheets": "^18.0.0",
     "@mcp-z/oauth": "^2.0.0",
     "@mcp-z/oauth-google": "^2.0.1",
     "@mcp-z/server": "^2.2.0",
@@ -91,8 +93,10 @@
     "get-port": "5.1.1",
     "keyv": "^5.0.0",
     "node-version-use": "^2.4.7",
+    "p-throttle": "^8.1.1",
     "ts-dev-stack": "^1.22.1",
-    "tsds-config": "^1.0.4"
+    "tsds-config": "^1.0.4",
+    "tsds-lib": "^1.22.6"
   },
   "engines": {
     "node": ">=20"

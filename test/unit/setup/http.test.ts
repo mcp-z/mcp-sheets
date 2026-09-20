@@ -1,4 +1,5 @@
 import '../../lib/env-loader.ts';
+import { pathToFileURL } from 'node:url';
 import type { ServerConfig } from '@mcp-z/mcp-sheets';
 import { setup } from '@mcp-z/mcp-sheets';
 import assert from 'assert';
@@ -50,7 +51,7 @@ describe('setup.createHTTPServer - transport initialization', () => {
       logLevel: 'error',
       auth: 'loopback-oauth',
       repositoryUrl: 'https://github.com/mcp-z/mcp-sheets',
-      resourceStoreUri: `file://${testContextPath}/files`,
+      resourceStoreUri: pathToFileURL(path.join(testContextPath, 'files')).href,
     };
 
     const result = await setup.createHTTPServer(config);
@@ -72,7 +73,7 @@ describe('setup.createHTTPServer - transport initialization', () => {
       logLevel: 'error',
       auth: 'loopback-oauth',
       repositoryUrl: 'https://github.com/mcp-z/mcp-sheets',
-      resourceStoreUri: `file://${testContextPath}/files`,
+      resourceStoreUri: pathToFileURL(path.join(testContextPath, 'files')).href,
     };
 
     const result = await setup.createHTTPServer(config);
@@ -96,7 +97,7 @@ describe('setup.createHTTPServer - transport initialization', () => {
       logLevel: 'error',
       auth: 'loopback-oauth',
       repositoryUrl: 'https://github.com/mcp-z/mcp-sheets',
-      resourceStoreUri: `file://${testContextPath}/files`,
+      resourceStoreUri: pathToFileURL(path.join(testContextPath, 'files')).href,
     };
 
     const result = await setup.createHTTPServer(config);

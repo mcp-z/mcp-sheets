@@ -1,0 +1,63 @@
+name: Live provider tests
+on:
+  workflow_dispatch:
+    inputs:
+      runner:
+        description: Platform for this live run
+        type: choice
+        options: [ubuntu-latest, windows-latest]
+        default: ubuntu-latest
+
+permissions:
+  contents: read
+
+concurrency:
+  group: live-provider-tests
+  cancel-in-progress: false
+
+jobs:
+  test:
+    if: github.ref == 'refs/heads/master'
+    runs-on: ${{ inputs.runner }}
+    timeout-minutes: 30
+    environment: live-test
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        id: checkout
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version: 26
+          package-manager-cache: false
+      - run: npm ci
+      - run: npm run prepublishOnly
+      - name: Seed live credentials
+        id: seed
+        run: node scripts/ci-tokens.ts seed
+        env:
+          CI_SECRETS_TOKEN: ${{ secrets.CI_SECRETS_TOKEN }}
+          TEST_ACCOUNT_ID: ${{ secrets.TEST_ACCOUNT_ID }}
+          TEST_REFRESH_TOKEN: ${{ secrets.TEST_REFRESH_TOKEN }}
+          TEST_SCOPE: ${{ secrets.TEST_SCOPE }}
+          GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
+          GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+      - name: Run live tests
+        run: npm test -- --bail
+        env:
+          TEST_ACCOUNT_ID: ${{ secrets.TEST_ACCOUNT_ID }}
+          TEST_SCOPE: ${{ secrets.TEST_SCOPE }}
+          GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
+          GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+          TEST_INCLUDE_MANUAL: 'false'
+          HEADLESS: 'true'
+      - name: Persist updated credentials
+        if: always() && steps.seed.outcome != 'skipped'
+        run: node scripts/ci-tokens.ts persist
+        env:
+          CI_SECRETS_TOKEN: ${{ secrets.CI_SECRETS_TOKEN }}
+          CI_SEED_OUTCOME: ${{ steps.seed.outcome }}
+          TEST_ACCOUNT_ID: ${{ secrets.TEST_ACCOUNT_ID }}
+      - name: Remove private runner files
+        if: always() && steps.checkout.outcome == 'success'
+        run: node scripts/ci-tokens.ts cleanup
