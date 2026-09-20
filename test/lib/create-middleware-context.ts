@@ -6,13 +6,15 @@
  */
 
 import { listAccountIds } from '@mcp-z/oauth';
-import { LoopbackOAuthProvider } from '@mcp-z/oauth-google';
 import type { Keyv } from 'keyv';
 import { GOOGLE_SCOPE } from '../../src/constants.ts';
 import createStore from '../../src/lib/create-store.ts';
 import { googleAuth } from '../../src/lib/google-auth.ts';
 import type { Logger } from '../../src/types.ts';
 import { createConfig } from './config.ts';
+import { PacedOAuthProvider, pacingSummary } from './paced-oauth-provider.ts';
+
+after(() => console.info('Live API pacing:', pacingSummary()));
 
 /**
  * Validate exactly one account exists (0/1/Many strategy)
@@ -65,7 +67,7 @@ export default async function createMiddlewareContext() {
   // Validate exactly 1 account exists
   const accountId = await validateSingleAccount(tokenStore, config.name);
 
-  const authProvider = new LoopbackOAuthProvider({
+  const authProvider = new PacedOAuthProvider({
     service: config.name,
     clientId: config.clientId,
     clientSecret: config.clientSecret,
