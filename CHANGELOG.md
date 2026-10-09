@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.4.0] - 2026-10-09
+
+### Added
+
+- `spreadsheet-metadata-get` inspects workbook properties and structure across all sheets before making changes, without fetching cell grid data.
+- `cells-metadata-get` reads selected cell metadata to inspect notes and validation before editing. Reads require finite ranges on one sheet and exclude cell values, formulas, and direct formatting.
+
 ## [2.3.0] - 2026-09-07
 
 ### Changed

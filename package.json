@@ -7,6 +7,7 @@
     "google sheets",
     "google",
     "spreadsheet",
+    "metadata",
     "mcp",
     "ai",
     "mcp-server",
@@ -88,15 +89,15 @@
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
     "@types/mocha": "^10.0.10",
-    "@types/node": "^26.2.0",
+    "@types/node": "^20.19.43",
     "fs-remove-compat": "^1.0.4",
     "get-port": "5.1.1",
     "keyv": "^5.0.0",
     "node-version-use": "^2.4.7",
     "p-throttle": "^8.1.1",
+    "portable-env": "^1.4.0",
     "ts-dev-stack": "^1.22.1",
-    "tsds-config": "^1.0.4",
-    "tsds-lib": "^1.22.6"
+    "tsds-config": "^1.0.4"
   },
   "engines": {
     "node": ">=20"

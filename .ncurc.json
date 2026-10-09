@@ -1,4 +1,4 @@
 {
   "upgrade": true,
-  "reject": ["get-port", "keyv-file"]
+  "reject": ["@types/node", "get-port", "keyv-file", "keyv"]
 }

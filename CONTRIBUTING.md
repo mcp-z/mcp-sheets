@@ -45,13 +45,14 @@ Install ts-dev-stack globally if not already installed:
 npm install -g ts-dev-stack
 ```
 
-Run before committing - this builds, type-checks, lints, and tests:
+Run before committing to format, build, type-check, lint, check dependencies, and generate API documentation:
 
 ```bash
 tsds validate
+npm test
 ```
 
-`tsds validate` also runs automatically on `npm publish` via the `prepublishOnly` hook; a failure blocks the publish.
+`tsds validate` does not run tests. Run `npm test` separately. Validation also runs automatically on `npm publish` via the `prepublishOnly` hook; a failure blocks the publish.
 
 ## Testing
 
@@ -63,6 +64,8 @@ npm run test:engines  # Run the suite across every supported Node version
 
 Specs live in `test/unit/`, mirroring `src/`. Cross-service specs live in `test/integration/`. Both run under `npm test`.
 
+Run test commands from the package root. The test setup optionally loads `.env.test` through `portable-env`; file values override matching inherited values. CI or the shell can supply values without a file. Enabled live tests require their necessary values, not the file itself.
+
 ## Package Development
 
 See `README.md` for package overview and usage.
@@ -71,7 +74,7 @@ See `README.md` for package overview and usage.
 
 CI follows the Linux/Windows template used by each-package: Node 26, `npm ci`, `prepublishOnly`, a current-runtime test run, and the supported-engine sweep. macOS coverage runs locally. Pull requests receive no provider credentials.
 
-`npm run test:ci` and `npm run test:ci:engines` run the credential-free selection. They exclude `test/integration/**`, `test/unit/mcp/tools/csv-get-columns.test.ts`. These files require provider configuration, live services, or interactive consent; some also contain local checks. Their exclusion is a coverage gap until the separate live-service automation is provisioned.
+`npm run test:ci` and `npm run test:ci:engines` run the credential-free selection, excluding `test/integration/**` and `test/unit/mcp/tools/csv-get-columns.test.ts`. The excluded files require provider configuration, live services, or interactive consent; some also contain local checks. Live-service coverage belongs to the separate workflow below.
 
 `npm test` and `npm run test:engines` retain full discovery. CI sets `TEST_INCLUDE_MANUAL=false`; consent tests require a person and run locally with `TEST_INCLUDE_MANUAL=true`. A green credential-free check does not certify live-provider behavior. Release evidence must include the configured live suites and relevant manual OAuth flows.
 

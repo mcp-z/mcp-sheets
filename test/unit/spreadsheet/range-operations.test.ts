@@ -4,6 +4,7 @@ import {
   // Batch operation builders
   buildValuesBatchUpdateRequest,
   // Cell count calculations
+  calculateFiniteRangeCellCount,
   calculateRangeDimensions,
   calculateTotalCells,
   columnIndexToString,
@@ -27,6 +28,20 @@ import {
   validateA1Notation,
   validateBatchRanges,
 } from '../../../src/spreadsheet/range-operations.ts';
+
+describe('calculateFiniteRangeCellCount', () => {
+  it('counts a single cell and finite rectangles', () => {
+    assert.equal(calculateFiniteRangeCellCount('D9'), 1);
+    assert.equal(calculateFiniteRangeCellCount('B2:D5'), 12);
+    assert.equal(calculateFiniteRangeCellCount('A1:J25000'), 250000);
+  });
+
+  it('rejects unbounded, reversed and invalid ranges', () => {
+    for (const range of ['A:A', '1:2', 'A5:B2', 'C1:A5', 'C5:A2', '', 'A0', 'Sheet1!A1']) {
+      assert.throws(() => calculateFiniteRangeCellCount(range), Error, range);
+    }
+  });
+});
 
 describe('A1 Notation Validation', () => {
   describe('isValidA1Notation', () => {
