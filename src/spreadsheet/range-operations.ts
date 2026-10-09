@@ -368,8 +368,18 @@ export function calculateRangeDimensions(notation: string): RangeDimensions {
 }
 
 /**
- * Calculates total cells affected by multiple ranges
+ * Counts cells in a finite sheet-local range, rejecting reversed bounds.
  */
+export function calculateFiniteRangeCellCount(notation: string): number {
+  const range = parseA1Notation(notation);
+  if (range.type !== 'cell' && range.type !== 'range') {
+    throw new Error(`Range must have finite start and end rows and columns: ${notation}`);
+  }
+  const dimensions = calculateRangeDimensions(notation);
+  if (dimensions.rows < 1 || dimensions.columns < 1) throw new Error(`Range end must not precede its start: ${notation}`);
+  return dimensions.cells;
+}
+
 export function calculateTotalCells(ranges: string[]): number {
   return ranges.reduce((total, range) => {
     const dimensions = calculateRangeDimensions(range);

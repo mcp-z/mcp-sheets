@@ -7,6 +7,7 @@ Requires Node.js >=20. The examples use `npx`, included with npm, to run this se
 ## Common uses
 
 - Find spreadsheets and sheets
+- Inspect workbook structure and metadata in selected cells
 - Append and update data
 - Apply formatting, validation, and charts
 
@@ -53,7 +54,7 @@ it sends no `initialize` handshake and carries no session id.
 
 1. Go to [Google Cloud Console](https://console.cloud.google.com/).
 2. Create or select a project.
-3. Enable the Google Sheets API.
+3. Enable the Google Sheets API and Google Drive API.
 4. Create OAuth 2.0 credentials (Desktop app).
 5. Copy the Client ID and Client Secret.
 6. Select the credential type that matches your transport:
@@ -176,32 +177,36 @@ npx -y @mcp-z/cli call-tool sheets spreadsheet-find '{"spreadsheetRef":"Quarterl
 ## Tools
 
 1. cells-format
-2. chart-create
-3. columns-get
-4. columns-update
-5. csv-get-columns
-6. dimensions-batch-update
-7. dimensions-move
-8. rows-append
-9. rows-csv-append
-10. rows-get
-11. sheet-copy
-12. sheet-copy-to
-13. sheet-create
-14. sheet-delete
-15. sheet-find
-16. sheet-rename
-17. spreadsheet-copy
-18. spreadsheet-create
-19. spreadsheet-find
-20. spreadsheet-rename
-21. validation-set
-22. values-batch-update
-23. values-clear
-24. values-csv-update
-25. values-markdown-update
-26. values-replace
-27. values-search
+2. cells-metadata-get
+3. chart-create
+4. columns-get
+5. columns-update
+6. csv-get-columns
+7. dimensions-batch-update
+8. dimensions-move
+9. rows-append
+10. rows-csv-append
+11. rows-get
+12. sheet-copy
+13. sheet-copy-to
+14. sheet-create
+15. sheet-delete
+16. sheet-find
+17. sheet-rename
+18. spreadsheet-copy
+19. spreadsheet-create
+20. spreadsheet-find
+21. spreadsheet-metadata-get
+22. spreadsheet-rename
+23. validation-set
+24. values-batch-update
+25. values-clear
+26. values-csv-update
+27. values-markdown-update
+28. values-replace
+29. values-search
+
+See [metadata usage](https://github.com/mcp-z/mcp-sheets/blob/master/usage/metadata.md) for workbook inspection and bounded cell reads.
 
 ## Resources
 

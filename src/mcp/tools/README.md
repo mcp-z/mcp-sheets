@@ -54,6 +54,10 @@ OPERATION TOOLS (require direct IDs from lookup tools)
 - `spreadsheet-find` - Find spreadsheet by URL/name/ID, returns all sheet metadata
 - `sheet-find` - Find sheet by title/gid within a known spreadsheet
 
+#### Spreadsheet Metadata
+- `spreadsheet-metadata-get` - Read workbook properties and structural metadata, including charts, named ranges, and protections.
+- `cells-metadata-get` - Read notes, validation rules, and pivot or data-source table definitions in selected cell ranges.
+
 #### Spreadsheet Operations (4)
 - `spreadsheet-create` - Create new spreadsheet
 - `spreadsheet-copy` - Copy entire spreadsheet

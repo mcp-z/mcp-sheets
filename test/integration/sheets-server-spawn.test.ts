@@ -6,6 +6,7 @@
 import '../lib/env-loader.ts';
 import { createServerRegistry, type ManagedClient, type ServerRegistry } from '@mcp-z/client';
 import assert from 'assert';
+import { requiredEnv } from 'portable-env';
 
 describe('Sheets Server Spawn Integration', () => {
   let client: ManagedClient;
@@ -19,7 +20,7 @@ describe('Sheets Server Spawn Integration', () => {
           args: ['bin/server.js', '--headless'],
           env: {
             NODE_ENV: 'test',
-            GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID || '',
+            GOOGLE_CLIENT_ID: requiredEnv('GOOGLE_CLIENT_ID'),
             GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET || '',
             HEADLESS: 'true',
             LOG_LEVEL: 'error',

@@ -1,4 +1,5 @@
 export { default as cellsFormat } from './cells-format.ts';
+export { default as cellsMetadataGet } from './cells-metadata-get.ts';
 export { default as chartCreate } from './chart-create.ts';
 export { default as columnsGet } from './columns-get.ts';
 export { default as columnsUpdate } from './columns-update.ts';
@@ -17,6 +18,7 @@ export { default as sheetRename } from './sheet-rename.ts';
 export { default as spreadsheetCopy } from './spreadsheet-copy.ts';
 export { default as spreadsheetCreate } from './spreadsheet-create.ts';
 export { default as spreadsheetFind } from './spreadsheet-find.ts';
+export { default as spreadsheetMetadataGet } from './spreadsheet-metadata-get.ts';
 export { default as spreadsheetRename } from './spreadsheet-rename.ts';
 export { default as validationSet } from './validation-set.ts';
 export { default as valuesBatchUpdate } from './values-batch-update.ts';
