@@ -14,6 +14,7 @@
 <h2 id="common-uses" class="tsd-anchor-link">Common uses<a href="#common-uses" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
 <ul>
 <li>Find spreadsheets and sheets</li>
+<li>Inspect workbook structure and metadata in selected cells</li>
 <li>Append and update data</li>
 <li>Apply formatting, validation, and charts</li>
 </ul>
@@ -36,7 +37,7 @@ it sends no <code>initialize</code> handshake and carries no session id.</p>
 <ol>
 <li>Go to <a href="https://console.cloud.google.com/">Google Cloud Console</a>.</li>
 <li>Create or select a project.</li>
-<li>Enable the Google Sheets API.</li>
+<li>Enable the Google Sheets API and Google Drive API.</li>
 <li>Create OAuth 2.0 credentials (Desktop app).</li>
 <li>Copy the Client ID and Client Secret.</li>
 <li>Select the credential type that matches your transport:
@@ -87,6 +88,7 @@ it sends no <code>initialize</code> handshake and carries no session id.</p>
 <h2 id="tools" class="tsd-anchor-link">Tools<a href="#tools" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
 <ol>
 <li>cells-format</li>
+<li>cells-metadata-get</li>
 <li>chart-create</li>
 <li>columns-get</li>
 <li>columns-update</li>
@@ -105,6 +107,7 @@ it sends no <code>initialize</code> handshake and carries no session id.</p>
 <li>spreadsheet-copy</li>
 <li>spreadsheet-create</li>
 <li>spreadsheet-find</li>
+<li>spreadsheet-metadata-get</li>
 <li>spreadsheet-rename</li>
 <li>validation-set</li>
 <li>values-batch-update</li>
@@ -114,6 +117,7 @@ it sends no <code>initialize</code> handshake and carries no session id.</p>
 <li>values-replace</li>
 <li>values-search</li>
 </ol>
+<p>See <a href="https://github.com/mcp-z/mcp-sheets/blob/master/usage/metadata.md">metadata usage</a> for workbook inspection and bounded cell reads.</p>
 <h2 id="resources" class="tsd-anchor-link">Resources<a href="#resources" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
 <ol>
 <li>spreadsheet</li>
