@@ -8,6 +8,7 @@ const { AuthRequiredBranchSchema } = schemas;
 import type { CallToolResult, ToolModule } from '@mcp-z/server';
 import { ProtocolError, ProtocolErrorCode } from '@mcp-z/server';
 import { parse } from 'csv-parse';
+import type { Readable } from 'stream';
 import { pipeline } from 'stream/promises';
 import { z } from 'zod';
 import { getCsvReadStream } from '../../spreadsheet/csv-streaming.ts';
@@ -48,29 +49,52 @@ async function handler({ sourceUri }: Input, extra: EnrichedExtra): Promise<Call
       cast: true,
       relax_column_count: true,
     });
-    const readStream = await getCsvReadStream(sourceUri);
     const firstRowRead = new Error('First CSV row read');
-    const completed = pipeline(readStream, parser).then(
-      () => undefined,
-      (error: unknown) => error
-    );
-
+    const streamErrors: unknown[] = [];
+    const onError = (error: unknown) => streamErrors.push(error);
+    parser.on('error', onError);
+    const parserClosed = new Promise<void>((resolve) => parser.once('close', resolve));
+    let readStream: Readable | undefined;
+    let sourceClosed: Promise<void> | undefined;
+    let completed: Promise<unknown> | undefined;
+    let failed = false;
+    let primaryError: unknown;
     let firstRow: unknown[] = [];
     let rowCount = 0;
     try {
+      readStream = await getCsvReadStream(sourceUri);
+      readStream.on('error', onError);
+      sourceClosed = readStream.closed ? Promise.resolve() : new Promise<void>((resolve) => readStream?.once('close', resolve));
+      completed = pipeline(readStream, parser).then(
+        () => undefined,
+        (error: unknown) => error
+      );
       const record = await parser[Symbol.asyncIterator]().next();
       if (!record.done) {
         firstRow = record.value;
         rowCount = 1;
         parser.destroy(firstRowRead);
       }
+      const pipelineError = await completed;
+      if (pipelineError !== undefined && pipelineError !== firstRowRead) throw pipelineError;
     } catch (error) {
-      await completed;
-      throw error;
+      failed = true;
+      primaryError = error;
+    } finally {
+      readStream?.destroy();
+      parser.destroy();
+      const pipelineError = await completed;
+      if (pipelineError !== undefined && pipelineError !== firstRowRead) streamErrors.push(pipelineError);
+      await Promise.all([sourceClosed, parserClosed]);
+      readStream?.removeListener('error', onError);
+      parser.removeListener('error', onError);
     }
-
-    const pipelineError = await completed;
-    if (pipelineError !== undefined && pipelineError !== firstRowRead) throw pipelineError;
+    const failures = [...new Set([...(failed ? [primaryError] : []), ...streamErrors.filter((error) => error !== firstRowRead)])];
+    if (failures.length === 1) throw failures[0];
+    if (failures.length > 1) {
+      const message = failures.map((error) => (error instanceof Error ? error.message : String(error))).join('; ');
+      throw Object.assign(new Error(message), { errors: failures, primaryError: failures[0] });
+    }
 
     // Convert first row to strings (column names)
     const columns = firstRow.map((value) => String(value ?? ''));

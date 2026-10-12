@@ -84,6 +84,8 @@ it('sheets-csv-get-columns reads only first row (not all data)', async () => {
   }
   safeRmSync(csvPath, { force: true });
   await assert.rejects(fs.stat(csvPath), { code: 'ENOENT' });
+  await fs.writeFile(csvPath, 'replacement after first row\n', { flag: 'wx' });
+  assert.equal(await fs.readFile(csvPath, 'utf8'), 'replacement after first row\n');
 });
 
 it('sheets-csv-get-columns handles CSV with only columns (no data rows)', async () => {
@@ -113,6 +115,8 @@ it('sheets-csv-get-columns preserves a malformed first-record failure and releas
   });
   safeRmSync(csvPath, { force: true });
   await assert.rejects(fs.stat(csvPath), { code: 'ENOENT' });
+  await fs.writeFile(csvPath, 'replacement after malformed record\n', { flag: 'wx' });
+  assert.equal(await fs.readFile(csvPath, 'utf8'), 'replacement after malformed record\n');
 });
 
 it('sheets-csv-get-columns reports a missing source through ProtocolError', async () => {
