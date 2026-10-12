@@ -2,17 +2,29 @@ name: Publish MCP Server
 on:
   push:
     tags: ['v*'] # Triggers on v1.0, v2.1.0, etc.
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Release tag to register, such as v1.2.3'
+        required: true
 
 jobs:
   publish:
+    name: Publish
     runs-on: ubuntu-latest
+    timeout-minutes: 90
     permissions:
       id-token: write  # Critical for OIDC
       contents: read
+    env:
+      TAG: ${{ inputs.tag || github.ref_name }}
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ env.TAG }}
 
-      - name: Install mcp-publisher
+      - name: Install publisher
         run: |
           # Detect OS/Arch and download the specific binary
           OS=$(uname -s | tr '[:upper:]' '[:lower:]')
@@ -20,20 +32,32 @@ jobs:
           curl -L "https://github.com/modelcontextprotocol/registry/releases/latest/download/mcp-publisher_${OS}_${ARCH}.tar.gz" | tar xz
           sudo mv mcp-publisher /usr/local/bin/
 
-      - name: Sync server.json version
+      - name: Sync version
         run: |
           # Extract version from git tag (v1.2.3 -> 1.2.3)
-          VERSION=${GITHUB_REF#refs/tags/v}
-          
+          VERSION=${TAG#v}
+
           # Update all version fields in server.json
           jq --arg ver "$VERSION" '
             .version = $ver |
             .packages[].version = $ver
           ' server.json > server.json.tmp && mv server.json.tmp server.json
-          
+
           echo "Updated server.json to version $VERSION"
 
-      - name: Login and Publish
+      - name: Wait for npm release
+        run: |
+          # The tag is pushed before npm publish finishes, and the registry rejects a version npm does not have yet
+          VERSION=${TAG#v}
+          PACKAGE=$(jq -r .name package.json)
+          for i in $(seq 1 60); do
+            npm view "$PACKAGE@$VERSION" version >/dev/null 2>&1 && exit 0
+            sleep 10
+          done
+          echo "$PACKAGE@$VERSION did not appear on npm within 10 minutes"
+          exit 1
+
+      - name: Publish
         run: |
           # No manual login needed; OIDC uses the repo's identity
           mcp-publisher login github-oidc
