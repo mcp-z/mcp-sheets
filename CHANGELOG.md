@@ -1,5 +1,11 @@
 # Changelog
 
+## [2.4.2] - 2026-10-12
+
+### Fixed
+
+- CSV column inspection waits for the input and parser to close before returning, allowing local files to be removed and recreated immediately after first-row inspection or malformed-input failures. Original CSV errors remain visible when cleanup also reports an error.
+
 ## [2.4.1] - 2026-10-11
 
 ### Fixed
