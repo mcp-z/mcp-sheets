@@ -1,5 +1,11 @@
 # Changelog
 
+## [2.4.1] - 2026-10-11
+
+### Fixed
+
+- CSV column inspection now closes the input after reading the first row, allowing local files to be removed immediately and stopping downloads of the remaining HTTP body. Source and malformed CSV errors continue to report through the tool's existing error response.
+
 ## [2.4.0] - 2026-10-09
 
 ### Added

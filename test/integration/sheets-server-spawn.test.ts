@@ -1,46 +1,19 @@
-/**
- * Sheets Server Spawn Integration Test
- *
- */
-
 import '../lib/env-loader.ts';
-import { createServerRegistry, type ManagedClient, type ServerRegistry } from '@mcp-z/client';
+import type { ManagedClient } from '@mcp-z/client';
 import assert from 'assert';
-import { requiredEnv } from 'portable-env';
+import { createStdioFixture } from '../lib/create-stdio-fixture.ts';
 
 describe('Sheets Server Spawn Integration', () => {
   let client: ManagedClient;
-  let registry: ServerRegistry;
+  let fixture: ReturnType<typeof createStdioFixture>;
 
   before(async () => {
-    registry = createServerRegistry(
-      {
-        sheets: {
-          command: 'node',
-          args: ['bin/server.js', '--headless'],
-          env: {
-            NODE_ENV: 'test',
-            GOOGLE_CLIENT_ID: requiredEnv('GOOGLE_CLIENT_ID'),
-            GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET || '',
-            HEADLESS: 'true',
-            LOG_LEVEL: 'error',
-          },
-        },
-      },
-      { cwd: process.cwd() }
-    );
-
-    client = await registry.connect('sheets');
+    fixture = createStdioFixture('local');
+    client = await fixture.connect();
   });
 
   after(async () => {
-    if (client) {
-      await client.close();
-    }
-
-    if (registry) {
-      await registry.close();
-    }
+    if (fixture) await fixture.close();
   });
 
   it('should connect to Sheets server', async () => {

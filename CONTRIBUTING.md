@@ -14,28 +14,7 @@ A few conventions here differ from what you might expect:
 
 ## Branches
 
-Two lines. `master` is the current major and where all new work goes; `support/1.x` maintains the 1.x line for consumers who have not migrated.
-
-    master            2.x    current    the v2 MCP SDK, both protocol eras
-    support/1.x       1.x    security fixes only, cut at v1.2.3
-
-Check which one you are on before editing:
-
-```bash
-git rev-parse --abbrev-ref HEAD
-```
-
-Features, dependency migrations and API changes go to `master` only. A security fix that also affects 1.x is **cherry-picked** to `support/1.x` — never merge the branches into each other, in either direction.
-
-This file is the 1.x line's guide too. It lives only on `master` so it cannot drift between the lines; from `support/1.x`, read it with `git show master:CONTRIBUTING.md`.
-
-Releasing `support/1.x` carries one trap. `npm publish` moves `latest` to the highest version published, so a 1.x release made after the next major exists must name its dist-tag or every bare `npm install @mcp-z/mcp-sheets` serves the old line:
-
-```bash
-npm publish --tag support-1
-```
-
-`prepublishOnly` refuses a bare publish from `support/*`, so forgetting the flag fails the publish rather than moving `latest`. `npm dist-tag add @mcp-z/mcp-sheets@<version> latest` reverses a mistake at any time.
+`master` is the only maintained release line. The 1.x line is retired and receives no fixes. All changes target `master`.
 
 ## Pre-Commit Commands
 
@@ -72,31 +51,29 @@ See `README.md` for package overview and usage.
 
 ## GitHub Actions
 
-CI follows the Linux/Windows template used by each-package: Node 26, `npm ci`, `prepublishOnly`, a current-runtime test run, and the supported-engine sweep. macOS coverage runs locally. Pull requests receive no provider credentials.
+Trusted master pushes and manual CI runs call this commit's existing **Tests** workflow. Ubuntu runs first; Windows follows only after Ubuntu succeeds. Each platform installs and validates the package, seeds real credentials, runs full `npm test -- --bail`, then full `npm run test:engines -- --bail`. Both commands discover unit, integration and exports tests without runner-level environment preloads or file exclusions. The existing `test:ci` and `test:ci:engines` aliases also retain full discovery. Environment-aware test and setup entrypoints import the existing optional loader before dependent imports.
 
-`npm run test:ci` and `npm run test:ci:engines` run the credential-free selection, excluding `test/integration/**` and `test/unit/mcp/tools/csv-get-columns.test.ts`. The excluded files require provider configuration, live services, or interactive consent; some also contain local checks. Live-service coverage belongs to the separate workflow below.
+Pull requests receive no provider secrets. They run `npm test -- "test/exports/*.test.*" "test/unit/**/*.test.ts" "test/integration/server.test.ts" "test/integration/sheets-server-spawn.test.ts" "test/integration/csv-stream-lifecycle.test.ts"` and the same positive selection through `npm run test:engines`. This includes the six local CSV handler unit cases, ten stdio integration cases using the real built server with isolated fixture state, and one local HTTP CSV stream lifecycle case. The live metadata invocation lives in `test/integration/server-metadata.test.ts` and remains in full trusted discovery. Its child shares the existing token-owner store to preserve refresh rotations; its logs and other stores remain private. A green PR check does not certify live-provider behavior.
 
-`npm test` and `npm run test:engines` retain full discovery. CI sets `TEST_INCLUDE_MANUAL=false`; consent tests require a person and run locally with `TEST_INCLUDE_MANUAL=true`. A green credential-free check does not certify live-provider behavior. Release evidence must include the configured live suites and relevant manual OAuth flows.
+### Trusted tests
 
-### Live provider tests
+The existing workflow remains manually dispatchable from master for either platform. Automatic and manual credential jobs share one non-cancelling queued `live-provider-tests` job lock through seed, tests, persistence and cleanup. The protected `live-test` environment supplies current secrets when each job starts. Keep this repository's existing token implementation and environment ownership.
 
-Run the **Live provider tests** workflow from master, selecting Linux or Windows. It runs the full non-interactive suite once with `--bail`, without an engine matrix or automatic retries. Live runs are manual while request usage and service quotas are being measured. A green PR check covers only the credential-free selection above.
-
-This repository owns its `live-test` GitHub environment, restricted to master, and its own live-job concurrency group. There is no cross-repository coordinator. Concurrent runs in different repositories can still share provider quotas; avoid starting several against the same account at once. Browser consent tests remain local and opt-in.
-
-Configure these individual environment secrets from the existing test configuration and token stores:
+Configure these existing environment secrets:
 
 - `CI_SECRETS_TOKEN`
 - `TEST_ACCOUNT_ID`
 - `TEST_REFRESH_TOKEN`
 - `TEST_SCOPE`
 - `GOOGLE_CLIENT_ID`
-- `GOOGLE_CLIENT_SECRET`
+- `GOOGLE_CLIENT_SECRET`, optional for a public OAuth client
 
-`CI_SECRETS_TOKEN` is a fine-grained GitHub PAT with this repository selected and **Environments: Read and write**. GitHub's default workflow token cannot update environment secrets; see the [environment-secret API permissions](https://docs.github.com/en/rest/actions/secrets#create-or-update-an-environment-secret). Keep the PAT's expiry visible to the maintainer; do not use the local broad GitHub login as a CI secret. Provider refresh tokens and GitHub authorization have separate lifetimes.
+`CI_SECRETS_TOKEN` is a fine-grained GitHub PAT with this repository selected and **Environments: Read and write**. GitHub's default workflow token cannot update environment secrets; see the [environment-secret API permissions](https://docs.github.com/en/rest/actions/secrets#create-or-update-an-environment-secret). Keep its expiry visible to the maintainer. Provider refresh tokens and GitHub authorization have separate lifetimes.
 
-The seeder validates configuration, renews provider credentials, saves private runner files, and writes replacement refresh tokens back to environment secrets before tests run. An always-run finalizer saves subsequent replacements even when tests fail, then removes runner credential files. Credentials are not cached or uploaded as artifacts. Missing configuration, failed renewal and failed persistence fail the job; CI never opens a consent screen. After provider revocation or expiry, reauthorize locally with the existing setup command and reseed that repository's refresh-token secrets.
+The existing seeder refuses pre-existing private files, validates required configuration, refreshes the real account, writes `.env.test` and `.tokens/store.json`, and persists the replacement refresh token before tests. Always-run persistence saves later rotations on test failure; cleanup removes only this run's owned private files. Missing configuration, failed renewal and failed persistence fail the job. Private credentials are never cached or uploaded. Forced cancellation or runner loss can prevent finalization; inspect both finalizers after execution. Reauthorize locally with `npm run test:setup` when consent or credential repair is needed. No Sheets test requires interactive browser consent; CI retains `TEST_INCLUDE_MANUAL=false` and `HEADLESS=true`.
 
-Google external apps in Testing can issue seven-day refresh tokens for these scopes; successful access-token renewal does not remove that policy. Confirm the existing project's consent publishing configuration before relying on long-term unattended runs. See [Google's token lifecycle documentation](https://developers.google.com/identity/protocols/oauth2).
+Google external apps in Testing can issue seven-day refresh tokens for these scopes; successful access-token renewal does not remove that policy. Confirm the existing project's consent publishing configuration before relying on unattended runs. See [Google's token lifecycle documentation](https://developers.google.com/identity/protocols/oauth2).
 
-Live tests share a process-local authorization throttle across their real OAuth clients. It spaces authorization starts by 1.2 seconds, below Sheets' 60 reads or writes per minute per user. Both direct fixture clients and tool middleware use it; the production clients keep their normal behavior. The test runner reports authorization counts, not exact HTTP request counts. Provider failures still fail the run, and the throttle does not coordinate separate repositories or processes.
+Live tests share the existing process-local 1.2-second throttle across paced auth clients and raw-request reservations. Reported authorization counts are `getAccessToken` invocations, not OAuth refresh exchanges or exact HTTP request counts. The throttle does not coordinate child processes or repositories. Sheets normally permits 60 reads and 60 writes per user per project per minute; see [usage limits](https://developers.google.com/workspace/sheets/api/limits). Coordinate shared accounts, refresh grants and quotas across repositories and local runs. Provider failures remain failures. `--bail` stops the affected runtime; canonical nvu still attempts later engines after an engine failure, so this does not claim whole-sweep fail-fast behavior.
+
+The 90-minute platform budget accommodates the retained historical estimate of about 14 minutes per full suite, roughly 70 minutes for current Node plus four admitted engines, before install/validation/credential overhead. This is a planning estimate, not a fresh performance measurement or a provider-run authorization.

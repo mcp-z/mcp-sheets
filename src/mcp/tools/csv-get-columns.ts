@@ -8,6 +8,7 @@ const { AuthRequiredBranchSchema } = schemas;
 import type { CallToolResult, ToolModule } from '@mcp-z/server';
 import { ProtocolError, ProtocolErrorCode } from '@mcp-z/server';
 import { parse } from 'csv-parse';
+import { pipeline } from 'stream/promises';
 import { z } from 'zod';
 import { getCsvReadStream } from '../../spreadsheet/csv-streaming.ts';
 
@@ -40,30 +41,36 @@ async function handler({ sourceUri }: Input, extra: EnrichedExtra): Promise<Call
   logger.debug?.('sheets.csv.get-columns called', { sourceUri });
 
   try {
-    // Get readable stream from CSV URI (no temp files!)
+    const parser = parse({
+      columns: false,
+      skip_empty_lines: true,
+      trim: true,
+      cast: true,
+      relax_column_count: true,
+    });
     const readStream = await getCsvReadStream(sourceUri);
-
-    // Create CSV parser without treating first row as column names
-    // We just want to read the raw first row
-    const parser = readStream.pipe(
-      parse({
-        columns: false, // Don't treat first row as headers
-        skip_empty_lines: true,
-        trim: true,
-        cast: true, // Auto-convert numbers/booleans
-        relax_column_count: true,
-      })
+    const firstRowRead = new Error('First CSV row read');
+    const completed = pipeline(readStream, parser).then(
+      () => undefined,
+      (error: unknown) => error
     );
 
-    // Read only the first row
     let firstRow: unknown[] = [];
     let rowCount = 0;
-
-    for await (const row of parser) {
-      firstRow = row;
-      rowCount++;
-      break; // Only read first row
+    try {
+      const record = await parser[Symbol.asyncIterator]().next();
+      if (!record.done) {
+        firstRow = record.value;
+        rowCount = 1;
+        parser.destroy(firstRowRead);
+      }
+    } catch (error) {
+      await completed;
+      throw error;
     }
+
+    const pipelineError = await completed;
+    if (pipelineError !== undefined && pipelineError !== firstRowRead) throw pipelineError;
 
     // Convert first row to strings (column names)
     const columns = firstRow.map((value) => String(value ?? ''));
