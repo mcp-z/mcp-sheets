@@ -7,6 +7,7 @@ const { AuthRequiredBranchSchema } = schemas;
 import type { CallToolResult, ToolModule } from '@mcp-z/server';
 import { ProtocolError, ProtocolErrorCode } from '@mcp-z/server';
 import { z } from 'zod';
+import { RENDER_DESCRIPTION } from '../../constants.ts';
 import { googleAuth } from '../../lib/google-auth.ts';
 import { SheetCellSchema, SheetGidSchema, SpreadsheetIdSchema } from '../../schemas/index.ts';
 
@@ -14,7 +15,7 @@ const inputSchema = z.object({
   id: SpreadsheetIdSchema,
   gid: SheetGidSchema,
   range: z.string().min(1).describe('A1 notation range to fetch (e.g., "B5", "A5:D5", "B:B", "5:5")'),
-  render: z.enum(['FORMATTED_VALUE', 'UNFORMATTED_VALUE', 'FORMULA']).optional().describe('How to render cell values. FORMATTED_VALUE (default): calculated with formatting. UNFORMATTED_VALUE: calculated without formatting. FORMULA: show formula text instead of result.'),
+  render: z.enum(['FORMATTED_VALUE', 'UNFORMATTED_VALUE', 'FORMULA']).optional().describe(RENDER_DESCRIPTION),
 });
 
 // Success branch schema - uses rows: for consistency with standard vocabulary

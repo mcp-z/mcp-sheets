@@ -7,6 +7,7 @@ const { AuthRequiredBranchSchema } = schemas;
 import type { CallToolResult, ToolModule } from '@mcp-z/server';
 import { ProtocolError, ProtocolErrorCode } from '@mcp-z/server';
 import { z } from 'zod';
+import { NATIVE_DATE_GUIDANCE } from '../../constants.ts';
 import { googleAuth } from '../../lib/google-auth.ts';
 import { A1NotationSchema, SheetCellSchema, SheetGidOutput, SheetGidSchema, SpreadsheetIdOutput, SpreadsheetIdSchema } from '../../schemas/index.ts';
 
@@ -28,7 +29,9 @@ const inputSchema = z.object({
   id: SpreadsheetIdSchema,
   gid: SheetGidSchema,
   requests: z.array(ValuesBatchUpdateRequestSchema).min(1).describe('Array of value update requests'),
-  valueInputOption: z.enum(['RAW', 'USER_ENTERED']).describe('How input data should be interpreted (RAW = exact values, USER_ENTERED = parsed like user input)'),
+  valueInputOption: z
+    .enum(['RAW', 'USER_ENTERED'])
+    .describe('How input data should be interpreted (required; no default is applied by the schema). RAW = exact values: date strings stay text, numeric serials stay numbers. USER_ENTERED = parsed like user input: date strings may become native dates per the workbook locale.'),
   includeData: z.boolean().describe('Whether to include updated cell values in the response'),
 });
 
@@ -59,7 +62,7 @@ const successBranchSchema = z.object({
 const outputSchema = z.discriminatedUnion('type', [successBranchSchema, AuthRequiredBranchSchema]);
 
 const config = {
-  description: 'Batch update multiple cell ranges. RAW=exact values, USER_ENTERED=parsed like user input. Use a1-notation prompt for range syntax. For multiple clickable links or rich text inside a single cell, use values-markdown-update.',
+  description: `Batch update multiple cell ranges. RAW=exact values, USER_ENTERED=parsed like user input. Use a1-notation prompt for range syntax. For multiple clickable links or rich text inside a single cell, use values-markdown-update. ${NATIVE_DATE_GUIDANCE}`,
   inputSchema,
   outputSchema: z.object({
     result: outputSchema,

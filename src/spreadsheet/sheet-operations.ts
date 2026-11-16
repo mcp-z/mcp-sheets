@@ -176,6 +176,7 @@ export async function ensureTabAndHeaders(
 
   // Resolve the actual sheet title from sheetRef if provided
   let resolvedSheetTitle = sheetTitle;
+  let createTab = false;
   if (sheetRef) {
     const sheet = await findSheetByRef(sheets, spreadsheetId, sheetRef, logger);
     if (sheet) {
@@ -183,6 +184,7 @@ export async function ensureTabAndHeaders(
     } else {
       // Sheet doesn't exist, use the sheetRef as the title for creation
       resolvedSheetTitle = sheetRef;
+      createTab = true;
     }
   }
 
@@ -191,19 +193,14 @@ export async function ensureTabAndHeaders(
   const defaultHeader = ['id', 'provider', 'threadId', 'to', 'from', 'cc', 'bcc', 'date', 'subject', 'labels', 'snippet', 'body'];
   const header = Array.isArray(requiredHeader) && requiredHeader.length ? requiredHeader : defaultHeader;
 
-  let existingHeader: string[] | null = null;
-  try {
-    const resp = await sheets.spreadsheets.values.get({ spreadsheetId, range: `${resolvedSheetTitle}!1:1`, majorDimension: 'ROWS' });
-    const vr = resp.data as ValueRange;
-    const values = ((vr?.values || [])[0] || []) as string[];
-    existingHeader = values.length ? values : null;
-  } catch (_err: unknown) {
-    try {
-      await sheets.spreadsheets.batchUpdate({ spreadsheetId, requestBody: { requests: [{ addSheet: { properties: { title: resolvedSheetTitle } } }] } });
-    } catch {}
-    await sheets.spreadsheets.values.append({ spreadsheetId, range: `${resolvedSheetTitle}!A1`, valueInputOption: 'RAW', insertDataOption: 'INSERT_ROWS', requestBody: { values: [header] } });
-    return { header, keySet: new Set<string>() };
+  if (createTab) {
+    await sheets.spreadsheets.batchUpdate({ spreadsheetId, requestBody: { requests: [{ addSheet: { properties: { title: resolvedSheetTitle } } }] } });
   }
+
+  const resp = await sheets.spreadsheets.values.get({ spreadsheetId, range: `${resolvedSheetTitle}!1:1`, majorDimension: 'ROWS' });
+  const vr = resp.data as ValueRange;
+  const values = ((vr?.values || [])[0] || []) as string[];
+  const existingHeader: string[] | null = values.length ? values : null;
 
   if (!existingHeader) {
     await sheets.spreadsheets.values.append({ spreadsheetId, range: `${resolvedSheetTitle}!A1`, valueInputOption: 'RAW', insertDataOption: 'INSERT_ROWS', requestBody: { values: [header] } });

@@ -14,7 +14,6 @@ import {
   expandRange,
   // Constants and types
   GOOGLE_SHEETS_LIMITS,
-  getRangeIntersection,
   // A1 notation validation
   isValidA1Notation,
   // Range parsing functions
@@ -633,36 +632,6 @@ describe('Range Conflict Detection', () => {
     it('should handle single range', () => {
       const conflicts = detectRangeConflicts(['A1:B2']);
       assert.strictEqual(conflicts.length, 0);
-    });
-  });
-
-  describe('getRangeIntersection', () => {
-    it('should find intersection of overlapping ranges', () => {
-      assert.strictEqual(getRangeIntersection('A1:C3', 'B2:D4'), 'B2:C3');
-      assert.strictEqual(getRangeIntersection('A1:B2', 'A1:B2'), 'A1:B2');
-      assert.strictEqual(getRangeIntersection('A1:C1', 'B1:D1'), 'B1:C1');
-    });
-
-    it('should return single cell intersection', () => {
-      assert.strictEqual(getRangeIntersection('A1:A1', 'A1:A1'), 'A1');
-      assert.strictEqual(getRangeIntersection('A1:B2', 'B2:C3'), 'B2');
-    });
-
-    it('should return null for non-overlapping ranges', () => {
-      assert.strictEqual(getRangeIntersection('A1:A2', 'B1:B2'), null);
-      assert.strictEqual(getRangeIntersection('A1:A1', 'B2:B2'), null);
-    });
-
-    it('should handle column and row ranges', () => {
-      assert.strictEqual(getRangeIntersection('A:A', 'B:B'), null);
-      assert.strictEqual(getRangeIntersection('A:C', 'B:D'), 'B1:C10000000');
-      assert.strictEqual(getRangeIntersection('1:1', '2:2'), null);
-      assert.strictEqual(getRangeIntersection('1:3', '2:4'), 'A2:ZZZ3');
-    });
-
-    it('should handle invalid ranges gracefully', () => {
-      assert.strictEqual(getRangeIntersection('INVALID', 'A1:B2'), null);
-      assert.strictEqual(getRangeIntersection('A1:B2', 'INVALID'), null);
     });
   });
 

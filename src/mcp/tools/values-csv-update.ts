@@ -10,6 +10,7 @@ import type { CallToolResult, ToolModule } from '@mcp-z/server';
 import { ProtocolError, ProtocolErrorCode } from '@mcp-z/server';
 import { parse } from 'csv-parse';
 import { z } from 'zod';
+import { NATIVE_DATE_POINTER } from '../../constants.ts';
 import { googleAuth } from '../../lib/google-auth.ts';
 import { A1NotationSchema, SheetGidOutput, SheetGidSchema, SpreadsheetIdOutput, SpreadsheetIdSchema } from '../../schemas/index.ts';
 import { getCsvReadStream } from '../../spreadsheet/csv-streaming.ts';
@@ -22,7 +23,7 @@ const inputSchema = z.object({
   gid: SheetGidSchema,
   sourceUri: z.string().trim().min(1).describe('CSV file URI (file://, http://, https://)'),
   startRange: A1NotationSchema.default('A1').describe('Top-left cell where CSV data starts (default: A1)'),
-  valueInputOption: z.enum(['RAW', 'USER_ENTERED']).default('USER_ENTERED').describe('How to interpret values (RAW = exact, USER_ENTERED = parse formulas/dates)'),
+  valueInputOption: z.enum(['RAW', 'USER_ENTERED']).default('USER_ENTERED').describe('How to interpret values (default USER_ENTERED = parse formulas/dates per the workbook locale; RAW = exact, date-looking CSV text stays text)'),
   sourceHasHeaders: z.boolean().default(true).describe('First row is headers (metadata) - exclude from data range. Set to false to include first row as data.'),
 });
 
@@ -43,7 +44,7 @@ const successBranchSchema = z.object({
 const outputSchema = z.discriminatedUnion('type', [successBranchSchema, AuthRequiredBranchSchema]);
 
 const config = {
-  description: 'Import CSV to sheet range. Overwrites existing data at startRange. Use rows-csv-append for database-style appends with deduplication.',
+  description: `Import CSV to sheet range. Overwrites existing data at startRange. Use rows-csv-append for database-style appends with deduplication. ${NATIVE_DATE_POINTER}`,
   inputSchema,
   outputSchema: z.object({
     result: outputSchema,

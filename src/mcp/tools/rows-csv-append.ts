@@ -10,6 +10,7 @@ import type { CallToolResult, ToolModule } from '@mcp-z/server';
 import { ProtocolError, ProtocolErrorCode } from '@mcp-z/server';
 import { parse } from 'csv-parse';
 import { z } from 'zod';
+import { NATIVE_DATE_POINTER } from '../../constants.ts';
 import { googleAuth } from '../../lib/google-auth.ts';
 import { SheetGidOutput, SheetGidSchema, SpreadsheetIdOutput, SpreadsheetIdSchema } from '../../schemas/index.ts';
 import { getCsvReadStream } from '../../spreadsheet/csv-streaming.ts';
@@ -47,7 +48,7 @@ const successBranchSchema = z.object({
 const outputSchema = z.discriminatedUnion('type', [successBranchSchema, AuthRequiredBranchSchema]);
 
 const config = {
-  description: 'Import CSV to Google Sheets with column mapping and optional deduplication. Streams data for large files.',
+  description: `Import CSV to Google Sheets with column mapping and optional deduplication. Streams data for large files. Rows are always appended USER_ENTERED, so date-looking CSV text may be parsed as native dates per the workbook locale; read back with UNFORMATTED_VALUE to confirm. ${NATIVE_DATE_POINTER}`,
   inputSchema,
   outputSchema: z.object({
     result: outputSchema,
