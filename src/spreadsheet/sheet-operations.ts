@@ -4,6 +4,43 @@ import { a1Col } from './column-utilities.ts';
 
 type ValueRange = sheets_v4.Schema$ValueRange;
 
+/**
+ * Reads data rows (row 2 to the grid's last row) of one column span in chunks and calls onRow with each row's cells and 1-indexed row number.
+ * The scan is bounded by the sheet's row count, advances by the requested chunk (Sheets omits trailing empty rows, so a short chunk says nothing about the next one),
+ * and a failed read throws `Failed to read key columns from <range>: <message>` with the original as cause. Errors thrown by onRow are not wrapped.
+ */
+export async function scanKeyColumnRows(sheets: sheets_v4.Sheets, spreadsheetId: string, sheetTitle: string, startCol: string, endCol: string, onRow: (cells: string[], rowNumber: number) => void): Promise<void> {
+  const chunkSize = 1000;
+  let startRow = 2; // Start from row 2 (after header)
+
+  // Bound the scan by the grid so a read error is never mistaken for end of data
+  const meta = await sheets.spreadsheets.get({ spreadsheetId, fields: 'sheets.properties(title,gridProperties.rowCount)' });
+  const rowCount = meta.data?.sheets?.find((s) => s.properties?.title === sheetTitle)?.properties?.gridProperties?.rowCount;
+  if (typeof rowCount !== 'number') {
+    throw new Error(`Could not read the row count of sheet "${sheetTitle}"`);
+  }
+
+  while (startRow <= rowCount) {
+    const endRow = Math.min(startRow + chunkSize - 1, rowCount);
+    const range = `${sheetTitle}!${startCol}${startRow}:${endCol}${endRow}`;
+
+    let rows: string[][];
+    try {
+      const response = await sheets.spreadsheets.values.get({ spreadsheetId, range, majorDimension: 'ROWS' });
+      rows = (response.data?.values || []) as string[][];
+    } catch (error) {
+      // The build target's Error constructor has no options argument, so set cause directly
+      const wrapped = new Error(`Failed to read key columns from ${range}: ${error instanceof Error ? error.message : String(error)}`) as Error & { cause?: unknown };
+      wrapped.cause = error;
+      throw wrapped;
+    }
+
+    for (let i = 0; i < rows.length; i++) onRow(Array.isArray(rows[i]) ? rows[i] : [], startRow + i);
+
+    startRow = endRow + 1;
+  }
+}
+
 export async function ensureSheetIfNeeded(sheets: sheets_v4.Sheets, id: string, sheetTitle: string, ensureSheet: boolean, headers: string[] | undefined, logger: Logger) {
   if (!sheetTitle) return { sheetCreated: false };
   const ssResp = await sheets.spreadsheets.get({ spreadsheetId: id });
@@ -188,8 +225,6 @@ export async function ensureTabAndHeaders(
   }
 
   const keySet = new Set<string>();
-  const chunkSize = 1000;
-  let startRow = 2;
 
   const normalizeKeyColumnsByName = (kc: string[], hdr: string[]) => {
     if (!Array.isArray(kc) || kc.length === 0) return [] as number[];
@@ -209,40 +244,29 @@ export async function ensureTabAndHeaders(
   const startCol = a1Col(minIdx + 1);
   const endCol = a1Col(maxIdx + 1);
 
-  while (true) {
-    const endRow = startRow + chunkSize - 1;
-    const range = `${resolvedSheetTitle}!${startCol}${startRow}:${endCol}${endRow}`;
-    const respChunk = await sheets.spreadsheets.values.get({ spreadsheetId, range, majorDimension: 'ROWS' });
-    const vrChunk = respChunk.data as ValueRange;
-    const chunkRows = (vrChunk?.values || []) as string[][];
-    if (!chunkRows || chunkRows.length === 0) break;
-    for (const r of chunkRows) {
-      const row = Array.isArray(r) ? r : [];
+  await scanKeyColumnRows(sheets, spreadsheetId, resolvedSheetTitle, startCol, endCol, (row) => {
+    // Use the same key generation logic as appendRows for consistency
+    const lower = mergedHeader.map((h) => String(h ?? '').toLowerCase());
+    const provHeaderIdx = lower.indexOf('provider');
+    let idHeaderIdx = lower.indexOf('messageid');
+    if (idHeaderIdx === -1) idHeaderIdx = lower.indexOf('id');
 
-      // Use the same key generation logic as appendRows for consistency
-      const lower = mergedHeader.map((h) => String(h ?? '').toLowerCase());
-      const provHeaderIdx = lower.indexOf('provider');
-      let idHeaderIdx = lower.indexOf('messageid');
-      if (idHeaderIdx === -1) idHeaderIdx = lower.indexOf('id');
+    let compositeKey: string;
 
-      let compositeKey: string;
-
-      if (provHeaderIdx >= 0 && idHeaderIdx >= 0) {
-        // Special case: if both provider and id columns exist, use them
-        const providerOffset = provHeaderIdx - minIdx;
-        const idOffset = idHeaderIdx - minIdx;
-        const providerVal = providerOffset >= 0 ? String(row[providerOffset] ?? '').trim() : '';
-        const messageVal = idOffset >= 0 ? String(row[idOffset] ?? '').trim() : '';
-        compositeKey = [providerVal, messageVal].join('\\');
-      } else {
-        // General case: use the specified key columns
-        const comps = keyColsIdx.map((i) => (i < 0 ? '' : String(row[i - minIdx] ?? '').trim()));
-        compositeKey = comps.join('\\');
-      }
-
-      if (compositeKey.replace(/\\+/g, '') !== '') keySet.add(compositeKey);
+    if (provHeaderIdx >= 0 && idHeaderIdx >= 0) {
+      // Special case: if both provider and id columns exist, use them
+      const providerOffset = provHeaderIdx - minIdx;
+      const idOffset = idHeaderIdx - minIdx;
+      const providerVal = providerOffset >= 0 ? String(row[providerOffset] ?? '').trim() : '';
+      const messageVal = idOffset >= 0 ? String(row[idOffset] ?? '').trim() : '';
+      compositeKey = [providerVal, messageVal].join('\\');
+    } else {
+      // General case: use the specified key columns
+      const comps = keyColsIdx.map((i) => (i < 0 ? '' : String(row[i - minIdx] ?? '').trim()));
+      compositeKey = comps.join('\\');
     }
-    startRow += chunkRows.length;
-  }
+
+    if (compositeKey.replace(/\\+/g, '') !== '') keySet.add(compositeKey);
+  });
   return { header: mergedHeader, keySet, keyColumnsIdx: keyColsIdx };
 }

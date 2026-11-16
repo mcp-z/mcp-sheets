@@ -68,6 +68,18 @@ it sends no `initialize` handshake and carries no session id.
 
 Configure via environment variables or the `env` block in `.mcp.json`. See `server.json` for the full list of options.
 
+### Configuration file
+
+Keep the client secret out of your shell and out of `.mcp.json` by putting it in a private file the server reads at startup, `~/.config/mcp-z/mcp-sheets/.env`:
+
+```bash
+mkdir -p ~/.config/mcp-z/mcp-sheets && chmod 700 ~/.config/mcp-z/mcp-sheets
+printf 'GOOGLE_CLIENT_ID=your-client-id\nGOOGLE_CLIENT_SECRET=your-client-secret\n' > ~/.config/mcp-z/mcp-sheets/.env
+chmod 600 ~/.config/mcp-z/mcp-sheets/.env
+```
+
+The server uses the first of `.mcp-z/mcp-sheets/.env` beside the nearest `.mcp.json` (else `~/.mcp-z/mcp-sheets/.env`) and `~/.config/mcp-z/mcp-sheets/.env` that exists. Anything set in the environment or in the `.mcp.json` `env` block overrides the file. On macOS and Linux the server refuses a file that other users can read.
+
 ### Loopback OAuth (default)
 
 Environment variables:
@@ -172,39 +184,43 @@ npx -y @mcp-z/cli inspect --servers sheets --tools
 
 # Find a spreadsheet
 npx -y @mcp-z/cli call-tool sheets spreadsheet-find '{"spreadsheetRef":"Quarterly Report"}'
+
+# Copy A1:C10 to E1 on another tab of the same spreadsheet (values only)
+npx -y @mcp-z/cli call-tool sheets cells-copy '{"id":"SPREADSHEET_ID","sourceGid":0,"sourceRange":"A1:C10","destinationGid":123456,"destinationRange":"E1","pasteType":"PASTE_VALUES"}'
 ```
 
 ## Tools
 
-1. cells-format
-2. cells-metadata-get
-3. chart-create
-4. columns-get
-5. columns-update
-6. csv-get-columns
-7. dimensions-batch-update
-8. dimensions-move
-9. rows-append
-10. rows-csv-append
-11. rows-get
-12. sheet-copy
-13. sheet-copy-to
-14. sheet-create
-15. sheet-delete
-16. sheet-find
-17. sheet-rename
-18. spreadsheet-copy
-19. spreadsheet-create
-20. spreadsheet-find
-21. spreadsheet-metadata-get
-22. spreadsheet-rename
-23. validation-set
-24. values-batch-update
-25. values-clear
-26. values-csv-update
-27. values-markdown-update
-28. values-replace
-29. values-search
+1. cells-copy
+2. cells-format
+3. cells-metadata-get
+4. chart-create
+5. columns-get
+6. columns-update
+7. csv-get-columns
+8. dimensions-batch-update
+9. dimensions-move
+10. rows-append
+11. rows-csv-append
+12. rows-get
+13. sheet-copy
+14. sheet-copy-to
+15. sheet-create
+16. sheet-delete
+17. sheet-find
+18. sheet-rename
+19. spreadsheet-copy
+20. spreadsheet-create
+21. spreadsheet-find
+22. spreadsheet-metadata-get
+23. spreadsheet-rename
+24. validation-set
+25. values-batch-update
+26. values-clear
+27. values-csv-update
+28. values-markdown-update
+29. values-replace
+30. values-search
 
 See [metadata usage](https://github.com/mcp-z/mcp-sheets/blob/master/usage/metadata.md) for workbook inspection and bounded cell reads.
 

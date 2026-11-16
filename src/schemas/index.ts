@@ -16,6 +16,22 @@ const SHEET_ID_DESC = 'Sheet ID (from URL gid={gid})';
 export const SpreadsheetIdSchema = z.string().min(1).describe(SPREADSHEET_ID_DESC);
 export const SheetGidSchema = z.coerce.string().min(1).describe(SHEET_ID_DESC);
 
+// Strict sheet ID: a non-negative integer number or a string of digits (gid 0 and "0" both work).
+// Unlike SheetGidSchema it does not coerce, so null, undefined, booleans, negatives, decimals and
+// non-digit strings are rejected instead of becoming "null", "undefined", "true", etc.
+// Sheet IDs are int32, so values above 2147483647 are rejected (keeps Number(gid) exact).
+const MAX_SHEET_GID = 2147483647;
+export const StrictSheetGidSchema = z
+  .union([
+    z.number().int().nonnegative().max(MAX_SHEET_GID),
+    z
+      .string()
+      .regex(/^\d+$/, 'Sheet ID must be a non-negative integer')
+      .refine((value) => Number(value) <= MAX_SHEET_GID, `Sheet ID must be at most ${MAX_SHEET_GID}`),
+  ])
+  .transform((value) => String(typeof value === 'number' ? value : Number(value)))
+  .describe(SHEET_ID_DESC);
+
 // Output schemas (for use in output/response schemas)
 export const SpreadsheetIdOutput = z.string().describe(SPREADSHEET_ID_DESC);
 export const SheetGidOutput = z.string().describe(SHEET_ID_DESC);

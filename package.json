@@ -69,11 +69,11 @@
     "version": "tsds version"
   },
   "dependencies": {
-    "@googleapis/drive": "^26.0.0",
+    "@googleapis/drive": "^27.1.0",
     "@googleapis/sheets": "^18.0.0",
     "@mcp-z/oauth": "^2.0.0",
     "@mcp-z/oauth-google": "^2.0.1",
-    "@mcp-z/server": "^2.2.0",
+    "@mcp-z/server": "^2.3.0",
     "cors": "^2.0.0",
     "csv-parse": "^7.0.2",
     "express": "^5.0.0",

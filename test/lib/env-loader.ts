@@ -1,3 +1,4 @@
+import { serverPrivateEnvPath } from '@mcp-z/server';
 import { loadEnv } from 'portable-env/node';
 
-loadEnv('.env.test');
+if (loadEnv('.env.test').error) loadEnv(serverPrivateEnvPath({ name: 'mcp-sheets', fileName: '.env.test' }));

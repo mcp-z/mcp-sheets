@@ -10,7 +10,7 @@ permissions:
   contents: read
 
 env:
-  TEST_INCLUDE_MANUAL: 'false'
+  TEST_INCLUDE_MANUAL: "false"
 
 jobs:
   test:

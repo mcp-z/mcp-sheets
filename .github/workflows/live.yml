@@ -6,12 +6,12 @@ on:
         type: string
         required: true
     secrets:
-      CI_SECRETS_TOKEN: {required: true}
-      TEST_ACCOUNT_ID: {required: true}
-      TEST_REFRESH_TOKEN: {required: true}
-      TEST_SCOPE: {required: true}
-      GOOGLE_CLIENT_ID: {required: true}
-      GOOGLE_CLIENT_SECRET: {required: false}
+      CI_SECRETS_TOKEN: { required: true }
+      TEST_ACCOUNT_ID: { required: true }
+      TEST_REFRESH_TOKEN: { required: true }
+      TEST_SCOPE: { required: true }
+      GOOGLE_CLIENT_ID: { required: true }
+      GOOGLE_CLIENT_SECRET: { required: false }
   workflow_dispatch:
     inputs:
       runner:
@@ -66,8 +66,8 @@ jobs:
           TEST_SCOPE: ${{ secrets.TEST_SCOPE }}
           GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
           GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
-          TEST_INCLUDE_MANUAL: 'false'
-          HEADLESS: 'true'
+          TEST_INCLUDE_MANUAL: "false"
+          HEADLESS: "true"
       - name: Engines
         run: npm run test:engines -- --bail
         env: *live-test-env

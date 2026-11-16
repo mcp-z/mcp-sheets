@@ -44,6 +44,13 @@ Environment Variables:
   RESOURCE_STORE_URI            Resource store URI (optional, file://)
   BASE_URL               Base URL for HTTP file serving (optional)
 
+Configuration Files:
+  Variables may also be set in the first of these files that exists:
+    1. .mcp-z/mcp-sheets/.env beside the nearest .mcp.json (else ~/.mcp-z/mcp-sheets/.env)
+    2. ~/.config/mcp-z/mcp-sheets/.env   (~ is your home directory, on every OS)
+  Values already in the environment, including .mcp.json "env", take precedence.
+  On macOS and Linux the file must be private (chmod 600), or the server will not start.
+
 Storage Backends:
   TOKEN_STORE_URI and DCR_STORE_URI accept any keyv-registry protocol.
   file:// (the default) and memory:// work out of the box. Any other backend
