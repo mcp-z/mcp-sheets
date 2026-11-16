@@ -13,6 +13,7 @@ coverage
 coverage.lcov
 
 # Test files
+.env
 .env.test
 .tmp/
 .tokens/

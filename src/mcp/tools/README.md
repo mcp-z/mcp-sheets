@@ -83,7 +83,8 @@ OPERATION TOOLS (require direct IDs from lookup tools)
 - `values-markdown-update` - Write cell text parsed from inline markdown (multiple clickable links, bold, italic, strikethrough)
 - `values-replace` - Find and replace values
 
-#### Formatting Operations (3)
+#### Formatting Operations (4)
+- `cells-copy` - Copy a cell range (paste-special) within a spreadsheet
 - `cells-format` - Apply cell formatting
 - `validation-set` - Set data validation rules
 - `chart-create` - Create charts

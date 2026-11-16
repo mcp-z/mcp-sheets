@@ -1,3 +1,4 @@
+export { default as cellsCopy } from './cells-copy.ts';
 export { default as cellsFormat } from './cells-format.ts';
 export { default as cellsMetadataGet } from './cells-metadata-get.ts';
 export { default as chartCreate } from './chart-create.ts';

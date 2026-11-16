@@ -10,6 +10,7 @@ import type { ServerConfig } from '../types.ts';
 import { readPkg } from './version-help.ts';
 
 const pkg = readPkg();
+const SERVER_NAME = pkg.name.replace(/^@[^/]+\//, '');
 
 // @mcp-z/oauth-google and @mcp-z/server are requireable at the >=20 floor; deferred so
 // --version/--help (handled via version-help.ts, never this file) load neither package.
@@ -71,18 +72,11 @@ export function parseConfig(args: string[], env: Record<string, string | undefin
     allowPositionals: true,
   });
 
-  const name = pkg.name.replace(/^@[^/]+\//, '');
+  const name = SERVER_NAME;
   // Parse repository URL from package.json, stripping git+ prefix and .git suffix
   const rawRepoUrl = typeof pkg.repository === 'object' ? pkg.repository.url : pkg.repository;
   const repositoryUrl = rawRepoUrl?.replace(/^git\+/, '').replace(/\.git$/, '') ?? `https://github.com/mcp-z/${name}`;
-  let rootDir = homedir();
-  try {
-    const configPath = mcpServer.findConfigPath({ config: '.mcp.json', cwd: process.cwd(), stopDir: homedir() });
-    rootDir = path.dirname(configPath);
-  } catch {
-    rootDir = homedir();
-  }
-  const baseDir = path.join(rootDir, '.mcp-z');
+  const baseDir = resolveBaseDir();
   const cliLogLevel = typeof values['log-level'] === 'string' ? values['log-level'] : undefined;
   const envLogLevel = env.LOG_LEVEL;
   const logLevel = cliLogLevel ?? envLogLevel ?? 'info';
@@ -126,10 +120,27 @@ function normalizeResourceStoreUri(resourceStoreUri: string): string {
   return pathToFileURL(path.resolve(expandedPath)).href;
 }
 
+/** The server's data directory: `.mcp-z` beside the nearest .mcp.json (searched from cwd up to home), else in the home directory. */
+function resolveBaseDir(): string {
+  const mcpServer = _require('@mcp-z/server') as typeof McpServer;
+  try {
+    const configPath = mcpServer.findConfigPath({ config: '.mcp.json', cwd: process.cwd(), stopDir: homedir() });
+    return path.join(path.dirname(configPath), '.mcp-z');
+  } catch {
+    return path.join(homedir(), '.mcp-z');
+  }
+}
+
 /**
  * Build production configuration from process globals.
  * Entry point for production server.
  */
 export function createConfig(): ServerConfig {
-  return parseConfig(process.argv, process.env);
+  const mcpServer = _require('@mcp-z/server') as typeof McpServer;
+  const envResult = mcpServer.loadServerEnv({ name: SERVER_NAME, baseDir: resolveBaseDir() });
+  try {
+    return parseConfig(process.argv, process.env);
+  } catch (error) {
+    throw new Error(`${(error as Error).message}\n${mcpServer.formatServerEnvSearch(envResult)}`);
+  }
 }

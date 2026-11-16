@@ -788,3 +788,62 @@ export function rangeReferenceToGridRange(
 
   throw new Error(`Unknown range type: ${(rangeRef as { type: unknown }).type}`);
 }
+
+/**
+ * A finite, sheet-local block of cells with 1-based inclusive bounds.
+ */
+export interface CellBlock {
+  startRow: number;
+  endRow: number;
+  startColumn: number;
+  endColumn: number;
+}
+
+/**
+ * Parses a finite sheet-local A1 range (cell or range) into 1-based inclusive bounds.
+ * Throws for invalid syntax, whole rows/columns and reversed bounds.
+ */
+export function parseFiniteCellBlock(notation: string): CellBlock {
+  const range = parseA1Notation(notation);
+  if (range.type !== 'cell' && range.type !== 'range') {
+    throw new Error(`Range must have finite start and end rows and columns: ${notation}`);
+  }
+  calculateFiniteRangeCellCount(notation);
+  if (!range.startCell || !range.endCell) throw new Error(`Invalid range: ${notation}`);
+  return { startRow: range.startCell.row, endRow: range.endCell.row, startColumn: range.startCell.columnIndex, endColumn: range.endCell.columnIndex };
+}
+
+/**
+ * Formats a block as A1 notation (a single cell when it spans one cell).
+ */
+export function cellBlockToA1(block: CellBlock): string {
+  const start = `${columnIndexToString(block.startColumn)}${block.startRow}`;
+  if (block.startRow === block.endRow && block.startColumn === block.endColumn) return start;
+  return `${start}:${columnIndexToString(block.endColumn)}${block.endRow}`;
+}
+
+/**
+ * Footprint of a copy-paste: the cells written in the destination.
+ *
+ * - destination is one cell: the (oriented) source size anchored at that cell
+ * - destination is a range whose height and width are whole multiples of the oriented source: the destination itself (the source is tiled)
+ * - anything else throws
+ */
+export function calculatePasteRange(source: string, destination: string, orientation: 'NORMAL' | 'TRANSPOSE'): CellBlock {
+  const src = parseFiniteCellBlock(source);
+  const dest = parseFiniteCellBlock(destination);
+  const srcRows = src.endRow - src.startRow + 1;
+  const srcColumns = src.endColumn - src.startColumn + 1;
+  const rows = orientation === 'TRANSPOSE' ? srcColumns : srcRows;
+  const columns = orientation === 'TRANSPOSE' ? srcRows : srcColumns;
+  const destRows = dest.endRow - dest.startRow + 1;
+  const destColumns = dest.endColumn - dest.startColumn + 1;
+
+  if (destRows === 1 && destColumns === 1) {
+    return { startRow: dest.startRow, endRow: dest.startRow + rows - 1, startColumn: dest.startColumn, endColumn: dest.startColumn + columns - 1 };
+  }
+  if (destRows % rows === 0 && destColumns % columns === 0) return dest;
+  throw new Error(
+    `Destination ${destination} is ${destRows}x${destColumns} cells; the ${orientation === 'TRANSPOSE' ? 'transposed ' : ''}source ${source} is ${rows}x${columns}. Use a single anchor cell (e.g., ${columnIndexToString(dest.startColumn)}${dest.startRow}) or a range whose height and width are whole multiples of ${rows}x${columns}.`
+  );
+}

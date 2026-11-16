@@ -1,7 +1,7 @@
 import type { sheets_v4 } from '@googleapis/sheets';
 import type { Logger } from '../types.ts';
 import { a1Col } from './column-utilities.ts';
-import { findSheetByRef } from './sheet-operations.ts';
+import { findSheetByRef, scanKeyColumnRows } from './sheet-operations.ts';
 
 // Core data types
 export type Cell = string | number | boolean | null | undefined;
@@ -373,6 +373,26 @@ export function mapRowsToHeader({ rows = [], header = [], canonical = [] as stri
   });
 }
 
+/** Calls onKey with each non-empty generated key of the data rows and its 1-indexed row number; see scanKeyColumnRows for the bounded, error-reporting scan. */
+async function scanKeyRows(sheets: sheets_v4.Sheets, spreadsheetId: string, sheetTitle: string, header: string[], keyIndices: number[], strategy: KeyGenerationStrategy, onKey: (key: string, rowNumber: number) => void): Promise<void> {
+  const minIndex = Math.min(...keyIndices);
+  const maxIndex = Math.max(...keyIndices);
+
+  await scanKeyColumnRows(sheets, spreadsheetId, sheetTitle, a1Col(minIndex + 1), a1Col(maxIndex + 1), (rawRow, rowNumber) => {
+    // Reconstruct full row for key generation
+    const fullRow: Row = new Array(header.length).fill('');
+    keyIndices.forEach((globalIndex) => {
+      const localRowArrayIndex = globalIndex - minIndex;
+      if (localRowArrayIndex >= 0 && localRowArrayIndex < rawRow.length) {
+        fullRow[globalIndex] = rawRow[localRowArrayIndex];
+      }
+    });
+
+    const key = generateRowKey(fullRow, header, strategy);
+    if (key.replace(/\\+/g, '') !== '') onKey(key, rowNumber);
+  });
+}
+
 export async function snapshotHeaderAndKeys(sheets: sheets_v4.Sheets, spreadsheetId: string, sheetTitle: string, keyColumns: string[] = ['id'], keyStrategy?: Partial<KeyGenerationStrategy>): Promise<{ header: string[]; keySet: Set<string>; keyIndices: number[] }> {
   const header = await discoverHeader(sheets, spreadsheetId, sheetTitle);
   const keySet = new Set<string>();
@@ -404,52 +424,21 @@ export async function snapshotHeaderAndKeys(sheets: sheets_v4.Sheets, spreadshee
     return { header, keySet, keyIndices };
   }
 
-  // Read key columns data in chunks
-  const chunkSize = 1000;
-  let startRow = 2;
-  const minIndex = Math.min(...keyIndices);
-  const maxIndex = Math.max(...keyIndices);
-  const startCol = a1Col(minIndex + 1);
-  const endCol = a1Col(maxIndex + 1);
-
-  while (true) {
-    const endRow = startRow + chunkSize - 1;
-    const range = `${sheetTitle}!${startCol}${startRow}:${endCol}${endRow}`;
-
-    try {
-      const response = await sheets.spreadsheets.values.get({
-        spreadsheetId,
-        range,
-        majorDimension: 'ROWS',
-      });
-
-      const rows = (response.data?.values || []) as string[][];
-      if (rows.length === 0) break;
-
-      for (const rawRow of rows) {
-        // Reconstruct full row for key generation
-        const fullRow: Row = new Array(header.length).fill('');
-        keyIndices.forEach((globalIndex, _localIndex) => {
-          const localRowIndex = globalIndex - minIndex;
-          if (localRowIndex >= 0 && localRowIndex < rawRow.length) {
-            fullRow[globalIndex] = rawRow[localRowIndex];
-          }
-        });
-
-        const key = generateRowKey(fullRow, header, strategy);
-        if (key.replace(/\\+/g, '') !== '') {
-          keySet.add(key);
-        }
-      }
-
-      startRow += rows.length;
-      if (rows.length < chunkSize) break; // Last chunk
-    } catch {
-      break; // End of data or error
-    }
-  }
+  await scanKeyRows(sheets, spreadsheetId, sheetTitle, header, keyIndices, strategy, (key) => {
+    keySet.add(key);
+  });
 
   return { header, keySet, keyIndices };
+}
+
+/** Message naming every duplicate key and its 1-indexed row numbers */
+function formatDuplicateSheetKeys(keyToRows: Map<string, number[]>): string | undefined {
+  const parts: string[] = [];
+  keyToRows.forEach((rows, key) => {
+    if (rows.length > 1) parts.push(`"${key}" (rows ${rows.join(', ')})`);
+  });
+  if (parts.length === 0) return undefined;
+  return `duplicate keys found on the sheet: ${parts.join('; ')}. Nothing was written; make each key unique and retry.`;
 }
 
 /** Tracks row positions for updates in addition to keys */
@@ -457,6 +446,7 @@ export async function snapshotHeaderKeysAndPositions(sheets: sheets_v4.Sheets, s
   const header = await discoverHeader(sheets, spreadsheetId, sheetTitle);
   const keySet = new Set<string>();
   const keyToRowMap = new Map<string, number>();
+  const keyToRows = new Map<string, number[]>();
 
   if (header.length === 0) {
     return { header, keySet, keyToRowMap, keyIndices: [] };
@@ -485,56 +475,16 @@ export async function snapshotHeaderKeysAndPositions(sheets: sheets_v4.Sheets, s
     return { header, keySet, keyToRowMap, keyIndices };
   }
 
-  // Read key columns data in chunks and track row positions
-  const chunkSize = 1000;
-  let startRow = 2; // Start from row 2 (after header)
-  const minIndex = Math.min(...keyIndices);
-  const maxIndex = Math.max(...keyIndices);
-  const startCol = a1Col(minIndex + 1);
-  const endCol = a1Col(maxIndex + 1);
+  await scanKeyRows(sheets, spreadsheetId, sheetTitle, header, keyIndices, strategy, (key, rowNumber) => {
+    keySet.add(key);
+    keyToRowMap.set(key, rowNumber); // Store 1-indexed row number
+    const seenRows = keyToRows.get(key);
+    if (seenRows) seenRows.push(rowNumber);
+    else keyToRows.set(key, [rowNumber]);
+  });
 
-  while (true) {
-    const endRow = startRow + chunkSize - 1;
-    const range = `${sheetTitle}!${startCol}${startRow}:${endCol}${endRow}`;
-
-    try {
-      const response = await sheets.spreadsheets.values.get({
-        spreadsheetId,
-        range,
-        majorDimension: 'ROWS',
-      });
-
-      const rows = (response.data?.values || []) as string[][];
-      if (rows.length === 0) break;
-
-      for (let localRowIndex = 0; localRowIndex < rows.length; localRowIndex++) {
-        const rawRow = rows[localRowIndex];
-        const globalRowNumber = startRow + localRowIndex;
-
-        // Reconstruct full row for key generation
-        const fullRow: Row = new Array(header.length).fill('');
-        if (rawRow) {
-          keyIndices.forEach((globalIndex, _localIndex) => {
-            const localRowArrayIndex = globalIndex - minIndex;
-            if (localRowArrayIndex >= 0 && localRowArrayIndex < rawRow.length) {
-              fullRow[globalIndex] = rawRow[localRowArrayIndex];
-            }
-          });
-        }
-
-        const key = generateRowKey(fullRow, header, strategy);
-        if (key.replace(/\\+/g, '') !== '') {
-          keySet.add(key);
-          keyToRowMap.set(key, globalRowNumber); // Store 1-indexed row number
-        }
-      }
-
-      startRow += rows.length;
-      if (rows.length < chunkSize) break; // Last chunk
-    } catch {
-      break; // End of data or error
-    }
-  }
+  const duplicateMessage = formatDuplicateSheetKeys(keyToRows);
+  if (duplicateMessage) throw new Error(duplicateMessage);
 
   return { header, keySet, keyToRowMap, keyIndices };
 }

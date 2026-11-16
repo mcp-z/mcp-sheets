@@ -43,7 +43,7 @@ npm run test:engines  # Run the suite across every supported Node version
 
 Specs live in `test/unit/`, mirroring `src/`. Cross-service specs live in `test/integration/`. Both run under `npm test`.
 
-Run test commands from the package root. The test setup optionally loads `.env.test` through `portable-env`; file values override matching inherited values. CI or the shell can supply values without a file. Enabled live tests require their necessary values, not the file itself.
+Run test commands from the package root. The test setup optionally loads the package root's `.env.test`, else `~/.config/mcp-z/mcp-sheets/.env.test` (the first one found is used) through `portable-env`; file values override matching inherited values. CI or the shell can supply values without a file. Enabled live tests require their necessary values, not the file itself.
 
 ## Package Development
 

@@ -1,5 +1,16 @@
 # Changelog
 
+## [2.5.0] - 2026-11-15
+
+### Added
+
+- `cells-copy` copies a finite cell range to another range in the same spreadsheet (same or different tab) using native Sheets paste-special: `pasteType` (PASTE_NORMAL default, PASTE_VALUES, PASTE_FORMAT, PASTE_NO_BORDERS, PASTE_FORMULA, PASTE_DATA_VALIDATION, PASTE_CONDITIONAL_FORMATTING) and `pasteOrientation` (NORMAL or TRANSPOSE). The destination is one anchor cell or an exact multiple of the source; pastes outside the destination grid are rejected before any write.
+- Private settings such as the OAuth client ID and secret can live in a file instead of the shell: the first file found of `<baseDir>/mcp-sheets/.env` (the `.mcp-z` folder beside the nearest `.mcp.json`, else in the home folder) and `~/.config/mcp-z/mcp-sheets/.env`. Non-empty environment values win over the file. On macOS and Linux a file readable by other accounts is refused. Requires `@mcp-z/server` 2.3.0.
+
+### Fixed
+
+- Duplicate sheet keys are reported as an error, and the key scan covers every row of the grid instead of stopping at the first gap; a failed key read is reported instead of ending the scan.
+
 ## [2.4.2] - 2026-10-12
 
 ### Fixed
