@@ -7,6 +7,7 @@ const { AuthRequiredBranchSchema } = schemas;
 import type { CallToolResult, ToolModule } from '@mcp-z/server';
 import { ProtocolError, ProtocolErrorCode } from '@mcp-z/server';
 import { z } from 'zod';
+import { RENDER_DESCRIPTION } from '../../constants.ts';
 import { googleAuth } from '../../lib/google-auth.ts';
 import { SheetCellSchema, SheetGidSchema, SpreadsheetIdSchema } from '../../schemas/index.ts';
 
@@ -29,7 +30,7 @@ const inputSchema = z.object({
   select: z.enum(['cells', 'rows', 'columns']).describe('Granularity: cells (individual matches), rows (full matching rows), columns (columns with matching headers)'),
   values: z.boolean().optional().describe('Include cell values in response'),
   a1s: z.boolean().optional().describe('Include A1 notation references in response'),
-  render: z.enum(['FORMATTED_VALUE', 'UNFORMATTED_VALUE', 'FORMULA']).optional().describe('How to render cell values. FORMATTED_VALUE (default): calculated with formatting. UNFORMATTED_VALUE: calculated without formatting. FORMULA: show formula text instead of result.'),
+  render: z.enum(['FORMATTED_VALUE', 'UNFORMATTED_VALUE', 'FORMULA']).optional().describe(RENDER_DESCRIPTION),
   matchCase: z.boolean().optional().describe('Case-sensitive matching. Default is false (case-insensitive).'),
 });
 

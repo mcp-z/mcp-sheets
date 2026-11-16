@@ -48,16 +48,12 @@ export interface UpsertOptions {
 }
 
 export async function discoverHeader(sheets: sheets_v4.Sheets, spreadsheetId: string, sheetTitle: string): Promise<string[]> {
-  try {
-    const response = await sheets.spreadsheets.values.get({
-      spreadsheetId,
-      range: `${sheetTitle}!1:1`,
-      majorDimension: 'ROWS',
-    });
-    return ((response.data?.values || [])[0] || []) as string[];
-  } catch {
-    return [];
-  }
+  const response = await sheets.spreadsheets.values.get({
+    spreadsheetId,
+    range: `${sheetTitle}!1:1`,
+    majorDimension: 'ROWS',
+  });
+  return ((response.data?.values || [])[0] || []) as string[];
 }
 
 export function validateAndMapHeaders(sheetHeaders: string[], canonicalHeaders: string[], requiredColumns: string[] = []): HeaderValidationResult {

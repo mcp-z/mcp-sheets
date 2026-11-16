@@ -633,41 +633,6 @@ export function expandRange(notation: string, expandRows: number, expandCols: nu
 }
 
 /**
- * Gets the intersection of two ranges
- */
-export function getRangeIntersection(range1: string, range2: string): string | null {
-  try {
-    const parsed1 = parseA1Notation(range1);
-    const parsed2 = parseA1Notation(range2);
-
-    const bounds1 = normalizeRangeToBounds(parsed1);
-    const bounds2 = normalizeRangeToBounds(parsed2);
-
-    // Check if they overlap
-    if (!rangesOverlap(range1, range2)) {
-      return null;
-    }
-
-    // Calculate intersection bounds
-    const startRow = Math.max(bounds1.startRow, bounds2.startRow);
-    const endRow = Math.min(bounds1.endRow, bounds2.endRow);
-    const startCol = Math.max(bounds1.startCol, bounds2.startCol);
-    const endCol = Math.min(bounds1.endCol, bounds2.endCol);
-
-    const startColStr = columnIndexToString(startCol);
-    const endColStr = columnIndexToString(endCol);
-
-    if (startRow === endRow && startCol === endCol) {
-      return `${startColStr}${startRow}`;
-    }
-
-    return `${startColStr}${startRow}:${endColStr}${endRow}`;
-  } catch {
-    return null;
-  }
-}
-
-/**
  * Splits a large range into smaller chunks for batch processing
  */
 export function splitRangeIntoChunks(notation: string, maxCellsPerChunk = 100_000): string[] {

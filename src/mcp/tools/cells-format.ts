@@ -7,6 +7,7 @@ const { AuthRequiredBranchSchema } = schemas;
 import type { CallToolResult, ToolModule } from '@mcp-z/server';
 import { ProtocolError, ProtocolErrorCode } from '@mcp-z/server';
 import { z } from 'zod';
+import { NATIVE_DATE_POINTER } from '../../constants.ts';
 import { googleAuth } from '../../lib/google-auth.ts';
 import { SheetGidOutput, SheetGidSchema, SpreadsheetIdOutput, SpreadsheetIdSchema } from '../../schemas/index.ts';
 import { parseA1Notation, rangeReferenceToGridRange } from '../../spreadsheet/range-operations.ts';
@@ -21,7 +22,7 @@ const ColorSchema = z.object({
 // Number format schema
 const NumberFormatSchema = z.object({
   type: z.enum(['TEXT', 'NUMBER', 'PERCENT', 'CURRENCY', 'DATE', 'TIME']).describe('Number format type'),
-  pattern: z.string().optional().describe('Custom format pattern (e.g., "$#,##0.00" for currency)'),
+  pattern: z.string().optional().describe('Custom format pattern (e.g., "$#,##0.00" for currency, "yyyy-mm-dd hh:mm" for a date/time serial)'),
 });
 
 // Border schema
@@ -69,7 +70,7 @@ const successBranchSchema = z.object({
 const outputSchema = z.discriminatedUnion('type', [successBranchSchema, AuthRequiredBranchSchema]);
 
 const config = {
-  description: 'Apply formatting (colors, borders, fonts, alignment, number formats) to cell ranges without modifying data. Supports batch operations for efficiency. Colors use 0-1 RGB format. Best for creating professional, visually organized spreadsheets.',
+  description: `Apply formatting (colors, borders, fonts, alignment, number formats) to cell ranges without modifying data. Supports batch operations for efficiency. Colors use 0-1 RGB format. Best for creating professional, visually organized spreadsheets. Date/time cells: numberFormat {type:"DATE", pattern:"yyyy-mm-dd hh:mm"} only displays a numeric serial as a date; it does not convert text. ${NATIVE_DATE_POINTER}`,
   inputSchema,
   outputSchema: z.object({
     result: outputSchema,

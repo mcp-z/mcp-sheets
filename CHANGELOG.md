@@ -1,5 +1,15 @@
 # Changelog
 
+## [2.5.1] - 2026-11-16
+
+### Changed
+
+- The write, format and read tool descriptions explain native dates: a date is a serial number with a date format, `RAW` keeps a date-looking string as text, `USER_ENTERED` may parse it, and `values-batch-update` shows the write, format and read-back steps (read back with `UNFORMATTED_VALUE`).
+
+### Fixed
+
+- A failed header read (quota, sign-in, service or network error) is reported as an error instead of being treated as an empty sheet, so `rows-append`, `rows-csv-append` and `columns-update` no longer add a second header row after the data or append duplicate rows and still return success.
+
 ## [2.5.0] - 2026-11-15
 
 ### Added

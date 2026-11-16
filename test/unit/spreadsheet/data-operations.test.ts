@@ -1,19 +1,25 @@
 import '../../lib/env-loader.ts';
 import assert from 'assert';
-import { snapshotHeaderAndKeys, snapshotHeaderKeysAndPositions } from '../../../src/spreadsheet/data-operations.ts';
+import { snapshotHeaderAndKeys, snapshotHeaderKeysAndPositions, upsertByKey } from '../../../src/spreadsheet/data-operations.ts';
 
 type GetParams = { range: string };
 
 /** Plain parameter object returning fixed data: `keyRows` are the sheet's data rows (row 2 onward), `rowCount` the grid size. */
-function makeSheets(keyRows: string[][], opts: { rowCount?: number; failKeyRead?: unknown; omitTrailingEmpty?: boolean } = {}) {
+function makeSheets(keyRows: string[][], opts: { rowCount?: number; failKeyRead?: unknown; failHeaderRead?: unknown; omitTrailingEmpty?: boolean } = {}) {
   const rowCount = opts.rowCount ?? keyRows.length + 1;
   const ranges: string[] = [];
+  const appends: unknown[] = [];
   const sheets = {
     spreadsheets: {
       get: async () => ({ data: { sheets: [{ properties: { title: 'S', gridProperties: { rowCount } } }] } }),
       values: {
+        append: async (params: unknown) => {
+          appends.push(params);
+          return { data: {} };
+        },
         get: async ({ range }: GetParams) => {
           ranges.push(range);
+          if (range === 'S!1:1' && opts.failHeaderRead) throw opts.failHeaderRead;
           if (range === 'S!1:1') return { data: { values: [['id', 'name']] } };
           if (opts.failKeyRead) throw opts.failKeyRead;
           const [, start, end] = /^S!A(\d+):A(\d+)$/.exec(range) as RegExpExecArray;
@@ -26,7 +32,7 @@ function makeSheets(keyRows: string[][], opts: { rowCount?: number; failKeyRead?
       },
     },
   };
-  return { sheets: sheets as never, ranges };
+  return { sheets: sheets as never, ranges, appends };
 }
 
 describe('snapshotHeaderKeysAndPositions', () => {
@@ -122,5 +128,35 @@ describe('snapshotHeaderAndKeys', () => {
     const { sheets } = makeSheets([['a']]);
     (sheets as never as { spreadsheets: { get: unknown } }).spreadsheets.get = async () => ({ data: { sheets: [] } });
     await assert.rejects(snapshotHeaderAndKeys(sheets, 'id1', 'S', ['id']), /Could not read the row count of sheet "S"/);
+  });
+});
+
+describe('header read errors', () => {
+  const quota = Object.assign(new Error('Quota exceeded'), { code: 429 });
+
+  it('snapshotHeaderKeysAndPositions rejects instead of returning an empty key set', async () => {
+    const { sheets } = makeSheets([['a']], { failHeaderRead: quota });
+    await assert.rejects(snapshotHeaderKeysAndPositions(sheets, 'id1', 'S', ['id']), (err: Error) => err === quota);
+  });
+
+  it('snapshotHeaderAndKeys rejects instead of returning an empty key set', async () => {
+    const { sheets } = makeSheets([['a']], { failHeaderRead: quota });
+    await assert.rejects(snapshotHeaderAndKeys(sheets, 'id1', 'S', ['id']), (err: Error) => err === quota);
+  });
+
+  it('upsertByKey rejects without appending a header row', async () => {
+    const { sheets, appends } = makeSheets([['a']], { failHeaderRead: quota });
+    await assert.rejects(
+      upsertByKey(sheets, {
+        spreadsheetId: 'id1',
+        sheetTitle: 'S',
+        rows: [['b', 'B']],
+        canonicalHeaders: ['id', 'name'],
+        options: { keyStrategy: { keyColumns: ['id'], useProviderIdLogic: false }, allowUpdates: true },
+        logger: {} as never,
+      }),
+      (err: Error) => err === quota
+    );
+    assert.strictEqual(appends.length, 0);
   });
 });

@@ -7,6 +7,7 @@ const { AuthRequiredBranchSchema } = schemas;
 import type { CallToolResult, ToolModule } from '@mcp-z/server';
 import { ProtocolError, ProtocolErrorCode } from '@mcp-z/server';
 import { z } from 'zod';
+import { NATIVE_DATE_POINTER } from '../../constants.ts';
 import { googleAuth } from '../../lib/google-auth.ts';
 import { SheetCellSchema, SheetGidOutput, SheetGidSchema, SpreadsheetIdOutput, SpreadsheetIdSchema } from '../../schemas/index.ts';
 import { generateRowKey, type KeyGenerationStrategy, type Row, snapshotHeaderKeysAndPositions, type UpsertOptions, upsertByKey } from '../../spreadsheet/data-operations.ts';
@@ -23,7 +24,7 @@ const inputSchema = z
       .enum(['add-or-update', 'update-only', 'add-only'])
       .default('add-or-update')
       .describe('Update behavior: add-or-update (default) adds new rows and updates existing, update-only skips new rows, add-only skips existing rows. BEST FOR: Bulk upsert operations with key matching in structured database or table contexts.'),
-    valueInputOption: z.enum(['RAW', 'USER_ENTERED']).default('USER_ENTERED').describe('How input data should be interpreted (RAW = exact values, USER_ENTERED = parsed like user input with formulas, dates, etc.)'),
+    valueInputOption: z.enum(['RAW', 'USER_ENTERED']).default('USER_ENTERED').describe('How input data should be interpreted (default USER_ENTERED = parsed like user input with formulas, dates per the workbook locale, etc.; RAW = exact values, date strings stay text, numeric serials stay numbers)'),
   })
   .refine(
     (data) => {
@@ -78,7 +79,7 @@ const successBranchSchema = z.object({
 const outputSchema = z.discriminatedUnion('type', [successBranchSchema, AuthRequiredBranchSchema]);
 
 const config = {
-  description: 'Update spreadsheet data by column headers with intelligent upsert logic. Supports adding missing columns, flexible update behaviors, and robust error handling. Uses column names as keys for matching existing rows, enabling context-aware data synchronization workflows.',
+  description: `Update spreadsheet data by column headers with intelligent upsert logic. Supports adding missing columns, flexible update behaviors, and robust error handling. Uses column names as keys for matching existing rows, enabling context-aware data synchronization workflows. ${NATIVE_DATE_POINTER}`,
   inputSchema,
   outputSchema: z.object({
     result: outputSchema,

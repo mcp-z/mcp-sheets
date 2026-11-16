@@ -7,6 +7,7 @@ const { AuthRequiredBranchSchema } = schemas;
 import type { CallToolResult, ToolModule } from '@mcp-z/server';
 import { ProtocolError, ProtocolErrorCode } from '@mcp-z/server';
 import { z } from 'zod';
+import { NATIVE_DATE_POINTER } from '../../constants.ts';
 import { googleAuth } from '../../lib/google-auth.ts';
 import { SheetGidOutput, SheetGidSchema, SpreadsheetIdOutput, SpreadsheetIdSchema } from '../../schemas/index.ts';
 import { appendRows, mapRowsToHeader } from '../../spreadsheet/data-operations.ts';
@@ -36,7 +37,7 @@ const successBranchSchema = z.object({
 const outputSchema = z.discriminatedUnion('type', [successBranchSchema, AuthRequiredBranchSchema]);
 
 const config = {
-  description: 'Add new rows to the bottom of an existing sheet with smart header handling and optional deduplication. BEST FOR: Structured database operations where spreadsheet has headers defining schema and rows represent records.',
+  description: `Add new rows to the bottom of an existing sheet with smart header handling and optional deduplication. BEST FOR: Structured database operations where spreadsheet has headers defining schema and rows represent records. Values are always written RAW (no parsing), so a date string stays text; write numeric serials and then apply a date format with cells-format. ${NATIVE_DATE_POINTER}`,
   inputSchema,
   outputSchema: z.object({
     result: outputSchema,
