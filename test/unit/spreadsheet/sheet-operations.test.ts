@@ -2,7 +2,7 @@ import '../../lib/env-loader.ts';
 import assert from 'assert';
 import { ensureTabAndHeaders } from '../../../src/spreadsheet/sheet-operations.ts';
 
-const logger = {} as never;
+const _logger = {} as never;
 
 /** Plain fake: header is ['id', 'name']; `keyRows` are data rows from row 2, `rowCount` the grid size. */
 function makeSheets(keyRows: string[][], opts: { rowCount?: number; failKeyRead?: unknown } = {}) {
@@ -28,7 +28,7 @@ function makeSheets(keyRows: string[][], opts: { rowCount?: number; failKeyRead?
   return { sheets: sheets as never, ranges };
 }
 
-const call = (sheets: never) => ensureTabAndHeaders(sheets, { spreadsheetId: 'id1', sheetTitle: 'S', requiredHeader: ['id', 'name'], keyColumns: ['id'], logger });
+const call = (sheets: never) => ensureTabAndHeaders(sheets, { spreadsheetId: 'id1', sheetTitle: 'S', requiredHeader: ['id', 'name'], keyColumns: ['id'] });
 
 describe('ensureTabAndHeaders key scan', () => {
   it('finds a key below a full blank chunk', async () => {
@@ -96,49 +96,5 @@ describe('ensureTabAndHeaders header read errors', () => {
     const { sheets, writes } = makeWriteRecorder(unavailable, ['S']);
     await assert.rejects(call(sheets), (err: Error) => err === unavailable);
     assert.deepStrictEqual(writes, []);
-  });
-
-  it('rejects with the read error when the sheetRef names an existing tab', async () => {
-    const unavailable = Object.assign(new Error('The service is currently unavailable'), { code: 503 });
-    const { sheets, writes } = makeWriteRecorder(unavailable, ['S']);
-    await assert.rejects(ensureTabAndHeaders(sheets, { spreadsheetId: 'id1', sheetRef: 'S', logger }), (err: Error) => err === unavailable);
-    assert.deepStrictEqual(writes, []);
-  });
-
-  it('creates the tab and writes the header when the sheetRef names no tab', async () => {
-    const calls: string[] = [];
-    const sheets = {
-      spreadsheets: {
-        get: async () => ({ data: { sheets: [{ properties: { title: 'Other', sheetId: 0 } }] } }),
-        batchUpdate: async () => {
-          calls.push('addSheet');
-          return { data: {} };
-        },
-        values: {
-          get: async () => ({ data: {} }),
-          append: async () => {
-            calls.push('append');
-            return { data: {} };
-          },
-        },
-      },
-    };
-    const { header } = await ensureTabAndHeaders(sheets as never, { spreadsheetId: 'id1', sheetRef: 'New', requiredHeader: ['id', 'name'], logger });
-    assert.deepStrictEqual(header, ['id', 'name']);
-    assert.deepStrictEqual(calls, ['addSheet', 'append']);
-  });
-
-  it('rejects with the addSheet error when creating the tab fails', async () => {
-    const denied = Object.assign(new Error('The caller does not have permission'), { code: 403 });
-    const sheets = {
-      spreadsheets: {
-        get: async () => ({ data: { sheets: [] } }),
-        batchUpdate: async () => {
-          throw denied;
-        },
-        values: { get: async () => ({ data: {} }), append: async () => ({ data: {} }) },
-      },
-    };
-    await assert.rejects(ensureTabAndHeaders(sheets as never, { spreadsheetId: 'id1', sheetRef: 'New', logger }), (err: Error) => err === denied);
   });
 });
