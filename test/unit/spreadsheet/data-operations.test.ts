@@ -1,6 +1,6 @@
 import '../../lib/env-loader.ts';
 import assert from 'assert';
-import { snapshotHeaderAndKeys, snapshotHeaderKeysAndPositions, upsertByKey } from '../../../src/spreadsheet/data-operations.ts';
+import { allWritesFailed, buildRowUpdateBody, performBatchUpdates, snapshotHeaderAndKeys, snapshotHeaderKeysAndPositions, upsertByKey } from '../../../src/spreadsheet/data-operations.ts';
 
 type GetParams = { range: string };
 
@@ -158,5 +158,82 @@ describe('header read errors', () => {
       (err: Error) => err === quota
     );
     assert.strictEqual(appends.length, 0);
+  });
+});
+
+/** Recording-only client: keeps every write request as sent and returns an empty response; `get` lists a gid 0 tab "First" and the target tab "Target" (gid 123). */
+function makeRecordingSheets() {
+  const writes: Array<{ api: string; body: unknown }> = [];
+  const record = (api: string) => async (params: unknown) => {
+    writes.push({ api, body: params });
+    return { data: {} };
+  };
+  const sheets = {
+    spreadsheets: {
+      get: async () => ({ data: { sheets: [{ properties: { sheetId: 0, title: 'First' } }, { properties: { sheetId: 123, title: 'Target' } }] } }),
+      batchUpdate: record('spreadsheets.batchUpdate'),
+      values: { batchUpdate: record('values.batchUpdate'), update: record('values.update') },
+    },
+  };
+  return { sheets: sheets as never, writes };
+}
+
+/** Tab each sent write addresses: the sheetId of an updateCells range, or the tab title of an A1 range. */
+function addressedTabs(writes: Array<{ api: string; body: unknown }>): Array<number | string> {
+  const tabs: Array<number | string> = [];
+  for (const { api, body } of writes) {
+    const params = body as { requestBody?: { requests?: Array<{ updateCells?: { range: { sheetId: number } } }>; data?: Array<{ range: string }> }; range?: string };
+    if (api === 'spreadsheets.batchUpdate') for (const r of params.requestBody?.requests ?? []) tabs.push(r.updateCells?.range.sheetId ?? -1);
+    else if (api === 'values.batchUpdate') for (const d of params.requestBody?.data ?? []) tabs.push(/^'?(.+?)'?!/.exec(d.range)?.[1] ?? '');
+    else tabs.push(/^'?(.+?)'?!/.exec(params.range ?? '')?.[1] ?? '');
+  }
+  return tabs;
+}
+
+describe('performBatchUpdates', () => {
+  it('sends every write to the target tab and none to the gid 0 tab', async () => {
+    const { sheets, writes } = makeRecordingSheets();
+    await performBatchUpdates(sheets, 'id1', 'Target', [{ row: ['a', 'new'], existingRowIndex: 2 }], ['id', 'name'], 50, 'USER_ENTERED');
+    const tabs = addressedTabs(writes);
+    assert.ok(tabs.length > 0, 'a write was sent');
+    assert.ok(
+      tabs.every((t) => t === 'Target' || t === 123),
+      `writes addressed ${JSON.stringify(tabs)}`
+    );
+  });
+
+  it('passes valueInputOption to the batch write', async () => {
+    const { sheets, writes } = makeRecordingSheets();
+    await performBatchUpdates(sheets, 'id1', 'Target', [{ row: ['a', 'new'], existingRowIndex: 2 }], ['id', 'name'], 50, 'RAW');
+    const options = writes.map((w) => (w.body as { requestBody?: { valueInputOption?: string } }).requestBody?.valueInputOption);
+    assert.deepStrictEqual(options, ['RAW']);
+  });
+});
+
+describe('buildRowUpdateBody', () => {
+  it('quotes the tab title in each A1 range', () => {
+    const body = buildRowUpdateBody("Q1 'draft'", [{ row: ['a', 1], existingRowIndex: 3 }], 2, 'RAW');
+    assert.deepStrictEqual(body, { valueInputOption: 'RAW', data: [{ range: "'Q1 ''draft'''!A3:B3", majorDimension: 'ROWS', values: [['a', 1]] }] });
+  });
+});
+
+describe('allWritesFailed', () => {
+  it('is true when only errors came back', () => {
+    assert.strictEqual(allWritesFailed({ updatedRows: 0, inserted: [], rowsSkipped: 0, errors: ['Batch 1 append failed: quota'] }), true);
+  });
+
+  it('is false when some rows were written or there were no errors', () => {
+    assert.strictEqual(allWritesFailed({ updatedRows: 1, inserted: [], rowsSkipped: 0, errors: ['x'] }), false);
+    assert.strictEqual(allWritesFailed({ updatedRows: 0, inserted: ['k'], rowsSkipped: 0, errors: ['x'] }), false);
+    assert.strictEqual(allWritesFailed({ updatedRows: 0, inserted: [], rowsSkipped: 2 }), false);
+  });
+
+  it('is true for upsertByKey when the append fails', async () => {
+    const { sheets } = makeSheets([['a']]);
+    (sheets as { spreadsheets: { values: { append: unknown } } }).spreadsheets.values.append = async () => {
+      throw new Error('quota');
+    };
+    const result = await upsertByKey(sheets, { spreadsheetId: 'id1', sheetTitle: 'S', rows: [['b', 'B']], canonicalHeaders: ['id', 'name'], options: { keyStrategy: { keyColumns: ['id'], useProviderIdLogic: false }, allowUpdates: true }, logger: {} as never });
+    assert.strictEqual(allWritesFailed(result), true);
   });
 });
