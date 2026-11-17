@@ -1,5 +1,15 @@
 # Changelog
 
+## [2.6.0]
+
+### Changed
+
+- On first start, sign-ins saved by earlier versions (`TOKEN_STORE_URI` and `DCR_STORE_URI`, default namespace only) are moved to the keyv 6 storage format, and the server logs "Moved N saved sign-in entries to the keyv 6 format" when it moves any. Nothing is moved on later starts.
+- Upgrade servers that share one token file together: once one has moved the entries, an earlier version no longer finds them and asks you to sign in again.
+- With a `sqlite://` token store opened by several servers at once on the first start after upgrading, one of them may fail once with "database is locked". Start it again.
+- Old `duckdb://` data in `~/.keyv-duckdb/store.duckdb` is not moved (keyv 5 wrote it there whatever the URI said), so those sign-ins are lost and you sign in again. That file holds tokens; delete it.
+- Storage adapters you install yourself for `TOKEN_STORE_URI` / `DCR_STORE_URI` (for example `@keyv/redis`) should be keyv 6 releases.
+
 ## [2.5.1] - 2026-11-16
 
 ### Changed

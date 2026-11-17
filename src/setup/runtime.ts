@@ -18,15 +18,15 @@ export function createLogger(config: ServerConfig): Logger {
   return pino({ level: config.logLevel ?? 'info', formatters: sanitizeForLoggingFormatter() }, hasStdio ? pino.destination({ dest: logsPath, sync: false }) : pino.destination(1));
 }
 
-export async function createTokenStore(baseDir: string) {
+export async function createTokenStore(baseDir: string, logger?: Logger) {
   const tokenStoreUri = process.env.TOKEN_STORE_URI || pathToFileURL(path.join(baseDir, 'tokens.json')).href;
-  return createStore<CachedToken>(tokenStoreUri);
+  return createStore<CachedToken>(tokenStoreUri, logger);
 }
 
-export async function createDcrStore(baseDir: string, required: boolean) {
+export async function createDcrStore(baseDir: string, required: boolean, logger?: Logger) {
   if (!required) return undefined;
   const dcrStoreUri = process.env.DCR_STORE_URI || pathToFileURL(path.join(baseDir, 'dcr.json')).href;
-  return createStore<unknown>(dcrStoreUri);
+  return createStore<unknown>(dcrStoreUri, logger);
 }
 
 export function createAuthLayer(authMiddleware: OAuthAdapters['middleware']): MiddlewareLayer {
@@ -50,9 +50,9 @@ export async function createDefaultRuntime(config: ServerConfig, overrides?: Run
   if (config.auth === 'dcr' && config.transport.type !== 'http') throw new Error('DCR mode requires an HTTP transport');
 
   const logger = createLogger(config);
-  const tokenStore = await createTokenStore(config.baseDir);
+  const tokenStore = await createTokenStore(config.baseDir, logger);
   const baseUrl = config.baseUrl ?? (config.transport.type === 'http' && config.transport.port ? `http://localhost:${config.transport.port}` : undefined);
-  const dcrStore = await createDcrStore(config.baseDir, config.auth === 'dcr');
+  const dcrStore = await createDcrStore(config.baseDir, config.auth === 'dcr', logger);
   const oauthAdapters = await createOAuthAdapters(config, { logger, tokenStore, dcrStore }, baseUrl);
   const deps: RuntimeDeps = { config, logger, tokenStore, oauthAdapters, baseUrl };
   const createDomainModules =
