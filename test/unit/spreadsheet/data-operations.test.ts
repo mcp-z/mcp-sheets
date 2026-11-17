@@ -1,6 +1,6 @@
 import '../../lib/env-loader.ts';
 import assert from 'assert';
-import { performBatchUpdates, snapshotHeaderAndKeys, snapshotHeaderKeysAndPositions, upsertByKey } from '../../../src/spreadsheet/data-operations.ts';
+import { allWritesFailed, buildRowUpdateBody, performBatchUpdates, snapshotHeaderAndKeys, snapshotHeaderKeysAndPositions, upsertByKey } from '../../../src/spreadsheet/data-operations.ts';
 
 type GetParams = { range: string };
 
@@ -210,3 +210,30 @@ describe('performBatchUpdates', () => {
   });
 });
 
+describe('buildRowUpdateBody', () => {
+  it('quotes the tab title in each A1 range', () => {
+    const body = buildRowUpdateBody("Q1 'draft'", [{ row: ['a', 1], existingRowIndex: 3 }], 2, 'RAW');
+    assert.deepStrictEqual(body, { valueInputOption: 'RAW', data: [{ range: "'Q1 ''draft'''!A3:B3", majorDimension: 'ROWS', values: [['a', 1]] }] });
+  });
+});
+
+describe('allWritesFailed', () => {
+  it('is true when only errors came back', () => {
+    assert.strictEqual(allWritesFailed({ updatedRows: 0, inserted: [], rowsSkipped: 0, errors: ['Batch 1 append failed: quota'] }), true);
+  });
+
+  it('is false when some rows were written or there were no errors', () => {
+    assert.strictEqual(allWritesFailed({ updatedRows: 1, inserted: [], rowsSkipped: 0, errors: ['x'] }), false);
+    assert.strictEqual(allWritesFailed({ updatedRows: 0, inserted: ['k'], rowsSkipped: 0, errors: ['x'] }), false);
+    assert.strictEqual(allWritesFailed({ updatedRows: 0, inserted: [], rowsSkipped: 2 }), false);
+  });
+
+  it('is true for upsertByKey when the append fails', async () => {
+    const { sheets } = makeSheets([['a']]);
+    (sheets as { spreadsheets: { values: { append: unknown } } }).spreadsheets.values.append = async () => {
+      throw new Error('quota');
+    };
+    const result = await upsertByKey(sheets, { spreadsheetId: 'id1', sheetTitle: 'S', rows: [['b', 'B']], canonicalHeaders: ['id', 'name'], options: { keyStrategy: { keyColumns: ['id'], useProviderIdLogic: false }, allowUpdates: true }, logger: {} as never });
+    assert.strictEqual(allWritesFailed(result), true);
+  });
+});

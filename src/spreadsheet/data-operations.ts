@@ -523,8 +523,30 @@ export function partitionDataForUpsert(rows: Row[], header: string[], keyStrateg
   };
 }
 
+/** A1 range covering one whole row of the table; the title is quoted so tab names with spaces or punctuation resolve. */
+function rowRange(sheetTitle: string, rowNumber: number, columnCount: number): string {
+  return `'${sheetTitle.replace(/'/g, "''")}'!A${rowNumber}:${a1Col(columnCount)}${rowNumber}`;
+}
+
+/** values.batchUpdate body writing each row to its A1 range on the named tab, so the tab is addressed by title and valueInputOption applies. */
+export function buildRowUpdateBody(sheetTitle: string, updates: Array<{ row: Row; existingRowIndex: number }>, columnCount: number, valueInputOption: 'RAW' | 'USER_ENTERED'): sheets_v4.Schema$BatchUpdateValuesRequest {
+  return {
+    valueInputOption,
+    data: updates.map(({ row, existingRowIndex }) => ({
+      range: rowRange(sheetTitle, existingRowIndex, columnCount),
+      majorDimension: 'ROWS',
+      values: [row as (string | number | boolean | null | undefined)[]],
+    })),
+  };
+}
+
+/** True when the call tried writes and none landed: only errors, no updated or inserted rows. */
+export function allWritesFailed(result: BatchOperationResult): boolean {
+  return (result.errors?.length ?? 0) > 0 && result.updatedRows === 0 && result.inserted.length === 0;
+}
+
 /**
- * Performs batch updates on existing rows using batchUpdate API
+ * Performs batch updates on existing rows using values.batchUpdate with A1 ranges
  */
 export async function performBatchUpdates(sheets: sheets_v4.Sheets, spreadsheetId: string, sheetTitle: string, updates: Array<{ row: Row; existingRowIndex: number }>, header: string[], batchSize: number, valueInputOption: 'RAW' | 'USER_ENTERED'): Promise<{ updatedRows: number; errors?: string[] }> {
   const errors: string[] = [];
@@ -535,42 +557,11 @@ export async function performBatchUpdates(sheets: sheets_v4.Sheets, spreadsheetI
     const batch = updates.slice(i, i + batchSize);
 
     try {
-      const requests: sheets_v4.Schema$Request[] = [];
-
-      for (const { row, existingRowIndex } of batch) {
-        requests.push({
-          updateCells: {
-            range: {
-              sheetId: 0, // Will be resolved by sheet title in the range
-              startRowIndex: existingRowIndex - 1, // Convert to 0-indexed
-              endRowIndex: existingRowIndex, // Exclusive
-              startColumnIndex: 0,
-              endColumnIndex: header.length,
-            },
-            rows: [
-              {
-                values: row.map((cellValue) => ({
-                  userEnteredValue: {
-                    stringValue: String(cellValue ?? ''),
-                  },
-                })),
-              },
-            ],
-            fields: 'userEnteredValue',
-          },
-        });
-      }
-
-      if (requests.length > 0) {
-        await sheets.spreadsheets.batchUpdate({
-          spreadsheetId,
-          requestBody: {
-            requests,
-          },
-        });
-
-        totalUpdated += batch.length;
-      }
+      await sheets.spreadsheets.values.batchUpdate({
+        spreadsheetId,
+        requestBody: buildRowUpdateBody(sheetTitle, batch, header.length, valueInputOption),
+      });
+      totalUpdated += batch.length;
     } catch (error) {
       const errorMsg = `Batch update ${Math.floor(i / batchSize) + 1} failed: ${error instanceof Error ? error.message : String(error)}`;
       errors.push(errorMsg);
@@ -578,7 +569,7 @@ export async function performBatchUpdates(sheets: sheets_v4.Sheets, spreadsheetI
       // Try individual updates for failed batches
       for (const { row, existingRowIndex } of batch) {
         try {
-          const range = `${sheetTitle}!A${existingRowIndex}:${a1Col(header.length)}${existingRowIndex}`;
+          const range = rowRange(sheetTitle, existingRowIndex, header.length);
           await sheets.spreadsheets.values.update({
             spreadsheetId,
             range,
