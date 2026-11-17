@@ -11,10 +11,9 @@
 
 import '../test/lib/env-loader.ts';
 import { LoopbackOAuthProvider } from '@mcp-z/oauth-google';
-// keyv-registry directly, not src/lib/create-store.ts: .tokens/ is never migrated
-import createStore from 'keyv-registry';
 import { GOOGLE_SCOPE } from '../src/constants.ts';
 import { createConfig } from '../src/setup/config.ts';
+import createTokenStore from '../test/lib/create-token-store.ts';
 
 async function setupTest(): Promise<void> {
   const config = createConfig();
@@ -22,7 +21,7 @@ async function setupTest(): Promise<void> {
   console.log('');
 
   // Use local .tokens/ directory at package root (no subdirectories)
-  const tokenStore = await createStore<unknown>('file://.//.tokens/store.json');
+  const tokenStore = await createTokenStore();
 
   const auth = new LoopbackOAuthProvider({
     service: config.name,
