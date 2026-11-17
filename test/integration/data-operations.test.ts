@@ -34,7 +34,7 @@ it('integration: ensureTabAndHeaders + appendRows', async () => {
     const sheetTitle = 'Sheet1';
 
     // 1) ensure headers (no requiredHeader provided -> default header will be used)
-    const { header: header1, keySet: ks1 } = await ensureTabAndHeaders(sheets, { spreadsheetId, sheetTitle, logger: logger });
+    const { header: header1, keySet: ks1 } = await ensureTabAndHeaders(sheets, { spreadsheetId, sheetTitle });
     assert.ok(Array.isArray(header1));
     assert.ok(ks1 instanceof Set);
     // initially there should be no keys
@@ -51,7 +51,7 @@ it('integration: ensureTabAndHeaders + appendRows', async () => {
     assert.deepStrictEqual(appendRes.inserted.length, 2);
 
     // 3) re-run ensureTabAndHeaders to build keySet from existing rows
-    const { header: header2, keySet: ks2 } = await ensureTabAndHeaders(sheets, { spreadsheetId, sheetTitle, keyColumns: ['id', 'provider'], logger: logger });
+    const { header: header2, keySet: ks2 } = await ensureTabAndHeaders(sheets, { spreadsheetId, sheetTitle, keyColumns: ['id', 'provider'] });
     assert.ok(Array.isArray(header2));
     // keySet should now contain two keys
     assert.strictEqual(ks2.size >= 2, true);

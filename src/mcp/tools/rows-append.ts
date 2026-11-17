@@ -81,7 +81,6 @@ async function handler({ id, gid, rows, headers, deduplicateBy }: Input, extra: 
         sheetTitle,
         requiredHeader: headers,
         keyColumns: deduplicateBy || [],
-        logger,
       });
 
       currentHeaders = headerResult.header;
