@@ -1,5 +1,14 @@
 # Changelog
 
+## [2.6.1]
+
+### Fixed
+
+- `columns-update` writes updates to existing rows on the tab you named. Before, they could land on the first tab of the spreadsheet.
+- `columns-update` updates to existing rows honour `valueInputOption`: `USER_ENTERED` parses numbers, dates and formulas, and `RAW` stores the text as given. Before, every updated cell was stored as text.
+- `columns-update` updates of existing rows leave a cell unchanged when its value is `null` or missing, as the per-row path already did. Before, the batch path cleared it.
+- `columns-update` fails with an error naming the failures when every write failed, instead of returning `success` with only an `errors` list. Partial failures still return `success` with their errors.
+
 ## [2.6.0]
 
 ### Changed
