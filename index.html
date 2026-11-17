@@ -142,7 +142,7 @@ it sends no <code>initialize</code> handshake and carries no session id.</p>
 <pre><code class="bash"><span class="hl-3">npm</span><span class="hl-0"> </span><span class="hl-2">install</span><span class="hl-0"> </span><span class="hl-4">-g</span><span class="hl-0"> </span><span class="hl-2">@mcp-z/mcp-sheets</span><span class="hl-0"> </span><span class="hl-2">@keyv/redis</span><br/><br/><span class="hl-6">TOKEN_STORE_URI</span><span class="hl-0">=</span><span class="hl-2">redis://localhost:6379</span><span class="hl-0"> </span><span class="hl-3">mcp-sheets</span>
 </code><button type="button">Copy</button></pre>
 
-<p>A protocol whose adapter is missing fails at startup naming the package to install.</p>
+<p>A protocol whose adapter is missing fails at startup naming the package to install. This release uses keyv 6, so adapters you install should be keyv 6 releases (<code>@keyv/redis</code> 6). Sign-ins saved by earlier versions are moved to the new format on first start.</p>
 <h2 id="documentation" class="tsd-anchor-link">Documentation<a href="#documentation" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2>
 <p><a href="https://mcp-z.github.io/mcp-sheets">API Docs</a></p>
 </div></div>
