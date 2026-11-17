@@ -10,7 +10,7 @@ import { z } from 'zod';
 import { NATIVE_DATE_POINTER } from '../../constants.ts';
 import { googleAuth } from '../../lib/google-auth.ts';
 import { SheetCellSchema, SheetGidOutput, SheetGidSchema, SpreadsheetIdOutput, SpreadsheetIdSchema } from '../../schemas/index.ts';
-import { generateRowKey, type KeyGenerationStrategy, type Row, snapshotHeaderKeysAndPositions, type UpsertOptions, upsertByKey } from '../../spreadsheet/data-operations.ts';
+import { allWritesFailed, generateRowKey, type KeyGenerationStrategy, type Row, snapshotHeaderKeysAndPositions, type UpsertOptions, upsertByKey } from '../../spreadsheet/data-operations.ts';
 
 // Input schema for columns update requests with enhanced validation
 const inputSchema = z
@@ -234,6 +234,10 @@ async function handler({ id, gid, rows, headers, updateBy, behavior = 'add-or-up
       options: upsertOptions,
       logger,
     });
+
+    if (allWritesFailed(upsertResult)) {
+      throw new Error(`every write failed: ${upsertResult.errors?.join('; ')}`);
+    }
 
     // Track headers that were added (if any)
     // This would require additional logic in upsertByKey to return added headers
