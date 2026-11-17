@@ -7,12 +7,11 @@
 
 import { listAccountIds } from '@mcp-z/oauth';
 import type { Keyv } from 'keyv';
-// keyv-registry directly, not src/lib/create-store.ts: .tokens/ is never migrated
-import createStore from 'keyv-registry';
 import { GOOGLE_SCOPE } from '../../src/constants.ts';
 import { googleAuth } from '../../src/lib/google-auth.ts';
 import type { Logger } from '../../src/types.ts';
 import { createConfig } from './config.ts';
+import createTokenStore from './create-token-store.ts';
 import { PacedOAuthProvider, pacingSummary } from './paced-oauth-provider.ts';
 
 after(() => console.info('Live API pacing:', pacingSummary()));
@@ -63,7 +62,7 @@ export default async function createMiddlewareContext() {
   };
 
   // Local .tokens/ directory at package root
-  const tokenStore = await createStore<unknown>('file://.//.tokens/store.json');
+  const tokenStore = await createTokenStore();
 
   // Validate exactly 1 account exists
   const accountId = await validateSingleAccount(tokenStore, config.name);
