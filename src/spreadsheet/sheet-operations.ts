@@ -41,42 +41,6 @@ export async function scanKeyColumnRows(sheets: sheets_v4.Sheets, spreadsheetId:
   }
 }
 
-export async function ensureSheetIfNeeded(sheets: sheets_v4.Sheets, id: string, sheetTitle: string, ensureSheet: boolean, headers: string[] | undefined, logger: Logger) {
-  if (!sheetTitle) return { sheetCreated: false };
-  const ssResp = await sheets.spreadsheets.get({ spreadsheetId: id });
-  const ss = ssResp.data;
-  const has = Array.isArray(ss?.sheets) && ss.sheets.some((s) => s?.properties?.title === sheetTitle);
-  if (has) {
-    const sid = ss.sheets?.find((s) => s?.properties?.title === sheetTitle)?.properties?.sheetId;
-    const result: { sheetCreated: boolean; sheetGUID?: string; headersEnsured?: boolean } = { sheetCreated: false };
-    if (sid != null) result.sheetGUID = String(sid);
-    if (headers) {
-      try {
-        const { header: merged } = await ensureTabAndHeaders(sheets, { spreadsheetId: id, sheetTitle, requiredHeader: headers, logger });
-        if (merged) result.headersEnsured = true;
-      } catch (e) {
-        logger.warn?.('ensureTabAndHeaders after sheet creation failed', e as Record<string, unknown>);
-      }
-    }
-    return result;
-  }
-  if (!ensureSheet) return { sheetCreated: false };
-
-  const res = await sheets.spreadsheets.batchUpdate({ spreadsheetId: id, requestBody: { requests: [{ addSheet: { properties: { title: sheetTitle } } }] } });
-  const createdId = res.data?.replies?.[0]?.addSheet?.properties?.sheetId;
-  const result: { sheetCreated: boolean; sheetGUID?: string; headersEnsured?: boolean } = { sheetCreated: !!createdId };
-  if (createdId != null) result.sheetGUID = String(createdId);
-  if (createdId && headers) {
-    try {
-      const { header: merged } = await ensureTabAndHeaders(sheets, { spreadsheetId: id, sheetTitle, requiredHeader: headers, logger });
-      if (merged) result.headersEnsured = true;
-    } catch (e) {
-      logger.warn?.('ensureTabAndHeaders after sheet creation failed', e as Record<string, unknown>);
-    }
-  }
-  return result;
-}
-
 export async function findSheetByRef(client: sheets_v4.Sheets, spreadsheetId: string, sheetRef: string, logger: Logger) {
   const ssResp = await client.spreadsheets.get({ spreadsheetId });
   const sheets = ssResp.data?.sheets || [];
@@ -147,63 +111,34 @@ export async function findSheetByRef(client: sheets_v4.Sheets, spreadsheetId: st
   return null;
 }
 
-// Overloaded function signatures
-export async function ensureTabAndHeaders(sheets: sheets_v4.Sheets, params: { spreadsheetId: string; sheetTitle: string; requiredHeader?: string[] | null; keyColumns?: string[]; logger: Logger }): Promise<{ header: string[]; keySet: Set<string>; keyColumnsIdx?: number[] }>;
-
-export async function ensureTabAndHeaders(sheets: sheets_v4.Sheets, params: { spreadsheetId: string; sheetRef: string; requiredHeader?: string[] | null; keyColumns?: string[]; logger: Logger }): Promise<{ header: string[]; keySet: Set<string>; keyColumnsIdx?: number[] }>;
-
 export async function ensureTabAndHeaders(
   sheets: sheets_v4.Sheets,
   {
     spreadsheetId,
     sheetTitle,
-    sheetRef,
     requiredHeader = null as string[] | null,
     keyColumns = ['id'] as string[],
-    logger,
   }: {
     spreadsheetId: string;
-    sheetTitle?: string;
-    sheetRef?: string;
+    sheetTitle: string;
     requiredHeader?: string[] | null;
     keyColumns?: string[];
-    logger: Logger;
   }
 ) {
   if (!sheets) throw new Error('ensureTabAndHeaders: sheets is required');
   if (!spreadsheetId) throw new Error('ensureTabAndHeaders: spreadsheetId is required');
-  if (!sheetTitle && !sheetRef) throw new Error('ensureTabAndHeaders: either sheetTitle or sheetRef is required');
-
-  // Resolve the actual sheet title from sheetRef if provided
-  let resolvedSheetTitle = sheetTitle;
-  let createTab = false;
-  if (sheetRef) {
-    const sheet = await findSheetByRef(sheets, spreadsheetId, sheetRef, logger);
-    if (sheet) {
-      resolvedSheetTitle = sheet.properties?.title || sheetRef;
-    } else {
-      // Sheet doesn't exist, use the sheetRef as the title for creation
-      resolvedSheetTitle = sheetRef;
-      createTab = true;
-    }
-  }
-
-  if (!resolvedSheetTitle) throw new Error('ensureTabAndHeaders: could not resolve sheet title');
+  if (!sheetTitle) throw new Error('ensureTabAndHeaders: sheetTitle is required');
 
   const defaultHeader = ['id', 'provider', 'threadId', 'to', 'from', 'cc', 'bcc', 'date', 'subject', 'labels', 'snippet', 'body'];
   const header = Array.isArray(requiredHeader) && requiredHeader.length ? requiredHeader : defaultHeader;
 
-  if (createTab) {
-    await sheets.spreadsheets.batchUpdate({ spreadsheetId, requestBody: { requests: [{ addSheet: { properties: { title: resolvedSheetTitle } } }] } });
-  }
-
-  const resp = await sheets.spreadsheets.values.get({ spreadsheetId, range: `${resolvedSheetTitle}!1:1`, majorDimension: 'ROWS' });
+  const resp = await sheets.spreadsheets.values.get({ spreadsheetId, range: `${sheetTitle}!1:1`, majorDimension: 'ROWS' });
   const vr = resp.data as ValueRange;
   const values = ((vr?.values || [])[0] || []) as string[];
   const existingHeader: string[] | null = values.length ? values : null;
 
   if (!existingHeader) {
-    await sheets.spreadsheets.values.append({ spreadsheetId, range: `${resolvedSheetTitle}!A1`, valueInputOption: 'RAW', insertDataOption: 'INSERT_ROWS', requestBody: { values: [header] } });
+    await sheets.spreadsheets.values.append({ spreadsheetId, range: `${sheetTitle}!A1`, valueInputOption: 'RAW', insertDataOption: 'INSERT_ROWS', requestBody: { values: [header] } });
     return { header, keySet: new Set<string>() };
   }
 
@@ -218,7 +153,7 @@ export async function ensureTabAndHeaders(
   }
 
   if (mergedHeader.length !== existingHeader.length) {
-    await sheets.spreadsheets.values.update({ spreadsheetId, range: `${resolvedSheetTitle}!1:1`, valueInputOption: 'RAW', requestBody: { values: [mergedHeader] } });
+    await sheets.spreadsheets.values.update({ spreadsheetId, range: `${sheetTitle}!1:1`, valueInputOption: 'RAW', requestBody: { values: [mergedHeader] } });
   }
 
   const keySet = new Set<string>();
@@ -241,7 +176,7 @@ export async function ensureTabAndHeaders(
   const startCol = a1Col(minIdx + 1);
   const endCol = a1Col(maxIdx + 1);
 
-  await scanKeyColumnRows(sheets, spreadsheetId, resolvedSheetTitle, startCol, endCol, (row) => {
+  await scanKeyColumnRows(sheets, spreadsheetId, sheetTitle, startCol, endCol, (row) => {
     // Use the same key generation logic as appendRows for consistency
     const lower = mergedHeader.map((h) => String(h ?? '').toLowerCase());
     const provHeaderIdx = lower.indexOf('provider');

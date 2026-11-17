@@ -149,7 +149,6 @@ async function handler({ id, gid, sourceUri, sourceHasHeaders, headerMap, dedupl
         sheetTitle,
         requiredHeader: targetHeaderNames.length > 0 ? targetHeaderNames : null,
         keyColumns: keyColumns.filter((k) => typeof k === 'string') as string[],
-        logger,
       });
 
       sheetHeaders = headerResult.header;
