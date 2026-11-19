@@ -82,6 +82,10 @@ async function handler({ id, gids }: Input, extra: EnrichedExtra): Promise<CallT
       }
     });
 
+    if (failures.length === gids.length) {
+      throw new Error(`every delete failed: ${failures.map((f) => `${f.gid}: ${f.error}`).join('; ')}`);
+    }
+
     const successCount = gids.length - failures.length;
     const failureCount = failures.length;
     const totalCount = gids.length;

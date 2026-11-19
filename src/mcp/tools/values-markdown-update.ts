@@ -141,7 +141,11 @@ async function handler({ id, gid, requests }: Input, extra: EnrichedExtra): Prom
       }
     }
 
-    // Early return if all cells failed
+    if (failedCells.length === requests.length) {
+      throw new Error(`every cell failed: ${failedCells.map((f) => `${f.cell}: ${f.error}`).join('; ')}`);
+    }
+
+    // Nothing to send: no request produced an API call
     if (batchRequests.length === 0) {
       const result: Output = {
         type: 'success' as const,

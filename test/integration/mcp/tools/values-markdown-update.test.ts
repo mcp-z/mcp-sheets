@@ -153,4 +153,26 @@ describe('values-markdown-update tool (service-backed tests)', () => {
     assert.strictEqual(structured.failedCells?.length, 1, 'Should have 1 failed cell');
     assert.strictEqual(structured.failedCells?.[0]?.cell, 'A1:B2');
   });
+
+  it('rejects when every cell fails, naming each failure', async () => {
+    await assert.rejects(
+      handler(
+        {
+          id: sharedSpreadsheetId,
+          gid: '0',
+          requests: [
+            { cell: 'A1:B2', text: 'a range, not a single cell' },
+            { cell: 'INVALID_CELL', text: 'not a cell' },
+          ],
+        },
+        createExtra()
+      ),
+      (error: Error) => {
+        assert.ok(error.message.includes('every cell failed'), error.message);
+        assert.ok(error.message.includes('A1:B2'), error.message);
+        assert.ok(error.message.includes('INVALID_CELL'), error.message);
+        return true;
+      }
+    );
+  });
 });

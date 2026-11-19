@@ -136,6 +136,10 @@ async function handler({ id, gid, copies }: Input, extra: EnrichedExtra): Promis
       }
     });
 
+    if (items.length === 0 && failures.length > 0) {
+      throw new Error(`every copy failed: ${failures.map((f) => `"${f.title}": ${f.error}`).join('; ')}`);
+    }
+
     const successCount = items.length;
     const failureCount = failures.length;
     const totalCount = copies.length;

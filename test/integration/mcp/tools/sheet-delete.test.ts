@@ -145,4 +145,33 @@ describe('sheet-delete tool (service-backed tests)', () => {
     // The spreadsheet should have at least the default sheet remaining
     assert.ok(sheetsAfterDelete.length >= 1, 'Spreadsheet should have at least the default sheet');
   });
+
+  it('sheet_delete rejects when every delete fails, naming each failure', async () => {
+    // Neither gid exists in the spreadsheet, so Google refuses every delete.
+    await assert.rejects(handler({ id: sharedSpreadsheetId, gids: ['999999991', '999999992'] }, createExtra()), (error: Error) => {
+      assert.ok(error.message.includes('every delete failed'), error.message);
+      assert.ok(error.message.includes('999999991'), error.message);
+      assert.ok(error.message.includes('999999992'), error.message);
+      return true;
+    });
+  });
+
+  it('sheet_delete still succeeds with failures when only some deletes fail', async () => {
+    const sheets = sheetsApi({ version: 'v4', auth: auth });
+    const added = await sheets.spreadsheets.batchUpdate({
+      spreadsheetId: sharedSpreadsheetId,
+      requestBody: { requests: [{ addSheet: { properties: { title: `ci-partial-delete-${Date.now()}` } } }] },
+    });
+    const gid = String(added.data.replies?.[0]?.addSheet?.properties?.sheetId);
+
+    const res = await handler({ id: sharedSpreadsheetId, gids: [gid, '999999991'] }, createExtra());
+    const branch = (res.structuredContent as { result?: unknown } | undefined)?.result as Output | undefined;
+    assert.equal(branch?.type, 'success');
+    if (branch?.type === 'success') {
+      assert.equal(branch.itemsProcessed, 2);
+      assert.equal(branch.itemsChanged, 1);
+      assert.equal(branch.failures?.length, 1);
+      assert.equal(branch.failures?.[0]?.gid, '999999991');
+    }
+  });
 });
