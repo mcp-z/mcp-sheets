@@ -1,4 +1,5 @@
 import '../../../lib/env-loader.ts';
+import { auth as googleAuthPlus, sheets as sheetsApi } from '@googleapis/sheets';
 import { mcp } from '@mcp-z/mcp-sheets';
 import type { Logger, LoopbackOAuthProvider } from '@mcp-z/oauth-google';
 import assert from 'assert';
@@ -8,7 +9,7 @@ import * as path from 'path';
 import type { Input, Output } from '../../../../src/mcp/tools/columns-update.ts';
 import { createExtra, type TypedHandler } from '../../../lib/create-extra.ts';
 import createMiddlewareContext from '../../../lib/create-middleware-context.ts';
-import { createTestSpreadsheet, deleteTestSpreadsheet } from '../../../lib/spreadsheet-helpers.ts';
+import { createTestSheet, createTestSpreadsheet, deleteTestSpreadsheet } from '../../../lib/spreadsheet-helpers.ts';
 
 /**
  * OPTIMIZATION STRATEGY - columns-update.test.ts
@@ -37,6 +38,8 @@ import { createTestSpreadsheet, deleteTestSpreadsheet } from '../../../lib/sprea
  * - Saves 4 write operations (no createTestSheet calls)
  * - Tests remain isolated through key namespacing
  * - Mimics real multi-tenant data patterns
+ *
+ * - Test 5 [#215:test5-*]: update on a non-gid-0 tab (own tab, created in the test)
  *
  * When Adding New Tests:
  * Use the next available prefix (test5-, test6-, etc.) and document it here.
@@ -316,6 +319,31 @@ describe('columns-update tool (service-backed tests)', () => {
     } finally {
       await fs.rm(tmp, { recursive: true, force: true });
     }
+  });
+
+  it('[#215] updates existing rows on a tab that is not gid 0 and leaves the gid 0 tab alone (service-backed)', async () => {
+    const accessToken = await authProvider.getAccessToken(accountId);
+    const targetTitle = `ci-target-${Date.now()}`;
+    const targetGid = await createTestSheet(accessToken, sharedSpreadsheetId, { title: targetTitle });
+    const headers = ['id', 'name', 'status'];
+    const run = (rows: string[][], behavior: 'add-or-update' | 'update-only') => handler({ id: sharedSpreadsheetId, gid: String(targetGid), rows, headers, updateBy: ['id'], behavior, valueInputOption: 'USER_ENTERED' }, createExtra());
+
+    await run([['test5-1', 'Alice', 'active']], 'add-or-update');
+    const result = await run([['test5-1', 'Alice Updated', 'active']], 'update-only');
+    const structured = (result.structuredContent as { result?: unknown } | undefined)?.result as Output | undefined;
+    if (structured?.type !== 'success') assert.fail('update on the non-gid-0 tab failed');
+    assert.equal(structured.updatedRows, 1);
+
+    const auth = new googleAuthPlus.OAuth2();
+    auth.setCredentials({ access_token: accessToken });
+    const sheets = sheetsApi({ version: 'v4', auth });
+    const read = async (range: string) => (await sheets.spreadsheets.values.get({ spreadsheetId: sharedSpreadsheetId, range })).data.values ?? [];
+    const target = await read(`'${targetTitle}'!A1:C10`);
+    assert.deepStrictEqual(target[1], ['test5-1', 'Alice Updated', 'active']);
+    // the gid 0 tab must not hold the updated row (earlier tests there use test1-..test4- prefixes)
+    const first = (await sheets.spreadsheets.get({ spreadsheetId: sharedSpreadsheetId })).data.sheets?.find((t) => t.properties?.sheetId === 0)?.properties?.title ?? '';
+    const firstRows = await read(`'${first.replace(/'/g, "''")}'!A1:C100`);
+    assert.ok(!firstRows.some((row) => row[0] === 'test5-1'), 'gid 0 tab must not contain test5-1');
   });
 
   it('prevents silent data loss with empty key values (service-backed)', async () => {
