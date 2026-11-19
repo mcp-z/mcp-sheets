@@ -319,4 +319,26 @@ describe('cells-format tool (service-backed tests)', () => {
       }
     }
   });
+
+  it('format_cells rejects when every range fails, naming each failure', async () => {
+    await assert.rejects(
+      handler(
+        {
+          id: sharedSpreadsheetId,
+          gid: '0',
+          requests: [
+            { range: 'INVALID_RANGE', bold: true },
+            { range: 'NOT_A_RANGE', bold: true },
+          ],
+        },
+        createExtra()
+      ),
+      (error: Error) => {
+        assert.ok(error.message.includes('every range failed'), error.message);
+        assert.ok(error.message.includes('INVALID_RANGE'), error.message);
+        assert.ok(error.message.includes('NOT_A_RANGE'), error.message);
+        return true;
+      }
+    );
+  });
 });

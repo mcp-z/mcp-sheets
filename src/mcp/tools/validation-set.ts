@@ -243,7 +243,11 @@ async function handler({ id, gid, requests }: Input, extra: EnrichedExtra): Prom
       }
     }
 
-    // Early return if all ranges failed
+    if (failedRanges.length === requests.length) {
+      throw new Error(`every range failed: ${failedRanges.map((f) => `${f.range}: ${f.error}`).join('; ')}`);
+    }
+
+    // Nothing to send: no request produced an API call
     if (batchRequests.length === 0) {
       const result: Output = {
         type: 'success' as const,

@@ -165,3 +165,27 @@ it('sheet_copy fails for non-existent source sheet', async () => {
     assert.ok(error.message.includes('not found'), 'Error should mention sheet not found');
   }
 });
+
+it('sheet_copy rejects when every copy fails, naming each failure', async () => {
+  // Both titles already exist in the spreadsheet, so Google refuses every duplicate.
+  await assert.rejects(handler({ id: sharedSpreadsheetId, gid: String(sourceSheetId), copies: [{ newTitle: 'SourceTemplate' }, { newTitle: 'Sheet1' }] }, createExtra()), (error: Error) => {
+    assert.ok(error.message.includes('every copy failed'), error.message);
+    assert.ok(error.message.includes('SourceTemplate'), error.message);
+    assert.ok(error.message.includes('Sheet1'), error.message);
+    return true;
+  });
+});
+
+it('sheet_copy still succeeds with failures when only some copies fail', async () => {
+  const okTitle = `partial-copy-${Date.now()}`;
+  const res = await handler({ id: sharedSpreadsheetId, gid: String(sourceSheetId), copies: [{ newTitle: 'SourceTemplate' }, { newTitle: okTitle }] }, createExtra());
+  const branch = (res.structuredContent as { result?: unknown } | undefined)?.result as Output | undefined;
+  assert.equal(branch?.type, 'success');
+  if (branch?.type === 'success') {
+    assert.equal(branch.itemsProcessed, 2);
+    assert.equal(branch.itemsChanged, 1);
+    assert.equal(branch.items[0]?.title, okTitle);
+    assert.equal(branch.failures?.length, 1);
+    assert.equal(branch.failures?.[0]?.title, 'SourceTemplate');
+  }
+});

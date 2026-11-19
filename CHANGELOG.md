@@ -1,5 +1,15 @@
 # Changelog
 
+## [2.6.2] - 2026-11-18
+
+### Fixed
+
+- `sheet-copy` fails with an error naming each failed copy when every copy failed, instead of returning `success` with only a `failures` list. Partial failures still return `success` with their failures.
+- `sheet-delete` fails with an error naming each failed delete when every delete failed, instead of returning `success` with only a `failures` list. Partial failures still return `success` with their failures.
+- `cells-format` fails with an error naming each failed range when every range failed, instead of returning `success` with `successCount` 0. Partial failures still return `success` with `failedRanges`.
+- `validation-set` fails with an error naming each failed range when every range failed, instead of returning `success` with `successCount` 0. Partial failures still return `success` with `failedRanges`.
+- `values-markdown-update` fails with an error naming each failed cell when every cell failed, instead of returning `success` with `successCount` 0. Partial failures still return `success` with `failedCells`.
+
 ## [2.6.1]
 
 ### Fixed

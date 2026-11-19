@@ -1,32 +1,10 @@
 import { spawnSync } from 'node:child_process';
-import { chmod, lstat, mkdir, readFile, rm, writeFile } from 'node:fs/promises';
+import { chmod, mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 import path from 'node:path';
+import { parseArgs } from 'node:util';
 import type { CachedToken } from '@mcp-z/oauth';
-
-const config = {
-  provider: 'google',
-  flows: [
-    {
-      id: 'mcp-sheets',
-      refreshTokenSecret: 'TEST_REFRESH_TOKEN',
-      scopeSecret: 'TEST_SCOPE',
-      clientIdSecret: 'GOOGLE_CLIENT_ID',
-      clientSecretSecret: 'GOOGLE_CLIENT_SECRET',
-      clientSecretRequired: false,
-      tenantSecret: null,
-      storage: {
-        kind: 'account',
-        path: '.tokens/store.json',
-        service: 'mcp-sheets',
-        accountId: {
-          env: 'TEST_ACCOUNT_ID',
-        },
-      },
-    },
-  ],
-  requiredTestSecrets: [],
-  serviceAccount: null,
-} as const;
+import { config } from './ci-config.ts';
+import { exists, flowAccountId, ghSetSecret, openStore, readFlowRefreshToken, readRepository, secretsTokenStatus, upload } from './lib/ci-setup.ts';
 
 const root = path.resolve(import.meta.dirname, '..');
 const ownerFile = path.join(root, '.ci-live-token-owner');
@@ -70,16 +48,6 @@ function redactDiagnostic(message: string, extra: string[]): string {
   return sanitized.slice(0, 600);
 }
 
-async function exists(filePath: string): Promise<boolean> {
-  try {
-    await lstat(filePath);
-    return true;
-  } catch (error) {
-    if (error && typeof error === 'object' && 'code' in error && error.code === 'ENOENT') return false;
-    throw error;
-  }
-}
-
 async function assertFreshCheckout(): Promise<void> {
   const paths = [envFile, tokenRoot, ownerFile];
   if (config.serviceAccount) paths.push(path.join(root, config.serviceAccount.output));
@@ -93,21 +61,10 @@ async function assertActionsContext(): Promise<{ repository: string }> {
   if (process.env.GITHUB_ACTIONS !== 'true') throw new Error('This command is only for an ephemeral GitHub Actions checkout');
   if (process.env.GITHUB_REF !== 'refs/heads/master') throw new Error('Live tests may run only from master');
 
-  const manifest = JSON.parse(await readFile(path.join(root, 'package.json'), 'utf8')) as { repository?: { url?: string } };
   const repository = required('GITHUB_REPOSITORY');
-  const repositoryUrl = manifest.repository?.url?.replace(/^git\+/, '');
-  if (!repositoryUrl) throw new Error('Package does not declare its GitHub repository');
-  const expectedUrl = new URL(repositoryUrl);
-  if (expectedUrl.hostname !== 'github.com') throw new Error('Package repository must use GitHub');
-  const expectedRepository = expectedUrl.pathname.replace(/^\//, '').replace(/\.git$/, '');
-  if (repository !== expectedRepository) throw new Error('Repository does not match this package');
+  if (repository !== (await readRepository(root))) throw new Error('Repository does not match this package');
 
   return { repository };
-}
-
-function flowAccountId(storage: (typeof config.flows)[number]['storage'], humanAccountId: string): string | undefined {
-  if (storage.kind !== 'account') return undefined;
-  return 'env' in storage.accountId ? humanAccountId : storage.accountId.value;
 }
 
 function validatedFlows(humanAccountId: string) {
@@ -156,11 +113,6 @@ function writeSecret(name: string, value: string, context: { repository: string;
     const safeDiagnostic = redactDiagnostic(diagnostic, [value, context.secretsToken]);
     throw new Error(`Could not persist ${name}: ${safeDiagnostic}. Check CI_SECRETS_TOKEN has Environments:write access to this repository.`);
   }
-}
-
-async function openStore(filePath: string) {
-  const [{ default: Keyv }, { KeyvFile }] = await Promise.all([import('keyv'), import('keyv-file')]);
-  return new Keyv({ store: new KeyvFile({ filename: filePath }) });
 }
 
 async function saveFlowToken(input: ReturnType<typeof validatedFlows>[number], token: CachedToken): Promise<void> {
@@ -298,24 +250,6 @@ async function seed(): Promise<void> {
   }
 }
 
-async function readFlowRefreshToken(flow: (typeof config.flows)[number], accountId: string): Promise<string | undefined> {
-  const filePath = path.join(root, flow.storage.path);
-  if (!(await exists(filePath))) return undefined;
-  const store = await openStore(filePath);
-  try {
-    if (flow.storage.kind === 'account') {
-      const effectiveAccountId = flowAccountId(flow.storage, accountId);
-      if (!effectiveAccountId) return undefined;
-      const token = await (await import('@mcp-z/oauth')).getToken<CachedToken>(store, { accountId: effectiveAccountId, service: flow.storage.service });
-      return token?.refreshToken;
-    }
-    const token = (await store.get(flow.storage.key)) as { providerRefreshToken?: string } | undefined;
-    return token?.providerRefreshToken;
-  } finally {
-    await store.disconnect();
-  }
-}
-
 async function readOwnerManifest(): Promise<string[]> {
   const manifest = JSON.parse(await readFile(ownerFile, 'utf8')) as { seededFlows?: unknown };
   if (!Array.isArray(manifest.seededFlows) || !manifest.seededFlows.every((value) => typeof value === 'string')) {
@@ -352,7 +286,7 @@ async function persist(): Promise<void> {
   for (const flow of config.flows) {
     let refreshToken: string | undefined;
     try {
-      refreshToken = await readFlowRefreshToken(flow, accountId);
+      refreshToken = await readFlowRefreshToken(root, flow, accountId);
     } catch {
       errors.push(`${flow.refreshTokenSecret} could not be read`);
       continue;
@@ -399,12 +333,30 @@ async function cleanup(): Promise<void> {
   await rm(ownerFile, { force: true });
 }
 
+async function uploadLocal(args: string[]): Promise<void> {
+  if (process.env.GITHUB_ACTIONS === 'true') throw new Error('upload is for a local checkout, after npm run test:setup');
+  const { values } = parseArgs({ args, options: { dry: { type: 'boolean' } }, strict: true });
+
+  // Loaded here so seed, persist and cleanup in Actions do not depend on a local .env.test.
+  const { loadEnv } = await import('portable-env/node');
+  loadEnv(envFile);
+
+  // Loaded only here: the constants module may import packages that seed, persist and cleanup must not need.
+  const { GOOGLE_SCOPE: scope } = await import('../src/constants.ts');
+  const repository = await readRepository(root);
+  const { lines, ok } = await upload({ config, root, env: process.env, scope, repository, dry: Boolean(values.dry), setSecret: ghSetSecret });
+  for (const line of lines) console.log(line);
+  console.log(secretsTokenStatus(repository));
+  if (!ok) throw new Error(values.dry ? 'Required secrets are missing; run npm run test:setup and check .env.test' : 'Not every secret was set');
+}
+
 async function main(): Promise<void> {
   const command = process.argv[2];
   if (command === 'seed') await seed();
   else if (command === 'persist') await persist();
   else if (command === 'cleanup') await cleanup();
-  else throw new Error('Usage: node scripts/ci-tokens.ts seed|persist|cleanup');
+  else if (command === 'upload') await uploadLocal(process.argv.slice(3));
+  else throw new Error('Usage: node scripts/ci-tokens.ts seed|persist|cleanup|upload [--dry]');
 }
 
 main().catch((error: unknown) => {

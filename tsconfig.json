@@ -4,6 +4,6 @@
     "outDir": "dist",
     "types": ["node", "mocha"]
   },
-  "include": ["src/**/*", "test/**/*"],
+  "include": ["src/**/*", "scripts/ci-config.ts", "scripts/lib/**/*", "test/**/*"],
   "exclude": ["node_modules/**/*"]
 }
