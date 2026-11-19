@@ -351,4 +351,27 @@ describe('validation-set tool (service-backed tests)', () => {
       assert.strictEqual(s1Cell?.dataValidation, undefined, 'Cell S1 should NOT have validation');
     }
   });
+
+  it('validation_set rejects when every range fails, naming each failure', async () => {
+    const rule = { conditionType: 'NUMBER_GREATER' as const, values: [0], strict: true };
+    await assert.rejects(
+      handler(
+        {
+          id: sharedSpreadsheetId,
+          gid: '0',
+          requests: [
+            { range: 'INVALID_RANGE', rule },
+            { range: 'NOT_A_RANGE', rule },
+          ],
+        },
+        createExtra()
+      ),
+      (error: Error) => {
+        assert.ok(error.message.includes('every range failed'), error.message);
+        assert.ok(error.message.includes('INVALID_RANGE'), error.message);
+        assert.ok(error.message.includes('NOT_A_RANGE'), error.message);
+        return true;
+      }
+    );
+  });
 });
