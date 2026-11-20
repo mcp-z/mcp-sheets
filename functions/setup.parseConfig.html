@@ -23,9 +23,7 @@
 Modes: loopback-oauth, service-account, dcr</li>
 <li>--headless             Disable browser auto-open, return auth URL instead</li>
 <li>--redirect-uri=<uri>   OAuth redirect URI (default: ephemeral loopback)</li>
-<li>--dcr-mode=<mode>      DCR mode (self-hosted or external, default: self-hosted)</li>
-<li>--dcr-verify-url=<url> External verification endpoint (required for external mode)</li>
-<li>--dcr-store-uri=<uri>  DCR client storage URI (required for self-hosted mode)</li>
+<li>--dcr-store-uri=<uri>  DCR client storage URI (default: .mcp-z/dcr.json)</li>
 <li>--port=<port>          Enable HTTP transport on specified port</li>
 <li>--stdio                Enable stdio transport (default if no port)</li>
 <li>--log-level=<level>    Logging level (default: info)</li>
@@ -38,8 +36,6 @@ Modes: loopback-oauth, service-account, dcr</li>
 <li>GOOGLE_CLIENT_SECRET   OAuth client secret (optional)</li>
 <li>AUTH_MODE              Default authentication mode (optional)</li>
 <li>HEADLESS               Disable browser auto-open (optional)</li>
-<li>DCR_MODE               DCR mode (optional, same format as --dcr-mode)</li>
-<li>DCR_VERIFY_URL         External verification URL (optional, same as --dcr-verify-url)</li>
 <li>DCR_STORE_URI          DCR storage URI (optional, same as --dcr-store-uri)</li>
 <li>TOKEN_STORE_URI        Token storage URI (optional)</li>
 <li>PORT                   Default HTTP port (optional)</li>
@@ -57,7 +53,7 @@ openid <a href="https://www.googleapis.com/auth/userinfo.profile">https://www.go
 <li><span><span class="tsd-kind-parameter">env</span>: <span class="tsd-signature-type">Record</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">string</span> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol">&gt;</span></span></li></ul></div>
 <h4 class="tsd-returns-title">Returns <a href="../interfaces/ServerConfig.html" class="tsd-signature-type tsd-kind-interface">ServerConfig</a></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/mcp-z/mcp-sheets/blob/eac1fc751cc2123172871698087808778aeba2f6/src/setup/config.ts#L53">setup/config.ts:53</a></li></ul></aside></div></li></ul></section></div>
+<li>Defined in <a href="https://github.com/mcp-z/mcp-sheets/blob/89f51b5b0a9fd49f9de6b30fe1c44c68a5878b7c/src/setup/config.ts#L49">setup/config.ts:49</a></li></ul></aside></div></li></ul></section></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">
