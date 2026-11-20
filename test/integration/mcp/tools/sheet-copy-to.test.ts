@@ -85,10 +85,12 @@ before(async () => {
 
 after(async () => {
   // Cleanup resources - fail fast on errors
-  const accessToken = await authProvider.getAccessToken(accountId);
-  await deleteTestSpreadsheet(accessToken, sourceSpreadsheetId, logger);
-  await deleteTestSpreadsheet(accessToken, destinationSpreadsheetId, logger);
-  await fs.rm(tmpDir, { recursive: true, force: true });
+  if (sourceSpreadsheetId || destinationSpreadsheetId) {
+    const accessToken = await authProvider.getAccessToken(accountId);
+    if (sourceSpreadsheetId) await deleteTestSpreadsheet(accessToken, sourceSpreadsheetId, logger);
+    if (destinationSpreadsheetId) await deleteTestSpreadsheet(accessToken, destinationSpreadsheetId, logger);
+  }
+  if (tmpDir) await fs.rm(tmpDir, { recursive: true, force: true });
 });
 
 it('sheet_copy_to copies a sheet to another spreadsheet with rename and data preserved', async () => {

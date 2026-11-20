@@ -31,3 +31,6 @@ export const NATIVE_DATE_GUIDANCE = [
   `Example: (1) values-batch-update ${JSON.stringify(NATIVE_DATE_EXAMPLE_WRITE)}; (2) cells-format ${JSON.stringify(NATIVE_DATE_EXAMPLE_FORMAT)}; (3) rows-get (or columns-get / values-search) ${JSON.stringify(NATIVE_DATE_EXAMPLE_READ)} returns 46334.5 (numeric, so it is not text), while render FORMATTED_VALUE returns "2026-11-08 12:00"; then check dependent chronological formulas.`,
   'Docs: https://developers.google.com/workspace/sheets/api/reference/rest/v4/DateTimeRenderOption and https://developers.google.com/workspace/sheets/api/reference/rest/v4/ValueInputOption',
 ].join(' ');
+
+// Default token and DCR stores: a JSON file several processes can share
+export const SHARED_FILE_PROTOCOL = 'file+shared:';

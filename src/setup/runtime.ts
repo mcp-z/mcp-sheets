@@ -6,6 +6,7 @@ import { createLoggingMiddleware } from '@mcp-z/server';
 import * as fs from 'fs';
 import * as path from 'path';
 import pino from 'pino';
+import { SHARED_FILE_PROTOCOL } from '../constants.ts';
 import createStore from '../lib/create-store.ts';
 import * as mcp from '../mcp/index.ts';
 import type { CommonRuntime, RuntimeDeps, RuntimeOverrides, ServerConfig } from '../types.ts';
@@ -15,17 +16,22 @@ export function createLogger(config: ServerConfig): Logger {
   const hasStdio = config.transport.type === 'stdio';
   const logsPath = path.join(config.baseDir, 'logs', `${config.name}.log`);
   if (hasStdio) fs.mkdirSync(path.dirname(logsPath), { recursive: true });
-  return pino({ level: config.logLevel ?? 'info', formatters: sanitizeForLoggingFormatter() }, hasStdio ? pino.destination({ dest: logsPath, sync: false }) : pino.destination(1));
+  return pino({ level: config.logLevel ?? 'info', formatters: sanitizeForLoggingFormatter() }, hasStdio ? pino.destination({ dest: logsPath, sync: true }) : pino.destination(1));
+}
+
+// Several mcp-z processes share these files, so the default store merges each write under a lock.
+function sharedFileUri(file: string): string {
+  return pathToFileURL(file).href.replace(/^file:/, SHARED_FILE_PROTOCOL);
 }
 
 export async function createTokenStore(baseDir: string, logger?: Logger) {
-  const tokenStoreUri = process.env.TOKEN_STORE_URI || pathToFileURL(path.join(baseDir, 'tokens.json')).href;
+  const tokenStoreUri = process.env.TOKEN_STORE_URI || sharedFileUri(path.join(baseDir, 'tokens.json'));
   return createStore<CachedToken>(tokenStoreUri, logger);
 }
 
-export async function createDcrStore(baseDir: string, required: boolean, logger?: Logger) {
+export async function createDcrStore(baseDir: string, required: boolean, logger?: Logger, storeUri?: string) {
   if (!required) return undefined;
-  const dcrStoreUri = process.env.DCR_STORE_URI || pathToFileURL(path.join(baseDir, 'dcr.json')).href;
+  const dcrStoreUri = storeUri || process.env.DCR_STORE_URI || sharedFileUri(path.join(baseDir, 'dcr.json'));
   return createStore<unknown>(dcrStoreUri, logger);
 }
 
@@ -52,7 +58,7 @@ export async function createDefaultRuntime(config: ServerConfig, overrides?: Run
   const logger = createLogger(config);
   const tokenStore = await createTokenStore(config.baseDir, logger);
   const baseUrl = config.baseUrl ?? (config.transport.type === 'http' && config.transport.port ? `http://localhost:${config.transport.port}` : undefined);
-  const dcrStore = await createDcrStore(config.baseDir, config.auth === 'dcr', logger);
+  const dcrStore = await createDcrStore(config.baseDir, config.auth === 'dcr', logger, config.dcrConfig?.storeUri);
   const oauthAdapters = await createOAuthAdapters(config, { logger, tokenStore, dcrStore }, baseUrl);
   const deps: RuntimeDeps = { config, logger, tokenStore, oauthAdapters, baseUrl };
   const createDomainModules =

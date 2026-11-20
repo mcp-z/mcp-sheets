@@ -21,9 +21,7 @@ Options:
                          Modes: loopback-oauth, service-account, dcr
   --headless             Disable browser auto-open, return auth URL instead
   --redirect-uri=<uri>   OAuth redirect URI (default: ephemeral loopback)
-  --dcr-mode=<mode>      DCR mode (self-hosted or external, default: self-hosted)
-  --dcr-verify-url=<url> External verification endpoint (required for external mode)
-  --dcr-store-uri=<uri>  DCR client storage URI (required for self-hosted mode)
+  --dcr-store-uri=<uri>  DCR client storage URI (default: .mcp-z/dcr.json)
   --port=<port>          Enable HTTP transport on specified port
   --stdio                Enable stdio transport (default if no port)
   --log-level=<level>    Logging level (default: info)
@@ -35,8 +33,6 @@ Environment Variables:
   GOOGLE_CLIENT_SECRET   OAuth client secret (optional)
   AUTH_MODE              Default authentication mode (optional)
   HEADLESS               Disable browser auto-open (optional)
-  DCR_MODE               DCR mode (optional, same format as --dcr-mode)
-  DCR_VERIFY_URL         External verification URL (optional, same as --dcr-verify-url)
   DCR_STORE_URI          DCR storage URI (optional, same as --dcr-store-uri)
   TOKEN_STORE_URI        Token storage URI (optional)
   PORT                   Default HTTP port (optional)
@@ -53,7 +49,7 @@ Configuration Files:
 
 Storage Backends:
   TOKEN_STORE_URI and DCR_STORE_URI accept any keyv-registry protocol.
-  file:// (the default) and memory:// work out of the box. Any other backend
+  file+shared:// (the default), file:// and memory:// work out of the box. Any other backend
   needs its adapter installed alongside this server:
     npm install -g @keyv/redis
     TOKEN_STORE_URI=redis://localhost:6379 mcp-sheets

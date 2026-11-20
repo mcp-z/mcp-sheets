@@ -1,5 +1,23 @@
 # Changelog
 
+## [2.6.3] - 2026-11-20
+
+### Security
+
+- In `--auth=dcr` mode every MCP request now needs a valid bearer token. Before, `/mcp` answered `initialize`, `tools/list` and the other methods with 200 and no token, and only tool calls were refused. Requests without a valid token now get 401 with a `WWW-Authenticate` challenge naming the server's resource metadata; this changes behaviour for anyone who relied on the open endpoint. Clients that sign in through the server's OAuth flow are unaffected. Requires `@mcp-z/server` 2.4.0 and `@mcp-z/oauth-google` 2.4.3.
+
+### Removed
+
+- The external DCR mode settings `--dcr-mode=external`, `DCR_MODE=external`, `--dcr-verify-url` and `DCR_VERIFY_URL` are gone from the help text and `server.json`. They never had an effect: the server always ran its own sign-in endpoints. With `--auth=dcr`, a server started with external mode, or with a verify URL, now stops at start with an error saying so instead of ignoring the setting; in other auth modes the settings are still ignored and nothing stops. `--dcr-mode=self-hosted` and `DCR_MODE=self-hosted` still work.
+
+### Fixed
+
+- The `DCR_STORE_URI` entry in `server.json` no longer carries a fixed default with a wrong path, so `mcp-z` manifest generation does not write one into a configuration. The server's own default is `.mcp-z/dcr.json`.
+- `--dcr-store-uri` is honoured. It was documented but ignored, so only `DCR_STORE_URI` chose where DCR registrations were stored; the flag now wins over the variable.
+- Two mcp-z servers, or two sessions of one server, sharing `.mcp-z/tokens.json` no longer undo each other's sign-ins and sign-outs, and each sees the others' changes without restarting. Existing sign-ins are kept. The file is now written with mode 0600 on macOS and Linux. Upgrade every mcp-z server and the cli together: an older one running beside this one still rewrites the file. A damaged `tokens.json` or `dcr.json` now stops the server at start with an error naming the file, instead of being overwritten. Requires `keyv-registry` 3.1.0.
+- A failed start in stdio mode no longer prints a second `sonic boom is not ready yet` error after the real one, and the log keeps its last lines.
+- `cells-format`, `validation-set` and `values-markdown-update` report an unusable range or cell (for example `Sheet1!A1:B2`, `a1:b2`, `$A$1`, `A2:B`, or a column or row where a single cell is needed) as invalid parameters when every one failed, instead of an internal error. `cells-format` and `validation-set` do the same for a sheet that does not exist. Partial failures still return `success` with the failures listed.
+
 ## [2.6.2] - 2026-11-18
 
 ### Fixed

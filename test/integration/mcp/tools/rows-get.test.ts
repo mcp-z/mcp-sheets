@@ -105,8 +105,10 @@ describe('rows-get tool (service-backed tests)', () => {
 
   after(async () => {
     // Cleanup - fail fast on errors
-    const accessToken = await authProvider.getAccessToken(accountId);
-    await deleteTestSpreadsheet(accessToken, sharedSpreadsheetId, logger);
+    if (sharedSpreadsheetId) {
+      const accessToken = await authProvider.getAccessToken(accountId);
+      await deleteTestSpreadsheet(accessToken, sharedSpreadsheetId, logger);
+    }
   });
 
   it('sheets-rows-get retrieves rectangular range (smoke test)', async () => {

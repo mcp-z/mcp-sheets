@@ -207,30 +207,11 @@
           "dependsOn": { "AUTH_MODE": ["loopback-oauth"] }
         },
         {
-          "name": "DCR_MODE",
-          "description": "Dynamic Client Registration mode",
-          "placeholder": "self-hosted",
-          "choices": ["self-hosted", "external"],
-          "isRequired": false,
-          "isSecret": false,
-          "default": "self-hosted",
-          "dependsOn": { "AUTH_MODE": ["dcr"] }
-        },
-        {
-          "name": "DCR_VERIFY_URL",
-          "description": "External verification endpoint URL (required for external DCR mode)",
-          "placeholder": "https://example.com/verify",
-          "isRequired": false,
-          "isSecret": false,
-          "dependsOn": { "AUTH_MODE": ["dcr"], "DCR_MODE": ["external"] }
-        },
-        {
           "name": "DCR_STORE_URI",
           "description": "DCR client storage URI (for self-hosted DCR mode)",
-          "placeholder": "file://~/.mcp-z/mcp-sheets/dcr.json",
+          "placeholder": "file+shared://~/.mcp-z/dcr.json",
           "isRequired": false,
           "isSecret": false,
-          "default": "file://~/.mcp-z/mcp-sheets/dcr.json",
           "dependsOn": { "AUTH_MODE": ["dcr"] }
         },
         {
@@ -293,17 +274,6 @@
           "type": "named",
           "name": "--service-account-key-file",
           "description": "Path to service account JSON key file (overrides GOOGLE_SERVICE_ACCOUNT_KEY_FILE env var)"
-        },
-        {
-          "type": "named",
-          "name": "--dcr-mode",
-          "description": "DCR mode",
-          "choices": ["self-hosted", "external"]
-        },
-        {
-          "type": "named",
-          "name": "--dcr-verify-url",
-          "description": "External verification endpoint URL (required for external DCR mode)"
         },
         {
           "type": "named",

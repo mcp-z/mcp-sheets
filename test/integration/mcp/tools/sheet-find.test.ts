@@ -50,9 +50,11 @@ before(async () => {
 
 after(async () => {
   // Cleanup resources - fail fast on errors
-  const accessToken = await authProvider.getAccessToken(accountId);
-  await deleteTestSpreadsheet(accessToken, sharedSpreadsheetId, logger);
-  await fs.rm(tmpDir, { recursive: true, force: true });
+  if (sharedSpreadsheetId) {
+    const accessToken = await authProvider.getAccessToken(accountId);
+    await deleteTestSpreadsheet(accessToken, sharedSpreadsheetId, logger);
+  }
+  if (tmpDir) await fs.rm(tmpDir, { recursive: true, force: true });
 });
 
 it('sheets-sheet-find locates a sheet by title in a spreadsheet', async () => {

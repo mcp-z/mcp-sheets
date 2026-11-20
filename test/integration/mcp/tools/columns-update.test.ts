@@ -70,7 +70,7 @@ describe('columns-update tool (service-backed tests)', () => {
 
   after(async () => {
     // Cleanup shared spreadsheet (automatically deletes all sheets within it)
-    await deleteTestSpreadsheet(await authProvider.getAccessToken(accountId), sharedSpreadsheetId, logger);
+    if (sharedSpreadsheetId) await deleteTestSpreadsheet(await authProvider.getAccessToken(accountId), sharedSpreadsheetId, logger);
   });
 
   it('[Shared:test1-*,test3-*] performs add-or-update and add-only behaviors (consolidated)', async () => {

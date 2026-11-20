@@ -2,6 +2,7 @@ import '../../../lib/env-loader.ts';
 import { sheets as sheetsApi } from '@googleapis/sheets';
 import { mcp } from '@mcp-z/mcp-sheets';
 import type { Logger, LoopbackOAuthProvider } from '@mcp-z/oauth-google';
+import { ProtocolError, ProtocolErrorCode } from '@mcp-z/server';
 import assert from 'assert';
 import crypto from 'crypto';
 import fs from 'fs/promises';
@@ -67,9 +68,11 @@ describe('validation-set tool (service-backed tests)', () => {
 
   after(async () => {
     // Cleanup resources - fail fast on errors
-    const accessToken = await authProvider.getAccessToken(accountId);
-    await deleteTestSpreadsheet(accessToken, sharedSpreadsheetId, logger);
-    await fs.rm(tmpDir, { recursive: true, force: true });
+    if (sharedSpreadsheetId) {
+      const accessToken = await authProvider.getAccessToken(accountId);
+      await deleteTestSpreadsheet(accessToken, sharedSpreadsheetId, logger);
+    }
+    if (tmpDir) await fs.rm(tmpDir, { recursive: true, force: true });
   });
 
   it('validation_set applies all validation types (consolidated batch)', async () => {
@@ -372,6 +375,23 @@ describe('validation-set tool (service-backed tests)', () => {
         assert.ok(error.message.includes('NOT_A_RANGE'), error.message);
         return true;
       }
+    );
+  });
+
+  // Input errors reach the client as InvalidParams, not InternalError.
+  for (const input of ['Sheet1!A1:B2', 'a1:b2', '$A$1', 'A2:B', 'B', '5']) {
+    it(`validation-set rejects "${input}" as InvalidParams when every range fails`, async () => {
+      await assert.rejects(
+        handler({ id: sharedSpreadsheetId, gid: '0', requests: [{ range: input, rule: { conditionType: 'NUMBER_GREATER' as const, values: [0], strict: true } }] }, createExtra()),
+        (error: unknown) => error instanceof ProtocolError && error.code === ProtocolErrorCode.InvalidParams && error.message.startsWith('every ')
+      );
+    });
+  }
+
+  it('validation-set rejects a missing sheet as InvalidParams', async () => {
+    await assert.rejects(
+      handler({ id: sharedSpreadsheetId, gid: '987654321', requests: [{ range: 'A1', rule: { conditionType: 'NUMBER_GREATER' as const, values: [0], strict: true } }] }, createExtra()),
+      (error: unknown) => error instanceof ProtocolError && error.code === ProtocolErrorCode.InvalidParams && error.message.includes('Sheet not found')
     );
   });
 });

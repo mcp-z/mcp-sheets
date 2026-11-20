@@ -2,6 +2,7 @@ import '../../../lib/env-loader.ts';
 import { sheets as sheetsApi } from '@googleapis/sheets';
 import { mcp } from '@mcp-z/mcp-sheets';
 import type { Logger, LoopbackOAuthProvider } from '@mcp-z/oauth-google';
+import { ProtocolError, ProtocolErrorCode } from '@mcp-z/server';
 import assert from 'assert';
 import crypto from 'crypto';
 import fs from 'fs/promises';
@@ -59,9 +60,11 @@ describe('values-markdown-update tool (service-backed tests)', () => {
 
   after(async () => {
     // Cleanup resources - fail fast on errors
-    const accessToken = await authProvider.getAccessToken(accountId);
-    await deleteTestSpreadsheet(accessToken, sharedSpreadsheetId, logger);
-    await fs.rm(tmpDir, { recursive: true, force: true });
+    if (sharedSpreadsheetId) {
+      const accessToken = await authProvider.getAccessToken(accountId);
+      await deleteTestSpreadsheet(accessToken, sharedSpreadsheetId, logger);
+    }
+    if (tmpDir) await fs.rm(tmpDir, { recursive: true, force: true });
   });
 
   it('[I2] writes two clickable links plus bold text and reads back matching textFormatRuns', async () => {
@@ -175,4 +178,11 @@ describe('values-markdown-update tool (service-backed tests)', () => {
       }
     );
   });
+
+  // Input errors reach the client as InvalidParams, not InternalError.
+  for (const input of ['Sheet1!A1:B2', 'a1:b2', '$A$1', 'A2:B', 'B', '5']) {
+    it(`values-markdown-update rejects "${input}" as InvalidParams when every cell fails`, async () => {
+      await assert.rejects(handler({ id: sharedSpreadsheetId, gid: '0', requests: [{ cell: input, text: 'text' }] }, createExtra()), (error: unknown) => error instanceof ProtocolError && error.code === ProtocolErrorCode.InvalidParams && error.message.startsWith('every '));
+    });
+  }
 });

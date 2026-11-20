@@ -142,7 +142,7 @@ async function handler({ id, gid, requests }: Input, extra: EnrichedExtra): Prom
     }
 
     if (failedCells.length === requests.length) {
-      throw new Error(`every cell failed: ${failedCells.map((f) => `${f.cell}: ${f.error}`).join('; ')}`);
+      throw new ProtocolError(ProtocolErrorCode.InvalidParams, `every cell failed: ${failedCells.map((f) => `${f.cell}: ${f.error}`).join('; ')}`);
     }
 
     // Nothing to send: no request produced an API call

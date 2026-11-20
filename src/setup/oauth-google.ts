@@ -1,6 +1,6 @@
 import { type AccountAuthProvider, AccountServer } from '@mcp-z/oauth';
 import type { CachedToken } from '@mcp-z/oauth-google';
-import { createDcrRouter, createLoopbackCallbackRouter, DcrOAuthProvider, LoopbackOAuthProvider, ServiceAccountProvider } from '@mcp-z/oauth-google';
+import { createDcrRouter, createLoopbackCallbackRouter, DcrOAuthProvider, DcrTokenVerifier, LoopbackOAuthProvider, ServiceAccountProvider } from '@mcp-z/oauth-google';
 import type { Logger, PromptModule, ToolModule } from '@mcp-z/server';
 import type { Router } from 'express';
 import type { Keyv } from 'keyv';
@@ -35,6 +35,8 @@ export interface OAuthAdapters {
   accountTools: ToolModule[];
   accountPrompts: PromptModule[];
   dcrRouter?: Router;
+  /** Bearer gate for '/mcp' in DCR mode: every request is verified against this server's /oauth/verify. */
+  bearerAuth?: { verifier: DcrTokenVerifier; resourceMetadataUrl: string };
   loopbackRouter?: Router;
 }
 
@@ -106,6 +108,10 @@ export async function createOAuthAdapters(config: ServerConfig, deps: OAuthRunti
       accountTools: [],
       accountPrompts: [],
       dcrRouter,
+      bearerAuth: {
+        verifier: new DcrTokenVerifier(`${oauthStaticConfig.baseUrl}/oauth/verify`),
+        resourceMetadataUrl: `${oauthStaticConfig.baseUrl}/.well-known/oauth-protected-resource/mcp`,
+      },
     };
   }
 

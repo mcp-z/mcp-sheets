@@ -101,9 +101,11 @@ describe('search tool (service-backed tests)', () => {
 
   after(async () => {
     // Cleanup resources - fail fast on errors
-    const accessToken = await authProvider.getAccessToken(accountId);
-    await deleteTestSpreadsheet(accessToken, sharedSpreadsheetId, logger);
-    await fs.rm(tmpDir, { recursive: true, force: true });
+    if (sharedSpreadsheetId) {
+      const accessToken = await authProvider.getAccessToken(accountId);
+      await deleteTestSpreadsheet(accessToken, sharedSpreadsheetId, logger);
+    }
+    if (tmpDir) await fs.rm(tmpDir, { recursive: true, force: true });
   });
 
   it('[search1-*] sheets-search returns count only when no flags specified', async () => {

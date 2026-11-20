@@ -176,6 +176,10 @@ HTTP only. Requires a public base URL.
 }
 ```
 
+In `--auth=dcr` mode, every request to `/mcp` needs a bearer token issued by the server's own `/oauth/register` and `/oauth/authorize` flow; a request without a valid one gets 401 with a `WWW-Authenticate` challenge that points clients to it.
+
+In `--auth=dcr` mode, `/oauth/register` accepts anonymous registrations with no limit, and stored registrations do not expire. If you expose the server to the internet, limit that endpoint in your reverse proxy.
+
 ## How to use
 
 ```bash
@@ -240,7 +244,7 @@ See [`server.json`](https://github.com/mcp-z/mcp-sheets/blob/master/server.json)
 
 OAuth tokens (`TOKEN_STORE_URI`) and DCR registrations (`DCR_STORE_URI`) are stored through [keyv-registry](https://www.npmjs.com/package/keyv-registry), which picks an adapter from the URI protocol.
 
-`file://` (the default, under `~/.mcp-z/`) and `memory://` work with no extra setup.
+The default is a JSON file under `~/.mcp-z/` (`file+shared://`), written under a lock so several mcp-z servers and the cli can share `.mcp-z/tokens.json` without undoing each other's sign-ins; upgrade them together, because an older one still rewrites the whole file. `file://` (keyv-file) and `memory://` also work with no extra setup.
 
 Any other backend needs its adapter installed alongside this server. Adapters are resolved with `require()`, so a globally installed server finds a globally installed adapter:
 

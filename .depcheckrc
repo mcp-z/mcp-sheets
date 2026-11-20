@@ -1,1 +1,1 @@
-ignores: ["@mcp-z/mcp-sheets", "node-version-use", "ts-dev-stack", "@types/node", "@types/mocha", "typescript", "keyv-file"]
+ignores: ["@mcp-z/mcp-sheets", "node-version-use", "ts-dev-stack", "@types/node", "@types/mocha", "typescript", "keyv-file", "proper-lockfile", "@keyv/serialize", "temp-suffix"]

@@ -78,19 +78,21 @@ before(async () => {
 
 after(async () => {
   // Cleanup resources - fail fast on errors
-  const accessToken = await authProvider.getAccessToken(accountId);
-  await deleteTestSpreadsheet(accessToken, sourceSpreadsheetId, logger);
+  if (sourceSpreadsheetId) {
+    const accessToken = await authProvider.getAccessToken(accountId);
+    await deleteTestSpreadsheet(accessToken, sourceSpreadsheetId, logger);
 
-  // Delete any copied spreadsheets
-  for (const id of copiedSpreadsheetIds) {
-    try {
-      await deleteTestSpreadsheet(accessToken, id, logger);
-    } catch {
-      // Ignore errors for copied spreadsheets - they may have been deleted manually
+    // Delete any copied spreadsheets
+    for (const id of copiedSpreadsheetIds) {
+      try {
+        await deleteTestSpreadsheet(accessToken, id, logger);
+      } catch {
+        // Ignore errors for copied spreadsheets - they may have been deleted manually
+      }
     }
   }
 
-  await fs.rm(tmpDir, { recursive: true, force: true });
+  if (tmpDir) await fs.rm(tmpDir, { recursive: true, force: true });
 });
 
 it('spreadsheet_copy copies a spreadsheet with custom name and data preserved', async () => {

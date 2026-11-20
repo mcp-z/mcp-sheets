@@ -46,9 +46,11 @@ describe('dimensions-batch-update tool (service-backed tests)', () => {
 
   after(async () => {
     // Cleanup resources - fail fast on errors
-    const accessToken = await authProvider.getAccessToken(accountId);
-    await deleteTestSpreadsheet(accessToken, sharedSpreadsheetId, logger);
-    await fs.rm(tmpDir, { recursive: true, force: true });
+    if (sharedSpreadsheetId) {
+      const accessToken = await authProvider.getAccessToken(accountId);
+      await deleteTestSpreadsheet(accessToken, sharedSpreadsheetId, logger);
+    }
+    if (tmpDir) await fs.rm(tmpDir, { recursive: true, force: true });
   });
 
   it('dimensions_batchUpdate handles delete and multiple operations with optimal ordering', async () => {

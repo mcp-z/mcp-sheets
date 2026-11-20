@@ -24,9 +24,7 @@ const _require = typeof require === 'undefined' ? Module.createRequire(import.me
  *                          Modes: loopback-oauth, service-account, dcr
  * - --headless             Disable browser auto-open, return auth URL instead
  * - --redirect-uri=<uri>   OAuth redirect URI (default: ephemeral loopback)
- * - --dcr-mode=<mode>      DCR mode (self-hosted or external, default: self-hosted)
- * - --dcr-verify-url=<url> External verification endpoint (required for external mode)
- * - --dcr-store-uri=<uri>  DCR client storage URI (required for self-hosted mode)
+ * - --dcr-store-uri=<uri>  DCR client storage URI (default: .mcp-z/dcr.json)
  * - --port=<port>          Enable HTTP transport on specified port
  * - --stdio                Enable stdio transport (default if no port)
  * - --log-level=<level>    Logging level (default: info)
@@ -38,8 +36,6 @@ const _require = typeof require === 'undefined' ? Module.createRequire(import.me
  * - GOOGLE_CLIENT_SECRET   OAuth client secret (optional)
  * - AUTH_MODE              Default authentication mode (optional)
  * - HEADLESS               Disable browser auto-open (optional)
- * - DCR_MODE               DCR mode (optional, same format as --dcr-mode)
- * - DCR_VERIFY_URL         External verification URL (optional, same as --dcr-verify-url)
  * - DCR_STORE_URI          DCR storage URI (optional, same as --dcr-store-uri)
  * - TOKEN_STORE_URI        Token storage URI (optional)
  * - PORT                   Default HTTP port (optional)
@@ -57,7 +53,8 @@ export function parseConfig(args: string[], env: Record<string, string | undefin
   const transportConfig = mcpServer.parseConfig(args, env);
   const oauthConfig = oauthGoogle.parseConfig(args, env);
 
-  // Parse DCR configuration if DCR mode is enabled
+  if (oauthConfig.auth === 'dcr') rejectExternalDcr(args, env);
+
   const dcrConfig = oauthConfig.auth === 'dcr' ? oauthGoogle.parseDcrConfig(args, env, GOOGLE_SCOPE) : undefined;
 
   // Parse application-level config (LOG_LEVEL, RESOURCE_STORE_URI, BASE_URL)
@@ -104,6 +101,16 @@ export function parseConfig(args: string[], env: Record<string, string | undefin
     ...(baseUrl && { baseUrl }),
     ...(dcrConfig && { dcrConfig }),
   };
+}
+
+// With --auth=dcr the server always runs its own sign-in endpoints; the external-mode settings never had an effect, so they are refused rather than ignored there. Other auth modes never read them.
+function rejectExternalDcr(args: string[], env: Record<string, string | undefined>): void {
+  const { values } = parseArgs({ args, options: { 'dcr-mode': { type: 'string' }, 'dcr-verify-url': { type: 'string' } }, strict: false, allowPositionals: true });
+  const mode = (typeof values['dcr-mode'] === 'string' ? values['dcr-mode'] : undefined) || env.DCR_MODE;
+  if (mode === 'external') throw new Error('external DCR mode is not supported: the server runs its own sign-in endpoints (use --dcr-mode=self-hosted or leave it unset)');
+  if (mode && mode !== 'self-hosted') throw new Error(`Invalid DCR mode "${mode}": only self-hosted is supported`);
+  const verifyUrl = typeof values['dcr-verify-url'] === 'string' ? values['dcr-verify-url'] : env.DCR_VERIFY_URL;
+  if (verifyUrl) throw new Error('--dcr-verify-url / DCR_VERIFY_URL is not supported: the server runs its own sign-in endpoints and verifies tokens itself');
 }
 
 function normalizeResourceStoreUri(resourceStoreUri: string): string {

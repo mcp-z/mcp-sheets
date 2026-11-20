@@ -126,11 +126,11 @@ describe('chart-create tool (service-backed tests)', () => {
 
   after(async () => {
     // Cleanup shared spreadsheet (automatically deletes all sheets within it)
-    const accessToken = await authProvider.getAccessToken(accountId);
-    await deleteTestSpreadsheet(accessToken, sharedSpreadsheetId, logger);
-
-    // Cleanup temporary directory
-    await fs.rm(tmpDir, { recursive: true, force: true });
+    if (sharedSpreadsheetId) {
+      const accessToken = await authProvider.getAccessToken(accountId);
+      await deleteTestSpreadsheet(accessToken, sharedSpreadsheetId, logger);
+    }
+    if (tmpDir) await fs.rm(tmpDir, { recursive: true, force: true });
   });
 
   it('[D2,H2] chart_create creates PIE charts (2D and 3D)', async () => {

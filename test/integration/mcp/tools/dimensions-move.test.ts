@@ -109,8 +109,10 @@ describe('dimensions-move tool (service-backed tests)', () => {
   });
 
   after(async () => {
-    const accessToken = await authProvider.getAccessToken(accountId);
-    await deleteTestSpreadsheet(accessToken, sharedSpreadsheetId, logger);
+    if (sharedSpreadsheetId) {
+      const accessToken = await authProvider.getAccessToken(accountId);
+      await deleteTestSpreadsheet(accessToken, sharedSpreadsheetId, logger);
+    }
   });
 
   it('dimensions-move moves rows down within sheet', async () => {

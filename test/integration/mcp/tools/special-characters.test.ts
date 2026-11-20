@@ -101,8 +101,10 @@ describe('special characters handling (service-backed tests)', () => {
   });
 
   after(async () => {
-    const accessToken = await authProvider.getAccessToken(accountId);
-    await deleteTestSpreadsheet(accessToken, sharedSpreadsheetId, logger);
+    if (sharedSpreadsheetId) {
+      const accessToken = await authProvider.getAccessToken(accountId);
+      await deleteTestSpreadsheet(accessToken, sharedSpreadsheetId, logger);
+    }
   });
 
   // ─────────────────────────────────────────────────────────────────

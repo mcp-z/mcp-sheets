@@ -51,9 +51,11 @@ before(async () => {
 
 after(async () => {
   // Cleanup
-  const accessToken = await authProvider.getAccessToken(accountId);
-  await deleteTestSpreadsheet(accessToken, sharedSpreadsheetId, logger);
-  await fs.rm(tmpDir, { recursive: true, force: true });
+  if (sharedSpreadsheetId) {
+    const accessToken = await authProvider.getAccessToken(accountId);
+    await deleteTestSpreadsheet(accessToken, sharedSpreadsheetId, logger);
+  }
+  if (tmpDir) await fs.rm(tmpDir, { recursive: true, force: true });
 });
 
 it('sheets-rows-csv-append imports CSV with header mapping (string names)', async () => {

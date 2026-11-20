@@ -2,7 +2,7 @@ import type { Logger } from '@mcp-z/server';
 import type Keyv from 'keyv';
 import keyvRegistry, { migrateKeyv5Keys } from 'keyv-registry';
 
-// keyv-file is a direct dependency so the default file:// URIs resolve; keyv-registry
+// keyv-file is a direct dependency so explicit file:// URIs resolve; keyv-registry
 // loads adapters with require() rather than depending on any of them itself.
 
 export default async function createStore<T>(uri: string, logger?: Logger): Promise<Keyv<T>> {

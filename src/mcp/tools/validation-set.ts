@@ -244,7 +244,7 @@ async function handler({ id, gid, requests }: Input, extra: EnrichedExtra): Prom
     }
 
     if (failedRanges.length === requests.length) {
-      throw new Error(`every range failed: ${failedRanges.map((f) => `${f.range}: ${f.error}`).join('; ')}`);
+      throw new ProtocolError(ProtocolErrorCode.InvalidParams, `every range failed: ${failedRanges.map((f) => `${f.range}: ${f.error}`).join('; ')}`);
     }
 
     // Nothing to send: no request produced an API call
@@ -299,6 +299,7 @@ async function handler({ id, gid, requests }: Input, extra: EnrichedExtra): Prom
       structuredContent: { result },
     };
   } catch (error) {
+    if (error instanceof ProtocolError) throw error;
     const message = error instanceof Error ? error.message : String(error);
     logger.error('Validation set operation failed', {
       id,
