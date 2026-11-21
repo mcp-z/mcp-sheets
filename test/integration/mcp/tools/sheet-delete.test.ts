@@ -2,6 +2,7 @@ import '../../../lib/env-loader.ts';
 import { sheets as sheetsApi } from '@googleapis/sheets';
 import { mcp } from '@mcp-z/mcp-sheets';
 import type { Logger, LoopbackOAuthProvider } from '@mcp-z/oauth-google';
+import { ProtocolError, ProtocolErrorCode } from '@mcp-z/server';
 import assert from 'assert';
 import crypto from 'crypto';
 import fs from 'fs/promises';
@@ -156,6 +157,11 @@ describe('sheet-delete tool (service-backed tests)', () => {
       assert.ok(error.message.includes('999999992'), error.message);
       return true;
     });
+  });
+
+  // Input errors reach the client as InvalidParams, not InternalError.
+  it('sheet_delete rejects gids that do not exist as InvalidParams when every delete fails', async () => {
+    await assert.rejects(handler({ id: sharedSpreadsheetId, gids: ['999999991', '999999992'] }, createExtra()), (error: unknown) => error instanceof ProtocolError && error.code === ProtocolErrorCode.InvalidParams && error.message.startsWith('every delete failed'));
   });
 
   it('sheet_delete still succeeds with failures when only some deletes fail', async () => {

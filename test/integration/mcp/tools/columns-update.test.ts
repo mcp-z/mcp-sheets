@@ -2,6 +2,7 @@ import '../../../lib/env-loader.ts';
 import { auth as googleAuthPlus, sheets as sheetsApi } from '@googleapis/sheets';
 import { mcp } from '@mcp-z/mcp-sheets';
 import type { Logger, LoopbackOAuthProvider } from '@mcp-z/oauth-google';
+import { ProtocolError, ProtocolErrorCode } from '@mcp-z/server';
 import assert from 'assert';
 import crypto from 'crypto';
 import fs from 'fs/promises';
@@ -373,6 +374,21 @@ describe('columns-update tool (service-backed tests)', () => {
         assert.ok(error instanceof Error && error.message.includes('empty key'), 'expected "empty key" in error');
         return true;
       }
+    );
+  });
+
+  // Input errors reach the client as InvalidParams, not InternalError.
+  it('columns-update rejects empty key values as InvalidParams', async () => {
+    await assert.rejects(
+      handler({ id: sharedSpreadsheetId, gid: '0', rows: [['', 'Alice']], headers: ['id', 'name'], updateBy: ['id'], behavior: 'add-or-update', valueInputOption: 'USER_ENTERED' }, createExtra()),
+      (error: unknown) => error instanceof ProtocolError && error.code === ProtocolErrorCode.InvalidParams && error.message.startsWith('Silent data loss prevented')
+    );
+  });
+
+  it('columns-update rejects a missing sheet as InvalidParams', async () => {
+    await assert.rejects(
+      handler({ id: sharedSpreadsheetId, gid: '987654321', rows: [['1', 'Alice']], headers: ['id', 'name'], updateBy: ['id'], behavior: 'add-or-update', valueInputOption: 'USER_ENTERED' }, createExtra()),
+      (error: unknown) => error instanceof ProtocolError && error.code === ProtocolErrorCode.InvalidParams && error.message.startsWith('Sheet not found')
     );
   });
 

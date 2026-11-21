@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.6.4] - 2026-11-20
+
+### Fixed
+
+- `columns-update`, `sheet-copy` and `sheet-delete` now report input errors as invalid parameters (`InvalidParams`) instead of an internal error. `columns-update` does so for empty key values and a sheet that does not exist; `sheet-copy` and `sheet-delete` do so when every copy or delete fails because Google refused each one as an invalid request (for example a sheet title that already exists, or a sheet that does not exist). A provider failure such as a quota, authentication or server error is still reported as an internal error, and when only some items fail the result is still `success` with the failures listed. `columns-update` still reports an internal error when every write fails.
+- The `RESOURCE_STORE_URI` entries in `server.json` no longer carry a fixed value, so `mcp-z` manifest generation does not pin the resource folder in a generated configuration; an existing generated configuration keeps its line and is unaffected. `--help` and the entry's description now state the real default: `.mcp-z/mcp-sheets/files` beside the nearest `.mcp.json`, else `~/.mcp-z/mcp-sheets/files`.
+
 ## [2.6.3] - 2026-11-20
 
 ### Security

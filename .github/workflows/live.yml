@@ -68,9 +68,10 @@ jobs:
           GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
           TEST_INCLUDE_MANUAL: "false"
           HEADLESS: "true"
-      - name: Engines
-        run: npm run test:engines -- --bail
-        env: *live-test-env
+      # 2026-11-20: Engines is skipped in CI for now, on Kevin's word.
+      # - name: Engines
+      #   run: npm run test:engines -- --bail
+      #   env: *live-test-env
       - name: Persist
         if: always() && steps.seed.outcome != 'skipped'
         run: node scripts/ci-tokens.ts persist

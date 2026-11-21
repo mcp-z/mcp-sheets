@@ -276,6 +276,7 @@ async function handler({ id, gid, rows, headers, updateBy, behavior = 'add-or-up
       structuredContent: { result },
     };
   } catch (error) {
+    if (error instanceof ProtocolError) throw error;
     const message = error instanceof Error ? error.message : String(error);
     logger.error?.('sheets.columns.update error', { error: message });
     throw new ProtocolError(ProtocolErrorCode.InternalError, `Error updating columns: ${message}`, {

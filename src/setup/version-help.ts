@@ -25,7 +25,7 @@ Options:
   --port=<port>          Enable HTTP transport on specified port
   --stdio                Enable stdio transport (default if no port)
   --log-level=<level>    Logging level (default: info)
-  --resource-store-uri=<uri>    Resource store URI for CSV file storage (default: file://~/.mcp-z/mcp-sheets/files)
+  --resource-store-uri=<uri>    Resource store URI for CSV file storage (default: .mcp-z/mcp-sheets/files beside the nearest .mcp.json, else ~/.mcp-z/mcp-sheets/files)
   --base-url=<url>       Base URL for HTTP file serving (optional)
 
 Environment Variables:

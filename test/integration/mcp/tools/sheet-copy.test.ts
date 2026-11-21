@@ -2,6 +2,7 @@ import '../../../lib/env-loader.ts';
 import { sheets as sheetsApi } from '@googleapis/sheets';
 import { mcp } from '@mcp-z/mcp-sheets';
 import type { Logger, LoopbackOAuthProvider } from '@mcp-z/oauth-google';
+import { ProtocolError, ProtocolErrorCode } from '@mcp-z/server';
 import assert from 'assert';
 import crypto from 'crypto';
 import fs from 'fs/promises';
@@ -176,6 +177,18 @@ it('sheet_copy rejects when every copy fails, naming each failure', async () => 
     assert.ok(error.message.includes('Sheet1'), error.message);
     return true;
   });
+});
+
+// Input errors reach the client as InvalidParams, not InternalError.
+it('sheet_copy rejects titles that already exist as InvalidParams when every copy fails', async () => {
+  await assert.rejects(
+    handler({ id: sharedSpreadsheetId, gid: String(sourceSheetId), copies: [{ newTitle: 'SourceTemplate' }, { newTitle: 'Sheet1' }] }, createExtra()),
+    (error: unknown) => error instanceof ProtocolError && error.code === ProtocolErrorCode.InvalidParams && error.message.startsWith('every copy failed')
+  );
+});
+
+it('sheet_copy rejects a missing source sheet as InvalidParams', async () => {
+  await assert.rejects(handler({ id: sharedSpreadsheetId, gid: '999999999', copies: [{ newTitle: 'should-fail' }] }, createExtra()), (error: unknown) => error instanceof ProtocolError && error.code === ProtocolErrorCode.InvalidParams && error.message.startsWith('Source sheet with gid'));
 });
 
 it('sheet_copy still succeeds with failures when only some copies fail', async () => {
