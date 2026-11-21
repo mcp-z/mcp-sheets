@@ -8,6 +8,7 @@ import type { CallToolResult, ToolModule } from '@mcp-z/server';
 import { ProtocolError, ProtocolErrorCode } from '@mcp-z/server';
 import { z } from 'zod';
 import { googleAuth } from '../../lib/google-auth.ts';
+import { isInvalidRequest } from '../../lib/google-errors.ts';
 import { SheetGidSchema, SpreadsheetIdOutput, SpreadsheetIdSchema } from '../../schemas/index.ts';
 
 const MAX_BATCH_SIZE = 1000;
@@ -71,6 +72,7 @@ async function handler({ id, gids }: Input, extra: EnrichedExtra): Promise<CallT
 
     // Separate successes and failures
     const failures: Array<{ gid: string; error: string }> = [];
+    const reasons: unknown[] = [];
 
     results.forEach((result, index) => {
       const gid = gids[index];
@@ -79,11 +81,14 @@ async function handler({ id, gids }: Input, extra: EnrichedExtra): Promise<CallT
       if (result.status === 'rejected') {
         const errorMessage = result.reason instanceof Error ? result.reason.message : String(result.reason);
         failures.push({ gid, error: errorMessage });
+        reasons.push(result.reason);
       }
     });
 
     if (failures.length === gids.length) {
-      throw new Error(`every delete failed: ${failures.map((f) => `${f.gid}: ${f.error}`).join('; ')}`);
+      const message = `every delete failed: ${failures.map((f) => `${f.gid}: ${f.error}`).join('; ')}`;
+      if (reasons.every(isInvalidRequest)) throw new ProtocolError(ProtocolErrorCode.InvalidParams, message);
+      throw new Error(message);
     }
 
     const successCount = gids.length - failures.length;
@@ -115,6 +120,7 @@ async function handler({ id, gids }: Input, extra: EnrichedExtra): Promise<CallT
       structuredContent: { result },
     };
   } catch (error) {
+    if (error instanceof ProtocolError) throw error;
     const message = error instanceof Error ? error.message : String(error);
     logger.error('sheets.sheet.delete error', { error: message });
 

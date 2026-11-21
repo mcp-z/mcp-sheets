@@ -7,4 +7,8 @@ describe('setup/version-help', () => {
     assert.strictEqual(handled, true);
     assert.ok(output?.includes('~/.config/mcp-z/mcp-sheets/.env'));
   });
+
+  it('help names the full resource store default', () => {
+    assert.ok(handleVersionHelp(['--help']).output?.includes('(default: .mcp-z/mcp-sheets/files beside the nearest .mcp.json, else ~/.mcp-z/mcp-sheets/files)'));
+  });
 });

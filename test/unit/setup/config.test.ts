@@ -1,6 +1,9 @@
 import '../../lib/env-loader.ts';
 import { setup } from '@mcp-z/mcp-sheets';
 import assert from 'assert';
+import { readFileSync } from 'fs';
+import * as path from 'path';
+import { pathToFileURL } from 'url';
 
 describe('setup.parseConfig', () => {
   it('defaults to stdio transport with no args or env', () => {
@@ -174,5 +177,30 @@ describe('setup.parseConfig', () => {
     });
 
     assert.strictEqual(config.logLevel, 'warn');
+  });
+});
+
+describe('server.json resource store entries', () => {
+  type Entry = { name: string; value?: unknown; default?: unknown; placeholder?: string };
+  const manifest = JSON.parse(readFileSync(path.resolve('server.json'), 'utf8')) as { packages: Array<{ environmentVariables?: Entry[]; packageArguments?: Entry[] }> };
+  const entries = manifest.packages.flatMap((pkg) => [...(pkg.environmentVariables ?? []), ...(pkg.packageArguments ?? [])]).filter((entry) => entry.name === 'RESOURCE_STORE_URI' || entry.name === '--resource-store-uri');
+
+  it('has both entries for both transports', () => {
+    assert.strictEqual(entries.length, 4);
+  });
+
+  it('carries no fixed value or default, so generated configurations do not pin the folder', () => {
+    for (const entry of entries) {
+      assert.ok(!('value' in entry), `${entry.name} has a value`);
+      assert.ok(!('default' in entry), `${entry.name} has a default`);
+    }
+  });
+
+  it('shows the home form of the default and the parsed default is the folder it describes', () => {
+    const config = setup.parseConfig([], { GOOGLE_CLIENT_ID: 'test-client-id' });
+    const variables = entries.filter((entry) => entry.name === 'RESOURCE_STORE_URI');
+    assert.strictEqual(variables.length, 2);
+    for (const entry of variables) assert.strictEqual(entry.placeholder, `file://~/.mcp-z/${config.name}/files`);
+    assert.strictEqual(config.resourceStoreUri, pathToFileURL(path.join(config.baseDir, config.name, 'files')).href);
   });
 });

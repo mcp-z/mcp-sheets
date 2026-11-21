@@ -8,6 +8,7 @@ import type { CallToolResult, ToolModule } from '@mcp-z/server';
 import { ProtocolError, ProtocolErrorCode } from '@mcp-z/server';
 import { z } from 'zod';
 import { googleAuth } from '../../lib/google-auth.ts';
+import { isInvalidRequest } from '../../lib/google-errors.ts';
 import { SheetGidOutput, SheetGidSchema, SpreadsheetIdOutput, SpreadsheetIdSchema } from '../../schemas/index.ts';
 
 const MAX_BATCH_SIZE = 100;
@@ -123,6 +124,7 @@ async function handler({ id, gid, copies }: Input, extra: EnrichedExtra): Promis
     // Separate successes and failures
     const items: Array<{ gid: string; title: string; sheetUrl: string }> = [];
     const failures: Array<{ title: string; error: string }> = [];
+    const reasons: unknown[] = [];
 
     results.forEach((result, index) => {
       const copy = copies[index];
@@ -133,11 +135,14 @@ async function handler({ id, gid, copies }: Input, extra: EnrichedExtra): Promis
       } else {
         const errorMessage = result.reason instanceof Error ? result.reason.message : String(result.reason);
         failures.push({ title: copy.newTitle, error: errorMessage });
+        reasons.push(result.reason);
       }
     });
 
     if (items.length === 0 && failures.length > 0) {
-      throw new Error(`every copy failed: ${failures.map((f) => `"${f.title}": ${f.error}`).join('; ')}`);
+      const message = `every copy failed: ${failures.map((f) => `"${f.title}": ${f.error}`).join('; ')}`;
+      if (reasons.every(isInvalidRequest)) throw new ProtocolError(ProtocolErrorCode.InvalidParams, message);
+      throw new Error(message);
     }
 
     const successCount = items.length;

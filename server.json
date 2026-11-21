@@ -71,8 +71,7 @@
         },
         {
           "name": "RESOURCE_STORE_URI",
-          "value": "file://~/.mcp-z/mcp-sheets/files",
-          "description": "Resource store URI for exported files (file://)",
+          "description": "Resource store URI for exported files (file://). Default: .mcp-z/mcp-sheets/files beside the nearest .mcp.json, else ~/.mcp-z/mcp-sheets/files",
           "placeholder": "file://~/.mcp-z/mcp-sheets/files",
           "isRequired": false,
           "isSecret": false
@@ -216,8 +215,7 @@
         },
         {
           "name": "RESOURCE_STORE_URI",
-          "value": "file://~/.mcp-z/mcp-sheets/files",
-          "description": "Resource store URI for exported files (file://)",
+          "description": "Resource store URI for exported files (file://). Default: .mcp-z/mcp-sheets/files beside the nearest .mcp.json, else ~/.mcp-z/mcp-sheets/files",
           "placeholder": "file://~/.mcp-z/mcp-sheets/files",
           "isRequired": false,
           "isSecret": false
