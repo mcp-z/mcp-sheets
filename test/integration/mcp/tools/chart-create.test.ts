@@ -1,7 +1,7 @@
 import '../../../lib/env-loader.ts';
 import { sheets as sheetsApi } from '@googleapis/sheets';
 import { mcp } from '@mcp-z/mcp-sheets';
-import type { Logger, LoopbackOAuthProvider } from '@mcp-z/oauth-google';
+import type { Logger } from '@mcp-z/oauth-google';
 import assert from 'assert';
 import crypto from 'crypto';
 import fs from 'fs/promises';
@@ -10,12 +10,12 @@ import type { Input, Output } from '../../../../src/mcp/tools/chart-create.ts';
 import type { Input as ValuesBatchUpdateInput } from '../../../../src/mcp/tools/values-batch-update.ts';
 import { createExtra, type TypedHandler } from '../../../lib/create-extra.ts';
 import createMiddlewareContext from '../../../lib/create-middleware-context.ts';
-import { createTestSpreadsheet, deleteTestSpreadsheet } from '../../../lib/spreadsheet-helpers.ts';
+import { addTestTabs, deleteTestTabs, sharedSpreadsheet, type TestTab } from '../../../lib/spreadsheet-helpers.ts';
 
 /**
  * RANGE ALLOCATION MAP - chart-create.test.ts
  *
- * All tests use shared sheet (gid: 0) with non-overlapping data ranges and chart positions.
+ * All tests use this file's own tab with non-overlapping data ranges and chart positions.
  *
  * Data Ranges:
  * - A1:B5 = Pie chart data (Category, Value) - used by PIE chart tests
@@ -41,16 +41,15 @@ import { createTestSpreadsheet, deleteTestSpreadsheet } from '../../../lib/sprea
 describe('chart-create tool (service-backed tests)', () => {
   // Shared test resources
   let sharedSpreadsheetId: string;
+  let tab: TestTab;
   let auth: Awaited<ReturnType<typeof createMiddlewareContext>>['auth'];
-  let authProvider: LoopbackOAuthProvider;
   let logger: Logger;
-  let accountId: string;
   let tmpDir: string;
   let handler: TypedHandler<Input>;
   let valuesBatchUpdateHandler: TypedHandler<ValuesBatchUpdateInput>;
 
-  // All tests use shared default sheet (gid: 0)
-  const sharedSheetId = 0;
+  // All tests use this file's own tab
+  let sharedSheetId: number;
 
   // Helper to add sample data to sheet for chart testing
   async function addBothChartDataTypes(): Promise<void> {
@@ -100,11 +99,9 @@ describe('chart-create tool (service-backed tests)', () => {
 
       // Get middleware for tool creation
       const middlewareContext = await createMiddlewareContext();
-      authProvider = middlewareContext.authProvider;
       logger = middlewareContext.logger;
       auth = middlewareContext.auth;
       const middleware = middlewareContext.middleware;
-      accountId = middlewareContext.accountId;
       const tool = mcp.toolFactories.chartCreate();
       const wrappedTool = middleware.withToolAuth(tool);
       handler = wrappedTool.handler;
@@ -112,11 +109,12 @@ describe('chart-create tool (service-backed tests)', () => {
       const wrappedValuesBatchUpdateTool = middleware.withToolAuth(valuesBatchUpdateTool);
       valuesBatchUpdateHandler = wrappedValuesBatchUpdateTool.handler;
 
-      // Create shared spreadsheet for all tests (use default sheet to minimize write operations)
-      const title = `ci-chart-create-tests-${Date.now()}`;
-      sharedSpreadsheetId = await createTestSpreadsheet(await authProvider.getAccessToken(accountId), { title });
+      // Create shared spreadsheet for all tests (the file adds its own tab)
+      sharedSpreadsheetId = await sharedSpreadsheet();
+      [tab] = (await addTestTabs(sharedSpreadsheetId, ['chart-create'])) as [TestTab];
+      sharedSheetId = tab.sheetId;
 
-      // Pre-populate default sheet with both pie and bar chart data in non-overlapping ranges
+      // Pre-populate the file's own tab with both pie and bar chart data in non-overlapping ranges
       await addBothChartDataTypes();
     } catch (error) {
       logger.error('Failed to initialize test resources:', { error });
@@ -126,10 +124,7 @@ describe('chart-create tool (service-backed tests)', () => {
 
   after(async () => {
     // Cleanup shared spreadsheet (automatically deletes all sheets within it)
-    if (sharedSpreadsheetId) {
-      const accessToken = await authProvider.getAccessToken(accountId);
-      await deleteTestSpreadsheet(accessToken, sharedSpreadsheetId, logger);
-    }
+    if (tab) await deleteTestTabs(sharedSpreadsheetId, [tab.gid]);
     if (tmpDir) await fs.rm(tmpDir, { recursive: true, force: true });
   });
 

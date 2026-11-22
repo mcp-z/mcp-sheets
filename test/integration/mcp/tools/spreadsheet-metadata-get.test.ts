@@ -6,19 +6,16 @@ import { ProtocolError, ProtocolErrorCode } from '@mcp-z/server';
 import assert from 'assert';
 import type { Input } from '../../../../src/mcp/tools/spreadsheet-metadata-get.ts';
 import { createExtra, type TypedHandler } from '../../../lib/create-extra.ts';
-import { createMetadataFixture, METADATA_SHEET_ID, METADATA_SHEET_TITLE } from '../../../lib/metadata-fixture.ts';
+import { METADATA_SHEET_ID, METADATA_SHEET_TITLE, sharedMetadataFixture } from '../../../lib/metadata-fixture.ts';
 
 describe('spreadsheet-metadata-get (Google integration)', () => {
-  let fixture: Awaited<ReturnType<typeof createMetadataFixture>>;
+  let fixture: Awaited<ReturnType<typeof sharedMetadataFixture>>;
   let handler: TypedHandler<Input>;
   const tool = mcp.toolFactories.spreadsheetMetadataGet();
 
   before(async () => {
-    fixture = await createMetadataFixture();
+    fixture = await sharedMetadataFixture();
     handler = fixture.middleware.withToolAuth(tool).handler;
-  });
-  after(async () => {
-    if (fixture) await fixture.close();
   });
 
   it('reads both tabs, full properties and independently seeded structures without grid data', async () => {

@@ -1,12 +1,11 @@
 import '../../../lib/env-loader.ts';
 import { sheets as sheetsApi } from '@googleapis/sheets';
 import { mcp } from '@mcp-z/mcp-sheets';
-import type { Logger, LoopbackOAuthProvider } from '@mcp-z/oauth-google';
 import assert from 'assert';
 import type { Input, Output } from '../../../../src/mcp/tools/values-replace.ts';
 import { createExtra, type TypedHandler } from '../../../lib/create-extra.ts';
 import createMiddlewareContext from '../../../lib/create-middleware-context.ts';
-import { createTestSpreadsheet, deleteTestSpreadsheet } from '../../../lib/spreadsheet-helpers.ts';
+import { addTestTabs, deleteTestTabs, RUN_ID, sharedSpreadsheet, type TestTab } from '../../../lib/spreadsheet-helpers.ts';
 
 /**
  * OPTIMIZATION STRATEGY - values-replace.test.ts
@@ -36,41 +35,32 @@ import { createTestSpreadsheet, deleteTestSpreadsheet } from '../../../lib/sprea
  * Total: ~15 API calls
  */
 
+// Unique to this run and file: the repl6 replace scans every tab of the shared spreadsheet.
+const CROSS_TEXT = `repl6-cross-${RUN_ID}`;
+
 describe('values-replace tool (service-backed tests)', () => {
   let sharedSpreadsheetId: string;
+  let tab: TestTab;
+  let tabs: TestTab[];
   let sharedGid: string;
   let auth: Awaited<ReturnType<typeof createMiddlewareContext>>['auth'];
-  let authProvider: LoopbackOAuthProvider;
-  let logger: Logger;
-  let accountId: string;
   let valuesReplaceHandler: TypedHandler<Input>;
 
   before(async () => {
     const middlewareContext = await createMiddlewareContext();
-    authProvider = middlewareContext.authProvider;
-    logger = middlewareContext.logger;
     auth = middlewareContext.auth;
     const middleware = middlewareContext.middleware;
-    accountId = middlewareContext.accountId;
 
     const valuesReplaceTool = mcp.toolFactories.valuesReplace();
     const wrappedTool = middleware.withToolAuth(valuesReplaceTool);
     valuesReplaceHandler = wrappedTool.handler;
 
-    const title = `ci-values-replace-tests-${Date.now()}`;
-    const accessToken = await authProvider.getAccessToken(accountId);
-    sharedSpreadsheetId = await createTestSpreadsheet(accessToken, { title });
-    sharedGid = '0';
+    sharedSpreadsheetId = await sharedSpreadsheet();
+    tabs = await addTestTabs(sharedSpreadsheetId, ['values-replace', 'values-replace-2']);
+    tab = tabs[0] as TestTab;
+    sharedGid = tab.gid;
 
     const sheets = sheetsApi({ version: 'v4', auth });
-
-    // Create second sheet for allSheets scope testing
-    const _addSheetResponse = await sheets.spreadsheets.batchUpdate({
-      spreadsheetId: sharedSpreadsheetId,
-      requestBody: {
-        requests: [{ addSheet: { properties: { title: 'Sheet2' } } }],
-      },
-    });
 
     // Write all test data in single batch - each row isolated
     await sheets.spreadsheets.values.batchUpdate({
@@ -79,7 +69,7 @@ describe('values-replace tool (service-backed tests)', () => {
         valueInputOption: 'USER_ENTERED',
         data: [
           {
-            range: 'Sheet1!A1:C9',
+            range: tab.a1('A1:C9'),
             values: [
               // Row 1: Basic replacement
               ['repl1-OldName', 'repl1-OldName-copy', 'other1'],
@@ -92,7 +82,7 @@ describe('values-replace tool (service-backed tests)', () => {
               // Row 5: Formula inclusion
               ['repl5-value', '=CONCAT("repl5-","formula")', 'repl5-other'],
               // Row 6: Cross-sheet (also appears in Sheet2)
-              ['repl6-cross', 'sheet1-only', 'more6'],
+              [CROSS_TEXT, 'sheet1-only', 'more6'],
               // Row 7: Range scope test
               ['repl7-inA', 'repl7-inB', 'repl7-inC'],
               // Row 8: No matches
@@ -102,10 +92,10 @@ describe('values-replace tool (service-backed tests)', () => {
             ],
           },
           {
-            range: 'Sheet2!A1:B1',
+            range: (tabs[1] as TestTab).a1('A1:B1'),
             values: [
               // Sheet2 row for allSheets test
-              ['repl6-cross', 'sheet2-only'],
+              [CROSS_TEXT, 'sheet2-only'],
             ],
           },
         ],
@@ -114,10 +104,11 @@ describe('values-replace tool (service-backed tests)', () => {
   });
 
   after(async () => {
-    if (sharedSpreadsheetId) {
-      const accessToken = await authProvider.getAccessToken(accountId);
-      await deleteTestSpreadsheet(accessToken, sharedSpreadsheetId, logger);
-    }
+    if (tab)
+      await deleteTestTabs(
+        sharedSpreadsheetId,
+        tabs.map((t) => t.gid)
+      );
   });
 
   // ─────────────────────────────────────────────────────────────────
@@ -147,7 +138,7 @@ describe('values-replace tool (service-backed tests)', () => {
     const sheets = sheetsApi({ version: 'v4', auth });
     const readResult = await sheets.spreadsheets.values.get({
       spreadsheetId: sharedSpreadsheetId,
-      range: 'Sheet1!A1:C1',
+      range: tab.a1('A1:C1'),
     });
     const row = readResult.data.values?.[0];
     assert.ok(row, 'should have data in row 1');
@@ -248,7 +239,7 @@ describe('values-replace tool (service-backed tests)', () => {
     const sheets = sheetsApi({ version: 'v4', auth });
     const readResult = await sheets.spreadsheets.values.get({
       spreadsheetId: sharedSpreadsheetId,
-      range: 'Sheet1!A5:C5',
+      range: tab.a1('A5:C5'),
       valueRenderOption: 'FORMULA', // Get formula text, not calculated value
     });
     const row = readResult.data.values?.[0];
@@ -266,7 +257,7 @@ describe('values-replace tool (service-backed tests)', () => {
     const result = await valuesReplaceHandler(
       {
         id: sharedSpreadsheetId,
-        find: 'repl6-cross',
+        find: CROSS_TEXT,
         replacement: 'repl6-found',
         // no gid = all sheets
       },
@@ -277,7 +268,7 @@ describe('values-replace tool (service-backed tests)', () => {
     assert.equal(branch?.type, 'success');
 
     if (branch?.type === 'success') {
-      // Should find in both Sheet1 and Sheet2
+      // Should find in both tabs
       assert.equal(branch.sheetsChanged, 2, 'should change 2 sheets');
       assert.equal(branch.occurrencesChanged, 2, 'should replace 2 occurrences');
     }

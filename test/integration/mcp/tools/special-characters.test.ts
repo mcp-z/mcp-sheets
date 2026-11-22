@@ -1,13 +1,12 @@
 import '../../../lib/env-loader.ts';
 import { sheets as sheetsApi } from '@googleapis/sheets';
 import { mcp } from '@mcp-z/mcp-sheets';
-import type { Logger, LoopbackOAuthProvider } from '@mcp-z/oauth-google';
 import assert from 'assert';
 import type { Input as ReplaceInput, Output as ReplaceOutput } from '../../../../src/mcp/tools/values-replace.ts';
 import type { Input as SearchInput, Output as SearchOutput } from '../../../../src/mcp/tools/values-search.ts';
 import { createExtra, type TypedHandler } from '../../../lib/create-extra.ts';
 import createMiddlewareContext from '../../../lib/create-middleware-context.ts';
-import { createTestSpreadsheet, deleteTestSpreadsheet } from '../../../lib/spreadsheet-helpers.ts';
+import { addTestTabs, deleteTestTabs, sharedSpreadsheet, type TestTab } from '../../../lib/spreadsheet-helpers.ts';
 
 /**
  * SPECIAL CHARACTERS TEST SUITE
@@ -35,21 +34,16 @@ import { createTestSpreadsheet, deleteTestSpreadsheet } from '../../../lib/sprea
 
 describe('special characters handling (service-backed tests)', () => {
   let sharedSpreadsheetId: string;
+  let tab: TestTab;
   let sharedGid: string;
   let auth: Awaited<ReturnType<typeof createMiddlewareContext>>['auth'];
-  let authProvider: LoopbackOAuthProvider;
-  let logger: Logger;
-  let accountId: string;
   let valuesReplaceHandler: TypedHandler<ReplaceInput>;
   let valuesSearchHandler: TypedHandler<SearchInput>;
 
   before(async () => {
     const middlewareContext = await createMiddlewareContext();
-    authProvider = middlewareContext.authProvider;
-    logger = middlewareContext.logger;
     auth = middlewareContext.auth;
     const middleware = middlewareContext.middleware;
-    accountId = middlewareContext.accountId;
 
     const valuesReplaceTool = mcp.toolFactories.valuesReplace();
     const wrappedReplaceTool = middleware.withToolAuth(valuesReplaceTool);
@@ -59,10 +53,9 @@ describe('special characters handling (service-backed tests)', () => {
     const wrappedSearchTool = middleware.withToolAuth(searchTool);
     valuesSearchHandler = wrappedSearchTool.handler;
 
-    const title = `ci-special-chars-tests-${Date.now()}`;
-    const accessToken = await authProvider.getAccessToken(accountId);
-    sharedSpreadsheetId = await createTestSpreadsheet(accessToken, { title });
-    sharedGid = '0';
+    sharedSpreadsheetId = await sharedSpreadsheet();
+    [tab] = (await addTestTabs(sharedSpreadsheetId, ['special-characters'])) as [TestTab];
+    sharedGid = tab.gid;
 
     const sheets = sheetsApi({ version: 'v4', auth });
 
@@ -73,7 +66,7 @@ describe('special characters handling (service-backed tests)', () => {
         valueInputOption: 'RAW', // RAW to prevent formula interpretation
         data: [
           {
-            range: 'Sheet1!A1:C12',
+            range: tab.a1('A1:C12'),
             values: [
               // Rows 1-2: Colon tests (the original issue case)
               ['colon1-HEADLINE:TITLE', 'colon1-HEADLINE:PROFILE', 'colon1-OTHER'],
@@ -101,10 +94,7 @@ describe('special characters handling (service-backed tests)', () => {
   });
 
   after(async () => {
-    if (sharedSpreadsheetId) {
-      const accessToken = await authProvider.getAccessToken(accountId);
-      await deleteTestSpreadsheet(accessToken, sharedSpreadsheetId, logger);
-    }
+    if (tab) await deleteTestTabs(sharedSpreadsheetId, [tab.gid]);
   });
 
   // ─────────────────────────────────────────────────────────────────
@@ -176,7 +166,7 @@ describe('special characters handling (service-backed tests)', () => {
       const sheets = sheetsApi({ version: 'v4', auth });
       const readResult = await sheets.spreadsheets.values.get({
         spreadsheetId: sharedSpreadsheetId,
-        range: 'Sheet1!B1',
+        range: tab.a1('B1'),
       });
       assert.equal(readResult.data.values?.[0]?.[0], 'colon1-basics', 'cell should contain replaced text');
     });

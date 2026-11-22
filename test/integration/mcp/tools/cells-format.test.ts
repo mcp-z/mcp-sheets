@@ -1,7 +1,7 @@
 import '../../../lib/env-loader.ts';
 import { sheets as sheetsApi } from '@googleapis/sheets';
 import { mcp } from '@mcp-z/mcp-sheets';
-import type { Logger, LoopbackOAuthProvider } from '@mcp-z/oauth-google';
+import type { Logger } from '@mcp-z/oauth-google';
 import { ProtocolError, ProtocolErrorCode } from '@mcp-z/server';
 import assert from 'assert';
 import crypto from 'crypto';
@@ -10,12 +10,12 @@ import * as path from 'path';
 import type { Input, Output } from '../../../../src/mcp/tools/cells-format.ts';
 import { createExtra, type TypedHandler } from '../../../lib/create-extra.ts';
 import createMiddlewareContext from '../../../lib/create-middleware-context.ts';
-import { createTestSpreadsheet, deleteTestSpreadsheet } from '../../../lib/spreadsheet-helpers.ts';
+import { addTestTabs, deleteTestTabs, sharedSpreadsheet, type TestTab } from '../../../lib/spreadsheet-helpers.ts';
 
 /**
  * RANGE ALLOCATION MAP - cells-format.test.ts
  *
- * All tests use shared sheet (gid: 0) with non-overlapping ranges.
+ * All tests use this file's own tab with non-overlapping ranges.
  * When adding new tests, choose the next available range.
  *
  * Allocated Ranges:
@@ -33,10 +33,9 @@ import { createTestSpreadsheet, deleteTestSpreadsheet } from '../../../lib/sprea
 describe('cells-format tool (service-backed tests)', () => {
   // Shared test resources
   let sharedSpreadsheetId: string;
+  let tab: TestTab;
   let auth: Awaited<ReturnType<typeof createMiddlewareContext>>['auth'];
-  let authProvider: LoopbackOAuthProvider;
   let logger: Logger;
-  let accountId: string;
   let handler: TypedHandler<Input>;
   let tmpDir: string;
 
@@ -48,18 +47,16 @@ describe('cells-format tool (service-backed tests)', () => {
 
       // Get middleware for tool creation
       const middlewareContext = await createMiddlewareContext();
-      authProvider = middlewareContext.authProvider;
       logger = middlewareContext.logger;
       auth = middlewareContext.auth;
       const middleware = middlewareContext.middleware;
-      accountId = middlewareContext.accountId;
       const tool = mcp.toolFactories.cellsFormat();
       const wrappedTool = middleware.withToolAuth(tool);
       handler = wrappedTool.handler;
 
-      // Create shared spreadsheet for all tests (tests use default sheet 0 with non-overlapping ranges)
-      const title = `ci-cells-format-tests-${Date.now()}`;
-      sharedSpreadsheetId = await createTestSpreadsheet(await authProvider.getAccessToken(accountId), { title });
+      // Create shared spreadsheet for all tests (tests use the file's own tab with non-overlapping ranges)
+      sharedSpreadsheetId = await sharedSpreadsheet();
+      [tab] = (await addTestTabs(sharedSpreadsheetId, ['cells-format'])) as [TestTab];
     } catch (error) {
       logger.error('Failed to initialize test resources:', { error });
       throw error;
@@ -68,15 +65,12 @@ describe('cells-format tool (service-backed tests)', () => {
 
   after(async () => {
     // Cleanup resources - fail fast on errors
-    if (sharedSpreadsheetId) {
-      const accessToken = await authProvider.getAccessToken(accountId);
-      await deleteTestSpreadsheet(accessToken, sharedSpreadsheetId, logger);
-    }
+    if (tab) await deleteTestTabs(sharedSpreadsheetId, [tab.gid]);
     if (tmpDir) await fs.rm(tmpDir, { recursive: true, force: true });
   });
 
   it('format_cells applies all formatting types (consolidated batch)', async () => {
-    const testSheetId = 0; // Use default sheet
+    const testSheetId = tab.sheetId;
 
     // OPTIMIZATION: Consolidate tests 1-4 and 6 into single batch request (saves 4 API writes)
     // Tests background, text, alignment, number format, borders, and combined properties
@@ -166,7 +160,7 @@ describe('cells-format tool (service-backed tests)', () => {
   });
 
   it('[U1:V2, X1:Y2] format_cells handles partial failures gracefully', async () => {
-    const testSheetId = 0; // Use default sheet
+    const testSheetId = tab.sheetId;
 
     const requests = [
       {
@@ -209,7 +203,7 @@ describe('cells-format tool (service-backed tests)', () => {
   });
 
   it('[Y1:Z2] format_cells combines multiple format properties on same range', async () => {
-    const testSheetId = 0; // Use default sheet
+    const testSheetId = tab.sheetId;
 
     const requests = [
       {
@@ -244,7 +238,7 @@ describe('cells-format tool (service-backed tests)', () => {
   });
 
   it('[C3:D4 vs E3:F5] format_cells respects A1 range and does not apply to entire sheet', async () => {
-    const testSheetId = 0; // Use default sheet
+    const testSheetId = tab.sheetId;
 
     // Format ONLY cells C3:D4 with red background
     const requests = [
@@ -328,7 +322,7 @@ describe('cells-format tool (service-backed tests)', () => {
       handler(
         {
           id: sharedSpreadsheetId,
-          gid: '0',
+          gid: tab.gid,
           requests: [
             { range: 'INVALID_RANGE', bold: true },
             { range: 'NOT_A_RANGE', bold: true },

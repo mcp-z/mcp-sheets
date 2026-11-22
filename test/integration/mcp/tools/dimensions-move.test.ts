@@ -1,13 +1,12 @@
 import '../../../lib/env-loader.ts';
 import { sheets as sheetsApi } from '@googleapis/sheets';
 import { mcp } from '@mcp-z/mcp-sheets';
-import type { Logger, LoopbackOAuthProvider } from '@mcp-z/oauth-google';
 import assert from 'assert';
 import type { Input, Output } from '../../../../src/mcp/tools/dimensions-move.ts';
 import type { Input as RowsGetInput, Output as RowsGetOutput } from '../../../../src/mcp/tools/rows-get.ts';
 import { createExtra, type TypedHandler } from '../../../lib/create-extra.ts';
 import createMiddlewareContext from '../../../lib/create-middleware-context.ts';
-import { createTestSpreadsheet, deleteTestSpreadsheet } from '../../../lib/spreadsheet-helpers.ts';
+import { addTestTabs, deleteTestTabs, sharedSpreadsheet, type TestTab } from '../../../lib/spreadsheet-helpers.ts';
 
 /**
  * OPTIMIZATION STRATEGY - dimensions-move.test.ts
@@ -36,21 +35,16 @@ import { createTestSpreadsheet, deleteTestSpreadsheet } from '../../../lib/sprea
 
 describe('dimensions-move tool (service-backed tests)', () => {
   let sharedSpreadsheetId: string;
+  let tab: TestTab;
   let sharedGid: string;
   let auth: Awaited<ReturnType<typeof createMiddlewareContext>>['auth'];
-  let authProvider: LoopbackOAuthProvider;
-  let logger: Logger;
-  let accountId: string;
   let dimensionsMoveHandler: TypedHandler<Input>;
   let rowsGetHandler: TypedHandler<RowsGetInput>;
 
   before(async () => {
     const middlewareContext = await createMiddlewareContext();
-    authProvider = middlewareContext.authProvider;
-    logger = middlewareContext.logger;
     auth = middlewareContext.auth;
     const middleware = middlewareContext.middleware;
-    accountId = middlewareContext.accountId;
 
     const dimensionsMoveTool = mcp.toolFactories.dimensionsMove();
     const wrappedDimensionsMoveTool = middleware.withToolAuth(dimensionsMoveTool);
@@ -60,10 +54,9 @@ describe('dimensions-move tool (service-backed tests)', () => {
     const wrappedRowsGetTool = middleware.withToolAuth(rowsGetTool);
     rowsGetHandler = wrappedRowsGetTool.handler;
 
-    const title = `ci-dimensions-move-tests-${Date.now()}`;
-    const accessToken = await authProvider.getAccessToken(accountId);
-    sharedSpreadsheetId = await createTestSpreadsheet(accessToken, { title });
-    sharedGid = '0';
+    sharedSpreadsheetId = await sharedSpreadsheet();
+    [tab] = (await addTestTabs(sharedSpreadsheetId, ['dimensions-move'])) as [TestTab];
+    sharedGid = tab.gid;
 
     // Add all test data in a single batch write
     try {
@@ -76,7 +69,7 @@ describe('dimensions-move tool (service-backed tests)', () => {
             // Test 1 data: Row move test (A1:C10)
             // Rows labeled Row1-Row10 so we can verify order after move
             {
-              range: 'Sheet1!A1:C10',
+              range: tab.a1('A1:C10'),
               values: [
                 ['Row1', 'A1', 'B1'],
                 ['Row2', 'A2', 'B2'],
@@ -93,7 +86,7 @@ describe('dimensions-move tool (service-backed tests)', () => {
             // Test 2 data: Column move test (E1:J3)
             // Columns labeled ColE-ColJ so we can verify order after move
             {
-              range: 'Sheet1!E1:J3',
+              range: tab.a1('E1:J3'),
               values: [
                 ['ColE', 'ColF', 'ColG', 'ColH', 'ColI', 'ColJ'],
                 ['E2', 'F2', 'G2', 'H2', 'I2', 'J2'],
@@ -109,10 +102,7 @@ describe('dimensions-move tool (service-backed tests)', () => {
   });
 
   after(async () => {
-    if (sharedSpreadsheetId) {
-      const accessToken = await authProvider.getAccessToken(accountId);
-      await deleteTestSpreadsheet(accessToken, sharedSpreadsheetId, logger);
-    }
+    if (tab) await deleteTestTabs(sharedSpreadsheetId, [tab.gid]);
   });
 
   it('dimensions-move moves rows down within sheet', async () => {

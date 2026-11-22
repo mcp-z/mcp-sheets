@@ -1,7 +1,7 @@
 import '../../../lib/env-loader.ts';
 import { sheets as sheetsApi } from '@googleapis/sheets';
 import { mcp } from '@mcp-z/mcp-sheets';
-import type { Logger, LoopbackOAuthProvider } from '@mcp-z/oauth-google';
+import type { Logger } from '@mcp-z/oauth-google';
 import { ProtocolError, ProtocolErrorCode } from '@mcp-z/server';
 import assert from 'assert';
 import crypto from 'crypto';
@@ -10,12 +10,12 @@ import * as path from 'path';
 import type { Input, Output } from '../../../../src/mcp/tools/values-markdown-update.ts';
 import { createExtra, type TypedHandler } from '../../../lib/create-extra.ts';
 import createMiddlewareContext from '../../../lib/create-middleware-context.ts';
-import { createTestSpreadsheet, deleteTestSpreadsheet } from '../../../lib/spreadsheet-helpers.ts';
+import { addTestTabs, deleteTestTabs, sharedSpreadsheet, type TestTab } from '../../../lib/spreadsheet-helpers.ts';
 
 /**
  * RANGE ALLOCATION MAP - values-markdown-update.test.ts
  *
- * All tests use shared sheet (gid: 0) with non-overlapping cells.
+ * All tests use the file's own tab with non-overlapping cells.
  *
  * Allocated Cells:
  * - I2 = Test 1: two links + bold, read back via textFormatRuns
@@ -25,10 +25,9 @@ import { createTestSpreadsheet, deleteTestSpreadsheet } from '../../../lib/sprea
 describe('values-markdown-update tool (service-backed tests)', () => {
   // Shared test resources
   let sharedSpreadsheetId: string;
+  let tab: TestTab;
   let auth: Awaited<ReturnType<typeof createMiddlewareContext>>['auth'];
-  let authProvider: LoopbackOAuthProvider;
   let logger: Logger;
-  let accountId: string;
   let handler: TypedHandler<Input>;
   let tmpDir: string;
 
@@ -40,18 +39,16 @@ describe('values-markdown-update tool (service-backed tests)', () => {
 
       // Get middleware for tool creation
       const middlewareContext = await createMiddlewareContext();
-      authProvider = middlewareContext.authProvider;
       logger = middlewareContext.logger;
       auth = middlewareContext.auth;
       const middleware = middlewareContext.middleware;
-      accountId = middlewareContext.accountId;
       const tool = mcp.toolFactories.valuesMarkdownUpdate();
       const wrappedTool = middleware.withToolAuth(tool);
       handler = wrappedTool.handler;
 
-      // Create shared spreadsheet for all tests (tests use default sheet 0 with non-overlapping cells)
-      const title = `ci-values-markdown-update-tests-${Date.now()}`;
-      sharedSpreadsheetId = await createTestSpreadsheet(await authProvider.getAccessToken(accountId), { title });
+      // Create shared spreadsheet for all tests (tests use the file's own tab with non-overlapping cells)
+      sharedSpreadsheetId = await sharedSpreadsheet();
+      [tab] = (await addTestTabs(sharedSpreadsheetId, ['values-markdown-update'])) as [TestTab];
     } catch (error) {
       logger.error('Failed to initialize test resources:', { error });
       throw error;
@@ -60,15 +57,12 @@ describe('values-markdown-update tool (service-backed tests)', () => {
 
   after(async () => {
     // Cleanup resources - fail fast on errors
-    if (sharedSpreadsheetId) {
-      const accessToken = await authProvider.getAccessToken(accountId);
-      await deleteTestSpreadsheet(accessToken, sharedSpreadsheetId, logger);
-    }
+    if (tab) await deleteTestTabs(sharedSpreadsheetId, [tab.gid]);
     if (tmpDir) await fs.rm(tmpDir, { recursive: true, force: true });
   });
 
   it('[I2] writes two clickable links plus bold text and reads back matching textFormatRuns', async () => {
-    const testSheetId = 0; // Use default sheet
+    const testSheetId = tab.sheetId;
     const cell = 'I2';
     const linkAUri = 'https://a.example.com/one';
     const linkBUri = 'https://b.example.com/two';
@@ -128,7 +122,7 @@ describe('values-markdown-update tool (service-backed tests)', () => {
   });
 
   it('[I3, A1:B2] reports a multi-cell "cell" reference as a failed cell without failing the whole batch', async () => {
-    const testSheetId = 0; // Use default sheet
+    const testSheetId = tab.sheetId;
     const validCell = 'I3';
 
     const response = await handler(
@@ -162,7 +156,7 @@ describe('values-markdown-update tool (service-backed tests)', () => {
       handler(
         {
           id: sharedSpreadsheetId,
-          gid: '0',
+          gid: tab.gid,
           requests: [
             { cell: 'A1:B2', text: 'a range, not a single cell' },
             { cell: 'INVALID_CELL', text: 'not a cell' },

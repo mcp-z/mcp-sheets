@@ -45,6 +45,8 @@ Specs live in `test/unit/`, mirroring `src/`. Cross-service specs live in `test/
 
 Run test commands from the package root. The test setup optionally loads the package root's `.env.test`, else `~/.config/mcp-z/mcp-sheets/.env.test` (the first one found is used) through `portable-env`; file values override matching inherited values. CI or the shell can supply values without a file. Enabled live tests require their necessary values, not the file itself.
 
+Live integration specs share one spreadsheet per test process. The first spec that calls `sharedSpreadsheet()` (`test/lib/spreadsheet-helpers.ts`) creates `ci-shared-<run id>`. The process that created it deletes it at the end of the run, and also on SIGINT or SIGTERM. Each spec adds its own tabs with `addTestTabs`, addresses them only by gid or by the range helper the tabs come with, and removes every tab it created (tabs a tool created are removed too), in its own `after`; `cells-metadata-get` removes its extra tab in a `finally`, and `sheet-delete` removes only the tabs its tests did not already delete. Never write to or rename the shared default tab. A spec gets its own spreadsheet only when the spreadsheet itself is the subject: creating, renaming, the default tab's gid, or a second spreadsheet as a destination. The three metadata specs share one `sharedMetadataFixture()` instead. The run ends by deleting any spreadsheet no delete was attempted on and failing, naming the id and title of each one left behind, if any remains; a delete that already failed is never tried again. A killed run can leave `ci-shared-*` or `ci-metadata-*` spreadsheets behind; find them in Drive by that prefix and delete them by hand.
+
 ## Package Development
 
 See `README.md` for package overview and usage.

@@ -12,9 +12,16 @@ import { googleAuth } from '../../src/lib/google-auth.ts';
 import type { Logger } from '../../src/types.ts';
 import { createConfig } from './config.ts';
 import createTokenStore from './create-token-store.ts';
-import { PacedOAuthProvider, pacingSummary } from './paced-oauth-provider.ts';
+import { PacedOAuthProvider, pacingSummary, runEndHooksAll } from './paced-oauth-provider.ts';
 
-after(() => console.info('Live API pacing:', pacingSummary()));
+// One root hook: the run's cleanup first, then the pacing line with the final counts.
+after(async () => {
+  try {
+    await runEndHooksAll();
+  } finally {
+    console.info('Live API pacing:', pacingSummary());
+  }
+});
 
 /**
  * Validate exactly one account exists (0/1/Many strategy)

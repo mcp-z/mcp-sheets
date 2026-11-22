@@ -1,5 +1,15 @@
 # Changelog
 
+## [2.6.5] - 2026-11-22
+
+### Fixed
+
+- `columns-update` now reports duplicate keys in the submitted rows as invalid parameters (`InvalidParams`) naming the duplicated keys, before any Google call, instead of an internal error. A failure from Google is still an internal error.
+
+### Changed
+
+- A `columns-update` call with `behavior` `add-only` or `update-only` whose input repeats a key now fails with invalid parameters; before, it succeeded and skipped the repeated rows.
+
 ## [2.6.4] - 2026-11-20
 
 ### Fixed

@@ -2,55 +2,11 @@ name: CI
 on:
   push:
     branches: [master]
-  pull_request:
-    branches: [master]
-  workflow_dispatch:
-
-permissions:
-  contents: read
-
-env:
-  TEST_INCLUDE_MANUAL: "false"
 
 jobs:
-  test:
-    name: Tests / ${{ matrix.os }}
-    if: github.event_name == 'pull_request'
-    runs-on: ${{ matrix.os }}
-    timeout-minutes: 90
-    concurrency:
-      group: ci-pr-${{ github.ref }}-${{ matrix.os }}
-      cancel-in-progress: true
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest, windows-latest]
-    steps:
-      - name: Checkout
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
-        with:
-          persist-credentials: false
-      - name: Setup Node
-        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
-        with:
-          node-version: 26
-          package-manager-cache: false
-      - name: Configure Git name
-        run: git config --global user.name "Github Actions"
-      - name: Configure Git email
-        run: git config --global user.email "actions@users.noreply.github.com"
-      - name: Install
-        run: npm ci
-      - name: Validate
-        run: npm run prepublishOnly
-      - name: Tests
-        run: npm test -- "test/exports/*.test.*" "test/unit/**/*.test.ts" "test/integration/server.test.ts" "test/integration/sheets-server-spawn.test.ts" "test/integration/csv-stream-lifecycle.test.ts"
-      - name: Engines
-        run: npm run test:engines -- "test/exports/*.test.*" "test/unit/**/*.test.ts" "test/integration/server.test.ts" "test/integration/sheets-server-spawn.test.ts" "test/integration/csv-stream-lifecycle.test.ts"
-
   ubuntu:
     name: Ubuntu
-    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/master'
+    if: github.ref == 'refs/heads/master'
     uses: ./.github/workflows/live.yml
     with:
       runner: ubuntu-latest

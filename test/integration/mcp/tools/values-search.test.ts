@@ -1,7 +1,6 @@
 import '../../../lib/env-loader.ts';
 import { sheets as sheetsApi } from '@googleapis/sheets';
 import { mcp } from '@mcp-z/mcp-sheets';
-import type { Logger, LoopbackOAuthProvider } from '@mcp-z/oauth-google';
 import assert from 'assert';
 import crypto from 'crypto';
 import fs from 'fs/promises';
@@ -9,7 +8,7 @@ import * as path from 'path';
 import type { Input, Output } from '../../../../src/mcp/tools/values-search.ts';
 import { createExtra, type TypedHandler } from '../../../lib/create-extra.ts';
 import createMiddlewareContext from '../../../lib/create-middleware-context.ts';
-import { createTestSpreadsheet, deleteTestSpreadsheet } from '../../../lib/spreadsheet-helpers.ts';
+import { addTestTabs, deleteTestTabs, sharedSpreadsheet, type TestTab } from '../../../lib/spreadsheet-helpers.ts';
 
 /**
  * OPTIMIZATION STRATEGY - search.test.ts
@@ -17,7 +16,7 @@ import { createTestSpreadsheet, deleteTestSpreadsheet } from '../../../lib/sprea
  * Strategy: Prefix-Based Data Isolation with Single Batch Write
  * =============================================================
  *
- * All tests share the default sheet (gid: 0) and use unique data prefixes to prevent
+ * All tests share this file's own tab and use unique data prefixes to prevent
  * search interference. All test data is written in a single batch operation in before(),
  * saving 5 write operations.
  *
@@ -38,10 +37,8 @@ import { createTestSpreadsheet, deleteTestSpreadsheet } from '../../../lib/sprea
 describe('search tool (service-backed tests)', () => {
   // Shared test resources
   let sharedSpreadsheetId: string;
+  let tab: TestTab;
   let auth: Awaited<ReturnType<typeof createMiddlewareContext>>['auth'];
-  let authProvider: LoopbackOAuthProvider;
-  let logger: Logger;
-  let accountId: string;
   let handler: TypedHandler<Input>;
   let tmpDir: string;
 
@@ -49,16 +46,13 @@ describe('search tool (service-backed tests)', () => {
     tmpDir = path.join('.tmp', `search-tests-${crypto.randomUUID()}`);
     await fs.mkdir(tmpDir, { recursive: true });
     const middlewareContext = await createMiddlewareContext();
-    authProvider = middlewareContext.authProvider;
-    logger = middlewareContext.logger;
     auth = middlewareContext.auth;
     const middleware = middlewareContext.middleware;
-    accountId = middlewareContext.accountId;
     const tool = mcp.toolFactories.valuesSearch();
     const wrappedTool = middleware.withToolAuth(tool);
     handler = wrappedTool.handler;
-    const title = `ci-search-tests-${Date.now()}`;
-    sharedSpreadsheetId = await createTestSpreadsheet(await authProvider.getAccessToken(accountId), { title });
+    sharedSpreadsheetId = await sharedSpreadsheet();
+    [tab] = (await addTestTabs(sharedSpreadsheetId, ['values-search'])) as [TestTab];
 
     // OPTIMIZATION: Add all test data in a single batch write using googleapis directly
     // This saves tool overhead (schema validation, resolution, response formatting)
@@ -67,7 +61,7 @@ describe('search tool (service-backed tests)', () => {
       const sheets = sheetsApi({ version: 'v4', auth });
       await sheets.spreadsheets.values.append({
         spreadsheetId: sharedSpreadsheetId,
-        range: 'Sheet1!A1',
+        range: tab.a1('A1'),
         valueInputOption: 'RAW',
         insertDataOption: 'INSERT_ROWS',
         requestBody: {
@@ -101,16 +95,13 @@ describe('search tool (service-backed tests)', () => {
 
   after(async () => {
     // Cleanup resources - fail fast on errors
-    if (sharedSpreadsheetId) {
-      const accessToken = await authProvider.getAccessToken(accountId);
-      await deleteTestSpreadsheet(accessToken, sharedSpreadsheetId, logger);
-    }
+    if (tab) await deleteTestTabs(sharedSpreadsheetId, [tab.gid]);
     if (tmpDir) await fs.rm(tmpDir, { recursive: true, force: true });
   });
 
   it('[search1-*] sheets-search returns count only when no flags specified', async () => {
-    // Use default sheet (gid: 0) - data already loaded in before() with search1- prefix
-    const gid = 0;
+    // Use the file's own tab - data already loaded in before() with search1- prefix
+    const gid = tab.sheetId;
 
     const result = await handler({ id: sharedSpreadsheetId, gid: String(gid), select: 'cells' }, createExtra());
 
@@ -125,8 +116,8 @@ describe('search tool (service-backed tests)', () => {
   });
 
   it('[search2-*] sheets-search cells granularity with a1s flag', async () => {
-    // Use default sheet (gid: 0) - data already loaded in before() with search2- prefix
-    const gid = 0;
+    // Use the file's own tab - data already loaded in before() with search2- prefix
+    const gid = tab.sheetId;
 
     const result = await handler({ id: sharedSpreadsheetId, gid: String(gid), query: 'search2-Test', select: 'cells', a1s: true }, createExtra());
 
@@ -146,8 +137,8 @@ describe('search tool (service-backed tests)', () => {
   });
 
   it('[search3-*] sheets-search cells granularity with values flag', async () => {
-    // Use default sheet (gid: 0) - data already loaded in before() with search3- prefix
-    const gid = 0;
+    // Use the file's own tab - data already loaded in before() with search3- prefix
+    const gid = tab.sheetId;
 
     const result = await handler({ id: sharedSpreadsheetId, gid: String(gid), query: 'search3-Alice', select: 'cells', values: true }, createExtra());
 
@@ -163,8 +154,8 @@ describe('search tool (service-backed tests)', () => {
   });
 
   it('[search4-*] sheets-search rows granularity with a1s and values', async () => {
-    // Use default sheet (gid: 0) - data already loaded in before() with search4- prefix
-    const gid = 0;
+    // Use the file's own tab - data already loaded in before() with search4- prefix
+    const gid = tab.sheetId;
 
     const result = await handler({ id: sharedSpreadsheetId, gid: String(gid), query: 'search4-Alice', select: 'rows', a1s: true, values: true }, createExtra());
 
@@ -191,9 +182,9 @@ describe('search tool (service-backed tests)', () => {
   });
 
   it('[search5-*] sheets-search columns granularity', async () => {
-    // Use default sheet (gid: 0) - data already loaded in before() with search5- prefix
+    // Use the file's own tab - data already loaded in before() with search5- prefix
     // This test searches for "Age" column header (not the data, so no prefix needed)
-    const gid = 0;
+    const gid = tab.sheetId;
 
     const result = await handler({ id: sharedSpreadsheetId, gid: String(gid), query: 'Age', select: 'columns', a1s: true }, createExtra());
 
@@ -213,8 +204,8 @@ describe('search tool (service-backed tests)', () => {
   });
 
   it('[search6-*] sheets-search with empty query returns all cells', async () => {
-    // Use default sheet (gid: 0) - data already loaded in before() with search6- prefix
-    const gid = 0;
+    // Use the file's own tab - data already loaded in before() with search6- prefix
+    const gid = tab.sheetId;
 
     const result = await handler({ id: sharedSpreadsheetId, gid: String(gid), select: 'cells' }, createExtra());
 

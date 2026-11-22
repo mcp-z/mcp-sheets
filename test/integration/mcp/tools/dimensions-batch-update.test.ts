@@ -1,6 +1,6 @@
 import '../../../lib/env-loader.ts';
 import { mcp } from '@mcp-z/mcp-sheets';
-import type { Logger, LoopbackOAuthProvider } from '@mcp-z/oauth-google';
+import type { Logger } from '@mcp-z/oauth-google';
 import assert from 'assert';
 import crypto from 'crypto';
 import fs from 'fs/promises';
@@ -8,14 +8,13 @@ import * as path from 'path';
 import type { Input, Output } from '../../../../src/mcp/tools/dimensions-batch-update.ts';
 import { createExtra, type TypedHandler } from '../../../lib/create-extra.ts';
 import createMiddlewareContext from '../../../lib/create-middleware-context.ts';
-import { createTestSpreadsheet, deleteTestSpreadsheet } from '../../../lib/spreadsheet-helpers.ts';
+import { addTestTabs, deleteTestTabs, sharedSpreadsheet, type TestTab } from '../../../lib/spreadsheet-helpers.ts';
 
 describe('dimensions-batch-update tool (service-backed tests)', () => {
   // Shared test resources
   let sharedSpreadsheetId: string;
-  let authProvider: LoopbackOAuthProvider;
+  let tab: TestTab;
   let logger: Logger;
-  let accountId: string;
   let handler: TypedHandler<Input>;
   let tmpDir: string;
 
@@ -27,17 +26,15 @@ describe('dimensions-batch-update tool (service-backed tests)', () => {
 
       // Get middleware for tool creation
       const middlewareContext = await createMiddlewareContext();
-      authProvider = middlewareContext.authProvider;
       logger = middlewareContext.logger;
       const middleware = middlewareContext.middleware;
-      accountId = middlewareContext.accountId;
       const tool = mcp.toolFactories.dimensionsBatchUpdate();
       const wrappedTool = middleware.withToolAuth(tool);
       handler = wrappedTool.handler;
 
       // Create shared spreadsheet for all tests
-      const title = `ci-dimensions-batch-update-tests-${Date.now()}`;
-      sharedSpreadsheetId = await createTestSpreadsheet(await authProvider.getAccessToken(accountId), { title });
+      sharedSpreadsheetId = await sharedSpreadsheet();
+      [tab] = (await addTestTabs(sharedSpreadsheetId, ['dimensions-batch-update'])) as [TestTab];
     } catch (error) {
       logger.error('Failed to initialize test resources:', { error });
       throw error;
@@ -46,16 +43,13 @@ describe('dimensions-batch-update tool (service-backed tests)', () => {
 
   after(async () => {
     // Cleanup resources - fail fast on errors
-    if (sharedSpreadsheetId) {
-      const accessToken = await authProvider.getAccessToken(accountId);
-      await deleteTestSpreadsheet(accessToken, sharedSpreadsheetId, logger);
-    }
+    if (tab) await deleteTestTabs(sharedSpreadsheetId, [tab.gid]);
     if (tmpDir) await fs.rm(tmpDir, { recursive: true, force: true });
   });
 
   it('dimensions_batchUpdate handles delete and multiple operations with optimal ordering', async () => {
-    // Use default sheet (gid: 0) to minimize write operations
-    const testSheetId = 0;
+    // Use the file's own tab to minimize write operations
+    const testSheetId = tab.sheetId;
 
     // CONSOLIDATED TEST: Validates both single deleteDimension and multiple operations in one execution
     // Test multiple operations in intentionally sub-optimal order

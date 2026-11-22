@@ -6,7 +6,8 @@ import { ProtocolError, ProtocolErrorCode } from '@mcp-z/server';
 import assert from 'assert';
 import type { Input } from '../../../../src/mcp/tools/cells-metadata-get.ts';
 import { createExtra, type TypedHandler } from '../../../lib/create-extra.ts';
-import { createMetadataFixture, METADATA_SHEET_ID, METADATA_SHEET_TITLE } from '../../../lib/metadata-fixture.ts';
+import { METADATA_SHEET_ID, METADATA_SHEET_TITLE, sharedMetadataFixture } from '../../../lib/metadata-fixture.ts';
+import { deleteTestTabs } from '../../../lib/spreadsheet-helpers.ts';
 
 function selectedCells(metadata: sheets_v4.Schema$Spreadsheet) {
   const cells = new Map<string, sheets_v4.Schema$CellData>();
@@ -23,16 +24,13 @@ function selectedCells(metadata: sheets_v4.Schema$Spreadsheet) {
 }
 
 describe('cells-metadata-get (Google integration)', () => {
-  let fixture: Awaited<ReturnType<typeof createMetadataFixture>>;
+  let fixture: Awaited<ReturnType<typeof sharedMetadataFixture>>;
   let handler: TypedHandler<Input>;
   const tool = mcp.toolFactories.cellsMetadataGet();
 
   before(async () => {
-    fixture = await createMetadataFixture();
+    fixture = await sharedMetadataFixture();
     handler = fixture.middleware.withToolAuth(tool).handler;
-  });
-  after(async () => {
-    if (fixture) await fixture.close();
   });
 
   it('resolves a quoted title by gid and preserves sparse rows and columns in batched reads', async () => {
@@ -123,10 +121,15 @@ describe('cells-metadata-get (Google integration)', () => {
       },
     });
     const gid = response.data.replies?.[0]?.addChart?.chart?.position?.sheetId;
-    assert.equal(typeof gid, 'number');
-    await assert.rejects(
-      () => handler({ id: fixture.id, gid: String(gid), ranges: ['A1'] }, createExtra()),
-      (error: unknown) => error instanceof ProtocolError && error.code === ProtocolErrorCode.InvalidParams && /OBJECT/.test(error.message)
-    );
+    try {
+      assert.equal(typeof gid, 'number');
+      await assert.rejects(
+        () => handler({ id: fixture.id, gid: String(gid), ranges: ['A1'] }, createExtra()),
+        (error: unknown) => error instanceof ProtocolError && error.code === ProtocolErrorCode.InvalidParams && /OBJECT/.test(error.message)
+      );
+    } finally {
+      // The fixture is shared: later files still expect exactly its two tabs.
+      if (typeof gid === 'number') await deleteTestTabs(fixture.id, [gid]);
+    }
   });
 });

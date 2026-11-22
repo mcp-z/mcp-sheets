@@ -1,13 +1,12 @@
 import '../../../lib/env-loader.ts';
 import { sheets as sheetsApi } from '@googleapis/sheets';
 import { mcp } from '@mcp-z/mcp-sheets';
-import type { Logger, LoopbackOAuthProvider } from '@mcp-z/oauth-google';
 import assert from 'assert';
 import type { Input as RowsGetInput, Output as RowsGetOutput } from '../../../../src/mcp/tools/rows-get.ts';
 import type { Input, Output } from '../../../../src/mcp/tools/values-clear.ts';
 import { createExtra, type TypedHandler } from '../../../lib/create-extra.ts';
 import createMiddlewareContext from '../../../lib/create-middleware-context.ts';
-import { createTestSpreadsheet, deleteTestSpreadsheet } from '../../../lib/spreadsheet-helpers.ts';
+import { addTestTabs, deleteTestTabs, sharedSpreadsheet, type TestTab } from '../../../lib/spreadsheet-helpers.ts';
 
 /**
  * OPTIMIZATION STRATEGY - values-clear.test.ts
@@ -28,21 +27,16 @@ import { createTestSpreadsheet, deleteTestSpreadsheet } from '../../../lib/sprea
 
 describe('values-clear tool (service-backed tests)', () => {
   let sharedSpreadsheetId: string;
+  let tab: TestTab;
   let sharedGid: string;
   let auth: Awaited<ReturnType<typeof createMiddlewareContext>>['auth'];
-  let authProvider: LoopbackOAuthProvider;
-  let logger: Logger;
-  let accountId: string;
   let valuesClearHandler: TypedHandler<Input>;
   let rowsGetHandler: TypedHandler<RowsGetInput>;
 
   before(async () => {
     const middlewareContext = await createMiddlewareContext();
-    authProvider = middlewareContext.authProvider;
-    logger = middlewareContext.logger;
     auth = middlewareContext.auth;
     const middleware = middlewareContext.middleware;
-    accountId = middlewareContext.accountId;
 
     const valuesClearTool = mcp.toolFactories.valuesClear();
     const wrappedValuesClearTool = middleware.withToolAuth(valuesClearTool);
@@ -52,10 +46,9 @@ describe('values-clear tool (service-backed tests)', () => {
     const wrappedRowsGetTool = middleware.withToolAuth(rowsGetTool);
     rowsGetHandler = wrappedRowsGetTool.handler;
 
-    const title = `ci-values-clear-tests-${Date.now()}`;
-    const accessToken = await authProvider.getAccessToken(accountId);
-    sharedSpreadsheetId = await createTestSpreadsheet(accessToken, { title });
-    sharedGid = '0';
+    sharedSpreadsheetId = await sharedSpreadsheet();
+    [tab] = (await addTestTabs(sharedSpreadsheetId, ['values-clear'])) as [TestTab];
+    sharedGid = tab.gid;
 
     // Add all test data in a single batch write
     try {
@@ -67,7 +60,7 @@ describe('values-clear tool (service-backed tests)', () => {
           data: [
             // Test 1 data: Single range clear (A1:C3)
             {
-              range: 'Sheet1!A1:C3',
+              range: tab.a1('A1:C3'),
               values: [
                 ['Header1', 'Header2', 'Header3'],
                 ['Value1', 'Value2', 'Value3'],
@@ -76,7 +69,7 @@ describe('values-clear tool (service-backed tests)', () => {
             },
             // Test 2 data: Multiple range clear (E1:G3)
             {
-              range: 'Sheet1!E1:G3',
+              range: tab.a1('E1:G3'),
               values: [
                 ['ColE', 'ColF', 'ColG'],
                 ['E2', 'F2', 'G2'],
@@ -92,10 +85,7 @@ describe('values-clear tool (service-backed tests)', () => {
   });
 
   after(async () => {
-    if (sharedSpreadsheetId) {
-      const accessToken = await authProvider.getAccessToken(accountId);
-      await deleteTestSpreadsheet(accessToken, sharedSpreadsheetId, logger);
-    }
+    if (tab) await deleteTestTabs(sharedSpreadsheetId, [tab.gid]);
   });
 
   it('values-clear clears a single range', async () => {

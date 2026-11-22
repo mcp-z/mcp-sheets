@@ -5,7 +5,7 @@ import { mcp } from '@mcp-z/mcp-sheets';
 import { CallToolResultSchema } from '@modelcontextprotocol/sdk/types.js';
 import assert from 'assert';
 import { createStdioFixture } from '../lib/create-stdio-fixture.ts';
-import { createMetadataFixture, METADATA_SHEET_ID, METADATA_SHEET_TITLE } from '../lib/metadata-fixture.ts';
+import { METADATA_SHEET_ID, METADATA_SHEET_TITLE, sharedMetadataFixture } from '../lib/metadata-fixture.ts';
 
 describe('Sheets MCP Server Component Tests', () => {
   let client: ManagedClient;
@@ -22,14 +22,10 @@ describe('Sheets MCP Server Component Tests', () => {
 
   describe('MCP Protocol Component Testing', () => {
     describe('Live metadata invocation', () => {
-      let metadataFixture: Awaited<ReturnType<typeof createMetadataFixture>>;
+      let metadataFixture: Awaited<ReturnType<typeof sharedMetadataFixture>>;
 
       before(async () => {
-        metadataFixture = await createMetadataFixture();
-      });
-
-      after(async () => {
-        if (metadataFixture) await metadataFixture.close();
+        metadataFixture = await sharedMetadataFixture();
       });
 
       it('invokes both metadata tools through the built package and preserves structured and text results', async () => {

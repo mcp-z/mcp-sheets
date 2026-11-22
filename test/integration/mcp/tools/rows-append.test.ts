@@ -1,6 +1,6 @@
 import '../../../lib/env-loader.ts';
 import { mcp } from '@mcp-z/mcp-sheets';
-import type { Logger, LoopbackOAuthProvider } from '@mcp-z/oauth-google';
+import type { Logger } from '@mcp-z/oauth-google';
 import assert from 'assert';
 import crypto from 'crypto';
 import fs from 'fs/promises';
@@ -9,7 +9,7 @@ import type { Input, Output } from '../../../../src/mcp/tools/rows-append.ts';
 import type { Input as RowsGetInput, Output as RowsGetOutput } from '../../../../src/mcp/tools/rows-get.ts';
 import { createExtra, type TypedHandler } from '../../../lib/create-extra.ts';
 import createMiddlewareContext from '../../../lib/create-middleware-context.ts';
-import { createTestSpreadsheet, deleteTestSpreadsheet } from '../../../lib/spreadsheet-helpers.ts';
+import { addTestTabs, deleteTestTabs, sharedSpreadsheet, type TestTab } from '../../../lib/spreadsheet-helpers.ts';
 
 /**
  * OPTIMIZATION: Hybrid Testing with rows-get Integration
@@ -29,8 +29,7 @@ import { createTestSpreadsheet, deleteTestSpreadsheet } from '../../../lib/sprea
 describe('rows-append tool (service-backed tests)', () => {
   // Shared test resources
   let sharedSpreadsheetId: string;
-  let authProvider: LoopbackOAuthProvider;
-  let accountId: string;
+  let tab: TestTab;
   let logger: Logger;
   let handler: TypedHandler<Input>;
   let rowsGetHandler: TypedHandler<RowsGetInput>;
@@ -44,10 +43,8 @@ describe('rows-append tool (service-backed tests)', () => {
 
       // Get middleware for tool creation
       const middlewareContext = await createMiddlewareContext();
-      authProvider = middlewareContext.authProvider;
       logger = middlewareContext.logger;
       const middleware = middlewareContext.middleware;
-      accountId = middlewareContext.accountId;
       const tool = mcp.toolFactories.rowsAppend();
       const wrappedTool = middleware.withToolAuth(tool);
       handler = wrappedTool.handler;
@@ -56,9 +53,9 @@ describe('rows-append tool (service-backed tests)', () => {
       const wrappedRowsGetTool = middleware.withToolAuth(rowsGetTool);
       rowsGetHandler = wrappedRowsGetTool.handler;
 
-      // Create shared spreadsheet for all tests (use default sheet to save operations)
-      const title = `ci-rows-append-tests-${Date.now()}`;
-      sharedSpreadsheetId = await createTestSpreadsheet(await authProvider.getAccessToken(accountId), { title });
+      // Create shared spreadsheet for all tests (the file adds its own tab)
+      sharedSpreadsheetId = await sharedSpreadsheet();
+      [tab] = (await addTestTabs(sharedSpreadsheetId, ['rows-append'])) as [TestTab];
     } catch (error) {
       logger.error('Failed to initialize test resources:', { error });
       throw error;
@@ -67,15 +64,12 @@ describe('rows-append tool (service-backed tests)', () => {
 
   after(async () => {
     // Cleanup resources - fail fast on errors
-    if (sharedSpreadsheetId) {
-      const accessToken = await authProvider.getAccessToken(accountId);
-      await deleteTestSpreadsheet(accessToken, sharedSpreadsheetId, logger);
-    }
+    if (tab) await deleteTestTabs(sharedSpreadsheetId, [tab.gid]);
     if (tmpDir) await fs.rm(tmpDir, { recursive: true, force: true });
   });
 
   it('[Shared:test1-*,test2-*,test3-*] rows_append basic operations (consolidated)', async () => {
-    const testSheetId = 0;
+    const testSheetId = tab.sheetId;
     const headers = ['id', 'name', 'value'];
 
     // PART 1: Basic append with unique ID prefix (test1)
@@ -206,7 +200,7 @@ describe('rows-append tool (service-backed tests)', () => {
   });
 
   it('[Shared:test4-*] rows_append should deduplicate rows based on deduplicateBy parameter', async () => {
-    const testSheetId = 0;
+    const testSheetId = tab.sheetId;
 
     // Use standard headers with unique ID prefix for isolation
     const testId = `test4-${Date.now()}`;
@@ -265,7 +259,7 @@ describe('rows-append tool (service-backed tests)', () => {
   });
 
   it('[Shared:test5-*] rows_append multiple runs reproduce workflow issue - deduplication behavior', async () => {
-    const testSheetId = 0;
+    const testSheetId = tab.sheetId;
 
     // Use unique test data prefix to avoid conflicts with other tests
     const testPrefix = `test5-${Date.now()}`;
@@ -368,7 +362,7 @@ describe('rows-append tool (service-backed tests)', () => {
   });
 
   it('[Shared:test9-*,test10-*] rows_append deduplication edge cases (consolidated)', async () => {
-    const testSheetId = 0;
+    const testSheetId = tab.sheetId;
     const headers = ['id', 'name', 'value'];
 
     // PART 1: Complex deduplication with multiple key columns (test9)

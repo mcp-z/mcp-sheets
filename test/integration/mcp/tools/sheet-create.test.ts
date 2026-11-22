@@ -1,7 +1,7 @@
 import '../../../lib/env-loader.ts';
 import { sheets as sheetsApi } from '@googleapis/sheets';
 import { mcp } from '@mcp-z/mcp-sheets';
-import type { Logger, LoopbackOAuthProvider } from '@mcp-z/oauth-google';
+import type { Logger } from '@mcp-z/oauth-google';
 import assert from 'assert';
 import crypto from 'crypto';
 import fs from 'fs/promises';
@@ -9,70 +9,65 @@ import * as path from 'path';
 import type { Input, Output } from '../../../../src/mcp/tools/sheet-create.ts';
 import { createExtra, type TypedHandler } from '../../../lib/create-extra.ts';
 import createMiddlewareContext from '../../../lib/create-middleware-context.ts';
-import { createTestSpreadsheet, deleteTestSpreadsheet } from '../../../lib/spreadsheet-helpers.ts';
+import { deleteTestTabs, sharedSpreadsheet } from '../../../lib/spreadsheet-helpers.ts';
 
-// Shared test resources
-let sharedSpreadsheetId: string;
-let auth: Awaited<ReturnType<typeof createMiddlewareContext>>['auth'];
-let authProvider: LoopbackOAuthProvider;
-let logger: Logger;
-let accountId: string;
-let handler: TypedHandler<Input>;
-let tmpDir: string;
+describe('sheet-create', () => {
+  // Shared test resources
+  let sharedSpreadsheetId: string;
+  const createdGids: string[] = [];
+  let auth: Awaited<ReturnType<typeof createMiddlewareContext>>['auth'];
+  let logger: Logger;
+  let handler: TypedHandler<Input>;
+  let tmpDir: string;
 
-before(async () => {
-  try {
-    // Create temporary directory
-    tmpDir = path.join('.tmp', `sheet-create-tests-${crypto.randomUUID()}`);
-    await fs.mkdir(tmpDir, { recursive: true });
+  before(async () => {
+    try {
+      // Create temporary directory
+      tmpDir = path.join('.tmp', `sheet-create-tests-${crypto.randomUUID()}`);
+      await fs.mkdir(tmpDir, { recursive: true });
 
-    // Get middleware for tool creation and auth for close operations
-    const middlewareContext = await createMiddlewareContext();
-    auth = middlewareContext.auth;
-    logger = middlewareContext.logger;
-    const middleware = middlewareContext.middleware;
-    const tool = mcp.toolFactories.sheetCreate();
-    const wrappedTool = middleware.withToolAuth(tool);
-    handler = wrappedTool.handler;
-    authProvider = middlewareContext.authProvider;
-    accountId = middlewareContext.accountId;
+      // Get middleware for tool creation and auth for close operations
+      const middlewareContext = await createMiddlewareContext();
+      auth = middlewareContext.auth;
+      logger = middlewareContext.logger;
+      const middleware = middlewareContext.middleware;
+      const tool = mcp.toolFactories.sheetCreate();
+      const wrappedTool = middleware.withToolAuth(tool);
+      handler = wrappedTool.handler;
 
-    // Create shared spreadsheet for all tests
-    const title = `ci-sheet-create-tests-${Date.now()}`;
-    const accessToken = await authProvider.getAccessToken(accountId);
-    sharedSpreadsheetId = await createTestSpreadsheet(accessToken, { title });
-  } catch (error) {
-    logger.error('Failed to initialize test resources:', { error });
-    throw error;
-  }
-});
+      // Create shared spreadsheet for all tests
+      sharedSpreadsheetId = await sharedSpreadsheet();
+    } catch (error) {
+      logger.error('Failed to initialize test resources:', { error });
+      throw error;
+    }
+  });
 
-after(async () => {
-  // Cleanup resources - fail fast on errors
-  if (sharedSpreadsheetId) {
-    const accessToken = await authProvider.getAccessToken(accountId);
-    await deleteTestSpreadsheet(accessToken, sharedSpreadsheetId, logger);
-  }
-  if (tmpDir) await fs.rm(tmpDir, { recursive: true, force: true });
-});
+  after(async () => {
+    // Cleanup resources - fail fast on errors
+    if (createdGids.length > 0) await deleteTestTabs(sharedSpreadsheetId, createdGids);
+    if (tmpDir) await fs.rm(tmpDir, { recursive: true, force: true });
+  });
 
-it('sheet_create adds a sheet (tab) to a spreadsheet and is removable', async () => {
-  // Call sheet_create to add a new tab to shared spreadsheet
-  const sheetTitle = `tab-${Date.now()}`;
-  const res = await handler({ id: sharedSpreadsheetId, sheetTitle }, createExtra());
-  assert.ok(res && res.structuredContent && res.content, 'missing structured result for sheet_create');
-  const branch = (res.structuredContent as { result?: unknown } | undefined)?.result as Output | undefined;
-  assert.ok(branch, 'missing structured result for sheet_create');
-  assert.equal(branch.type, 'success');
-  if (branch.type === 'success') {
-    assert.equal(branch.id, sharedSpreadsheetId, 'sheet_create did not return spreadsheet id');
-    assert.ok(branch.gid, 'sheet_create should return gid');
-    assert.equal(typeof branch.gid, 'string', 'gid should be a string');
+  it('sheet_create adds a sheet (tab) to a spreadsheet and is removable', async () => {
+    // Call sheet_create to add a new tab to shared spreadsheet
+    const sheetTitle = `tab-${Date.now()}`;
+    const res = await handler({ id: sharedSpreadsheetId, sheetTitle }, createExtra());
+    assert.ok(res && res.structuredContent && res.content, 'missing structured result for sheet_create');
+    const branch = (res.structuredContent as { result?: unknown } | undefined)?.result as Output | undefined;
+    assert.ok(branch, 'missing structured result for sheet_create');
+    assert.equal(branch.type, 'success');
+    if (branch.type === 'success') {
+      assert.equal(branch.id, sharedSpreadsheetId, 'sheet_create did not return spreadsheet id');
+      assert.ok(branch.gid, 'sheet_create should return gid');
+      createdGids.push(branch.gid);
+      assert.equal(typeof branch.gid, 'string', 'gid should be a string');
 
-    // Verify sheet exists via Sheets API
-    const client = sheetsApi({ version: 'v4', auth });
-    const info = await client.spreadsheets.get({ spreadsheetId: sharedSpreadsheetId, fields: 'sheets.properties' });
-    const exists = Array.isArray(info.data.sheets) && info.data.sheets.some((s) => s?.properties?.title === sheetTitle);
-    assert.ok(exists, 'Expected sheet tab to exist after sheet_create');
-  }
+      // Verify sheet exists via Sheets API
+      const client = sheetsApi({ version: 'v4', auth });
+      const info = await client.spreadsheets.get({ spreadsheetId: sharedSpreadsheetId, fields: 'sheets.properties' });
+      const exists = Array.isArray(info.data.sheets) && info.data.sheets.some((s) => s?.properties?.title === sheetTitle);
+      assert.ok(exists, 'Expected sheet tab to exist after sheet_create');
+    }
+  });
 });

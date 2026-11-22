@@ -11,88 +11,90 @@ import { createExtra, type TypedHandler } from '../../../lib/create-extra.ts';
 import createMiddlewareContext from '../../../lib/create-middleware-context.ts';
 import { createTestSpreadsheet, deleteTestSpreadsheet } from '../../../lib/spreadsheet-helpers.ts';
 
-/**
- * OPTIMIZATION NOTES - spreadsheet-rename.test.ts
- *
- * API calls: 5 total (was 6)
- * - Setup: 1 (createSpreadsheet)
- * - Test 1: 3 (handler:get + handler:batchUpdate + verify:get)
- * - Teardown: 1 (deleteSpreadsheet)
- *
- * Optimizations applied:
- * - Removed "get original title" call before handler - handler already returns oldTitle in response
- * - We know the original title from createTestSpreadsheet, so we can compare directly
- */
+describe('spreadsheet-rename', () => {
+  /**
+   * OPTIMIZATION NOTES - spreadsheet-rename.test.ts
+   *
+   * API calls: 5 total (was 6)
+   * - Setup: 1 (createSpreadsheet)
+   * - Test 1: 3 (handler:get + handler:batchUpdate + verify:get)
+   * - Teardown: 1 (deleteSpreadsheet)
+   *
+   * Optimizations applied:
+   * - Removed "get original title" call before handler - handler already returns oldTitle in response
+   * - We know the original title from createTestSpreadsheet, so we can compare directly
+   */
 
-// Shared test resources
-let sharedSpreadsheetId: string;
-let originalTitle: string;
-let auth: Awaited<ReturnType<typeof createMiddlewareContext>>['auth'];
-let authProvider: LoopbackOAuthProvider;
-let logger: Logger;
-let accountId: string;
-let handler: TypedHandler<Input>;
-let tmpDir: string;
+  // Shared test resources
+  let sharedSpreadsheetId: string;
+  let originalTitle: string;
+  let auth: Awaited<ReturnType<typeof createMiddlewareContext>>['auth'];
+  let authProvider: LoopbackOAuthProvider;
+  let logger: Logger;
+  let accountId: string;
+  let handler: TypedHandler<Input>;
+  let tmpDir: string;
 
-before(async () => {
-  try {
-    // Create temporary directory
-    tmpDir = path.join('.tmp', `spreadsheet-rename-tests-${crypto.randomUUID()}`);
-    await fs.mkdir(tmpDir, { recursive: true });
+  before(async () => {
+    try {
+      // Create temporary directory
+      tmpDir = path.join('.tmp', `spreadsheet-rename-tests-${crypto.randomUUID()}`);
+      await fs.mkdir(tmpDir, { recursive: true });
 
-    // Get middleware for tool creation and auth for close operations
-    const middlewareContext = await createMiddlewareContext();
-    auth = middlewareContext.auth;
-    logger = middlewareContext.logger;
-    const middleware = middlewareContext.middleware;
-    const tool = mcp.toolFactories.spreadsheetRename();
-    const wrappedTool = middleware.withToolAuth(tool);
-    handler = wrappedTool.handler;
-    authProvider = middlewareContext.authProvider;
-    accountId = middlewareContext.accountId;
+      // Get middleware for tool creation and auth for close operations
+      const middlewareContext = await createMiddlewareContext();
+      auth = middlewareContext.auth;
+      logger = middlewareContext.logger;
+      const middleware = middlewareContext.middleware;
+      const tool = mcp.toolFactories.spreadsheetRename();
+      const wrappedTool = middleware.withToolAuth(tool);
+      handler = wrappedTool.handler;
+      authProvider = middlewareContext.authProvider;
+      accountId = middlewareContext.accountId;
 
-    // Create shared spreadsheet for all tests - remember the title for later verification
-    originalTitle = `ci-spreadsheet-rename-tests-${Date.now()}`;
-    const accessToken = await authProvider.getAccessToken(accountId);
-    sharedSpreadsheetId = await createTestSpreadsheet(accessToken, { title: originalTitle });
-  } catch (error) {
-    logger.error('Failed to initialize test resources:', { error });
-    throw error;
-  }
-});
+      // Create shared spreadsheet for all tests - remember the title for later verification
+      originalTitle = `ci-spreadsheet-rename-tests-${Date.now()}`;
+      const accessToken = await authProvider.getAccessToken(accountId);
+      sharedSpreadsheetId = await createTestSpreadsheet(accessToken, { title: originalTitle });
+    } catch (error) {
+      logger.error('Failed to initialize test resources:', { error });
+      throw error;
+    }
+  });
 
-after(async () => {
-  // Cleanup resources - fail fast on errors
-  if (sharedSpreadsheetId) {
-    const accessToken = await authProvider.getAccessToken(accountId);
-    await deleteTestSpreadsheet(accessToken, sharedSpreadsheetId, logger);
-  }
-  if (tmpDir) await fs.rm(tmpDir, { recursive: true, force: true });
-});
+  after(async () => {
+    // Cleanup resources - fail fast on errors
+    if (sharedSpreadsheetId) {
+      const accessToken = await authProvider.getAccessToken(accountId);
+      await deleteTestSpreadsheet(accessToken, sharedSpreadsheetId, logger);
+    }
+    if (tmpDir) await fs.rm(tmpDir, { recursive: true, force: true });
+  });
 
-it('spreadsheet_rename renames an existing spreadsheet', async () => {
-  const newTitle = `renamed-spreadsheet-${Date.now()}`;
+  it('spreadsheet_rename renames an existing spreadsheet', async () => {
+    const newTitle = `renamed-spreadsheet-${Date.now()}`;
 
-  // OPTIMIZATION: Skip "get original title" - we know it from createTestSpreadsheet
-  // and handler returns oldTitle in its response anyway
+    // OPTIMIZATION: Skip "get original title" - we know it from createTestSpreadsheet
+    // and handler returns oldTitle in its response anyway
 
-  // Rename the spreadsheet
-  const res = await handler({ id: sharedSpreadsheetId, newTitle }, createExtra());
-  assert.ok(res && res.structuredContent && res.content, 'missing structured result for spreadsheet_rename');
+    // Rename the spreadsheet
+    const res = await handler({ id: sharedSpreadsheetId, newTitle }, createExtra());
+    assert.ok(res && res.structuredContent && res.content, 'missing structured result for spreadsheet_rename');
 
-  const branch = (res.structuredContent as { result?: unknown } | undefined)?.result as Output | undefined;
-  assert.ok(branch, 'missing structured result for spreadsheet_rename');
-  assert.equal(branch.type, 'success');
+    const branch = (res.structuredContent as { result?: unknown } | undefined)?.result as Output | undefined;
+    assert.ok(branch, 'missing structured result for spreadsheet_rename');
+    assert.equal(branch.type, 'success');
 
-  if (branch.type === 'success') {
-    assert.equal(branch.id, sharedSpreadsheetId, 'spreadsheet_rename did not return spreadsheet id');
-    assert.equal(branch.oldTitle, originalTitle, 'oldTitle should match original');
-    assert.equal(branch.newTitle, newTitle, 'newTitle should match requested');
-    assert.ok(branch.spreadsheetUrl.includes(sharedSpreadsheetId), 'spreadsheetUrl should contain spreadsheet id');
+    if (branch.type === 'success') {
+      assert.equal(branch.id, sharedSpreadsheetId, 'spreadsheet_rename did not return spreadsheet id');
+      assert.equal(branch.oldTitle, originalTitle, 'oldTitle should match original');
+      assert.equal(branch.newTitle, newTitle, 'newTitle should match requested');
+      assert.ok(branch.spreadsheetUrl.includes(sharedSpreadsheetId), 'spreadsheetUrl should contain spreadsheet id');
 
-    // Verify spreadsheet was renamed via Sheets API
-    const client = sheetsApi({ version: 'v4', auth });
-    const info = await client.spreadsheets.get({ spreadsheetId: sharedSpreadsheetId, fields: 'properties.title' });
-    assert.equal(info.data.properties?.title, newTitle, 'Spreadsheet title should be updated in Google Sheets');
-  }
+      // Verify spreadsheet was renamed via Sheets API
+      const client = sheetsApi({ version: 'v4', auth });
+      const info = await client.spreadsheets.get({ spreadsheetId: sharedSpreadsheetId, fields: 'properties.title' });
+      assert.equal(info.data.properties?.title, newTitle, 'Spreadsheet title should be updated in Google Sheets');
+    }
+  });
 });

@@ -1,7 +1,7 @@
 import '../../../lib/env-loader.ts';
 import { auth as googleAuthPlus, sheets as sheetsApi } from '@googleapis/sheets';
 import { mcp } from '@mcp-z/mcp-sheets';
-import type { Logger, LoopbackOAuthProvider } from '@mcp-z/oauth-google';
+import type { LoopbackOAuthProvider } from '@mcp-z/oauth-google';
 import { ProtocolError, ProtocolErrorCode } from '@mcp-z/server';
 import assert from 'assert';
 import crypto from 'crypto';
@@ -10,7 +10,7 @@ import * as path from 'path';
 import type { Input, Output } from '../../../../src/mcp/tools/columns-update.ts';
 import { createExtra, type TypedHandler } from '../../../lib/create-extra.ts';
 import createMiddlewareContext from '../../../lib/create-middleware-context.ts';
-import { createTestSheet, createTestSpreadsheet, deleteTestSpreadsheet } from '../../../lib/spreadsheet-helpers.ts';
+import { addTestTabs, createTestSheet, deleteTestTabs, sharedSpreadsheet, type TestTab } from '../../../lib/spreadsheet-helpers.ts';
 
 /**
  * OPTIMIZATION STRATEGY - columns-update.test.ts
@@ -18,7 +18,7 @@ import { createTestSheet, createTestSpreadsheet, deleteTestSpreadsheet } from '.
  * Strategy A: Key-Based Isolation with Unique ID Prefixes
  * =========================================================
  *
- * All tests share the default sheet (gid: 0) but use unique ID prefixes to prevent
+ * All tests share this file's own tab but use unique ID prefixes to prevent
  * data interference. The columns-update tool uses exact key matching, so different
  * prefixes ensure complete isolation.
  *
@@ -33,7 +33,7 @@ import { createTestSheet, createTestSpreadsheet, deleteTestSpreadsheet } from '.
  * - Test 3 [Shared:test3-*]: add-only behavior (IDs: test3-1, test3-2, test3-3)
  * - Test 4 [Shared:test4-*]: composite key matching (Keys: test4-A+Alice, test4-B+Alice, test4-A+Bob)
  *
- * Note: All tests use the same headers ['id', 'name', 'status'] to allow sharing sheet 0
+ * Note: All tests use the same headers ['id', 'name', 'status'] to allow sharing the file's own tab
  *
  * Benefits:
  * - Saves 4 write operations (no createTestSheet calls)
@@ -49,29 +49,27 @@ import { createTestSheet, createTestSpreadsheet, deleteTestSpreadsheet } from '.
 describe('columns-update tool (service-backed tests)', () => {
   // Shared instances for all tests
   let authProvider: LoopbackOAuthProvider;
-  let logger: Logger;
   let accountId: string;
   let handler: TypedHandler<Input>;
   let sharedSpreadsheetId: string;
+  let tab: TestTab;
+  const extraGids: number[] = [];
 
   before(async () => {
     // Get middleware for tool creation
     const middlewareContext = await createMiddlewareContext();
     authProvider = middlewareContext.authProvider;
-    logger = middlewareContext.logger;
     const middleware = middlewareContext.middleware;
     accountId = middlewareContext.accountId;
     const tool = mcp.toolFactories.columnsUpdate();
     const wrappedTool = middleware.withToolAuth(tool);
     handler = wrappedTool.handler;
-    sharedSpreadsheetId = await createTestSpreadsheet(await authProvider.getAccessToken(accountId), {
-      title: `test-columns-update-${Date.now()}`,
-    });
+    sharedSpreadsheetId = await sharedSpreadsheet();
+    [tab] = (await addTestTabs(sharedSpreadsheetId, ['columns-update'])) as [TestTab];
   });
 
   after(async () => {
-    // Cleanup shared spreadsheet (automatically deletes all sheets within it)
-    if (sharedSpreadsheetId) await deleteTestSpreadsheet(await authProvider.getAccessToken(accountId), sharedSpreadsheetId, logger);
+    if (tab) await deleteTestTabs(sharedSpreadsheetId, [tab.gid, ...extraGids]);
   });
 
   it('[Shared:test1-*,test3-*] performs add-or-update and add-only behaviors (consolidated)', async () => {
@@ -79,8 +77,8 @@ describe('columns-update tool (service-backed tests)', () => {
     await fs.mkdir(tmp, { recursive: true });
 
     try {
-      // Use default sheet (gid: 0) with test1- and test3- prefixes for isolation
-      const testSheetId = 0;
+      // Use the file's own tab with test1- and test3- prefixes for isolation
+      const testSheetId = tab.sheetId;
       const createdFileId = sharedSpreadsheetId;
       const headers = ['id', 'name', 'status'];
 
@@ -201,8 +199,8 @@ describe('columns-update tool (service-backed tests)', () => {
     await fs.mkdir(tmp, { recursive: true });
 
     try {
-      // Use default sheet (gid: 0) with test2- prefix for isolation
-      const testSheetId = 0;
+      // Use the file's own tab with test2- prefix for isolation
+      const testSheetId = tab.sheetId;
       const createdFileId = sharedSpreadsheetId;
 
       const headers = ['id', 'name', 'status'];
@@ -261,8 +259,8 @@ describe('columns-update tool (service-backed tests)', () => {
     await fs.mkdir(tmp, { recursive: true });
 
     try {
-      // Use default sheet (gid: 0) with test4- prefix for isolation (composite key: id + name)
-      const testSheetId = 0;
+      // Use the file's own tab with test4- prefix for isolation (composite key: id + name)
+      const testSheetId = tab.sheetId;
       const createdFileId = sharedSpreadsheetId;
 
       const headers = ['id', 'name', 'status'];
@@ -326,6 +324,7 @@ describe('columns-update tool (service-backed tests)', () => {
     const accessToken = await authProvider.getAccessToken(accountId);
     const targetTitle = `ci-target-${Date.now()}`;
     const targetGid = await createTestSheet(accessToken, sharedSpreadsheetId, { title: targetTitle });
+    extraGids.push(targetGid);
     const headers = ['id', 'name', 'status'];
     const run = (rows: string[][], behavior: 'add-or-update' | 'update-only') => handler({ id: sharedSpreadsheetId, gid: String(targetGid), rows, headers, updateBy: ['id'], behavior, valueInputOption: 'USER_ENTERED' }, createExtra());
 
@@ -347,7 +346,8 @@ describe('columns-update tool (service-backed tests)', () => {
     assert.ok(!firstRows.some((row) => row[0] === 'test5-1'), 'gid 0 tab must not contain test5-1');
   });
 
-  it('prevents silent data loss with empty key values (service-backed)', async () => {
+  // Input errors reach the client as InvalidParams, not InternalError.
+  it('columns-update rejects empty key values as InvalidParams, preventing silent data loss', async () => {
     const headers = ['id', 'name', 'status'];
     const rowsWithEmptyKeys = [
       ['', 'Alice', 'active'], // Empty key
@@ -370,18 +370,42 @@ describe('columns-update tool (service-backed tests)', () => {
         );
       },
       (error: unknown) => {
-        assert.ok(error instanceof Error && error.message.includes('Silent data loss prevented'), 'expected "Silent data loss prevented" in error');
-        assert.ok(error instanceof Error && error.message.includes('empty key'), 'expected "empty key" in error');
+        assert.ok(error instanceof Error, 'expected an Error');
+        assert.ok(error instanceof ProtocolError, 'expected a ProtocolError');
+        assert.equal(error.code, ProtocolErrorCode.InvalidParams);
+        assert.ok(error.message.startsWith('Silent data loss prevented'), error.message);
+        assert.ok(error.message.includes('Silent data loss prevented'), 'expected "Silent data loss prevented" in error');
+        assert.ok(error.message.includes('empty key'), 'expected "empty key" in error');
         return true;
       }
     );
   });
 
-  // Input errors reach the client as InvalidParams, not InternalError.
-  it('columns-update rejects empty key values as InvalidParams', async () => {
+  // Duplicate keys in the caller's rows are caller input; the check runs before any Google call.
+  it('columns-update rejects duplicate keys in the input rows as InvalidParams', async () => {
     await assert.rejects(
-      handler({ id: sharedSpreadsheetId, gid: '0', rows: [['', 'Alice']], headers: ['id', 'name'], updateBy: ['id'], behavior: 'add-or-update', valueInputOption: 'USER_ENTERED' }, createExtra()),
-      (error: unknown) => error instanceof ProtocolError && error.code === ProtocolErrorCode.InvalidParams && error.message.startsWith('Silent data loss prevented')
+      handler(
+        {
+          id: 'any-spreadsheet-id', // never reached: the duplicate check runs before any Google call
+          gid: '0',
+          rows: [
+            ['dup-1', 'Alice'],
+            ['dup-1', 'Bob'],
+          ],
+          headers: ['id', 'name'],
+          updateBy: ['id'],
+          behavior: 'add-or-update',
+          valueInputOption: 'USER_ENTERED',
+        },
+        createExtra()
+      ),
+      (error: unknown) => {
+        assert.ok(error instanceof ProtocolError, 'expected a ProtocolError');
+        assert.equal(error.code, ProtocolErrorCode.InvalidParams);
+        assert.ok(error.message.includes('duplicate keys'), error.message);
+        assert.ok(error.message.includes('dup-1'), error.message);
+        return true;
+      }
     );
   });
 

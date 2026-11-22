@@ -5,7 +5,7 @@ import assert from 'assert';
 import type { Input, Output } from '../../../../src/mcp/tools/spreadsheet-create.ts';
 import { createExtra, type TypedHandler } from '../../../lib/create-extra.ts';
 import createMiddlewareContext from '../../../lib/create-middleware-context.ts';
-import { deleteTestSpreadsheet } from '../../../lib/spreadsheet-helpers.ts';
+import { deleteTestSpreadsheet, trackTestSpreadsheet } from '../../../lib/spreadsheet-helpers.ts';
 
 describe('spreadsheet-create', () => {
   // Shared instances for all tests
@@ -42,6 +42,7 @@ describe('spreadsheet-create', () => {
       if (structured.type === 'success') {
         assert.ok(typeof structured.id === 'string' && structured.id.length > 0, 'Item missing valid id');
         createdFileId = structured.id;
+        trackTestSpreadsheet(structured.id, 'create', title);
       }
 
       // Validate content array matches outputSchema requirements

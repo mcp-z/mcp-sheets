@@ -1,7 +1,7 @@
 import '../../../lib/env-loader.ts';
 import { sheets as sheetsApi } from '@googleapis/sheets';
 import { mcp } from '@mcp-z/mcp-sheets';
-import type { Logger, LoopbackOAuthProvider } from '@mcp-z/oauth-google';
+import type { Logger } from '@mcp-z/oauth-google';
 import { ProtocolError, ProtocolErrorCode } from '@mcp-z/server';
 import assert from 'assert';
 import crypto from 'crypto';
@@ -10,12 +10,12 @@ import * as path from 'path';
 import type { Input, Output } from '../../../../src/mcp/tools/validation-set.ts';
 import { createExtra, type TypedHandler } from '../../../lib/create-extra.ts';
 import createMiddlewareContext from '../../../lib/create-middleware-context.ts';
-import { createTestSpreadsheet, deleteTestSpreadsheet } from '../../../lib/spreadsheet-helpers.ts';
+import { addTestTabs, deleteTestTabs, sharedSpreadsheet, type TestTab } from '../../../lib/spreadsheet-helpers.ts';
 
 /**
  * RANGE ALLOCATION MAP - validation-set.test.ts
  *
- * All tests use shared sheet (gid: 0) with non-overlapping column ranges.
+ * All tests use this file's own tab with non-overlapping column ranges.
  * When adding new tests, choose the next available column from this list.
  *
  * OPTIMIZATION: Consolidated 11 separate tests into 3 tests to save 8 API writes
@@ -33,10 +33,9 @@ import { createTestSpreadsheet, deleteTestSpreadsheet } from '../../../lib/sprea
 describe('validation-set tool (service-backed tests)', () => {
   // Shared test resources
   let sharedSpreadsheetId: string;
+  let tab: TestTab;
   let auth: Awaited<ReturnType<typeof createMiddlewareContext>>['auth'];
-  let authProvider: LoopbackOAuthProvider;
   let logger: Logger;
-  let accountId: string;
   let handler: TypedHandler<Input>;
   let tmpDir: string;
 
@@ -48,18 +47,16 @@ describe('validation-set tool (service-backed tests)', () => {
 
       // Get middleware for tool creation
       const middlewareContext = await createMiddlewareContext();
-      authProvider = middlewareContext.authProvider;
       logger = middlewareContext.logger;
       auth = middlewareContext.auth;
       const middleware = middlewareContext.middleware;
-      accountId = middlewareContext.accountId;
       const tool = mcp.toolFactories.validationSet();
       const wrappedTool = middleware.withToolAuth(tool);
       handler = wrappedTool.handler;
 
-      // Create shared spreadsheet for all tests (tests use default sheet 0 with non-overlapping ranges)
-      const title = `ci-validation-set-tests-${Date.now()}`;
-      sharedSpreadsheetId = await createTestSpreadsheet(await authProvider.getAccessToken(accountId), { title });
+      // Create shared spreadsheet for all tests (tests use the file's own tab with non-overlapping ranges)
+      sharedSpreadsheetId = await sharedSpreadsheet();
+      [tab] = (await addTestTabs(sharedSpreadsheetId, ['validation-set'])) as [TestTab];
     } catch (error) {
       logger.error('Failed to initialize test resources:', { error });
       throw error;
@@ -68,15 +65,12 @@ describe('validation-set tool (service-backed tests)', () => {
 
   after(async () => {
     // Cleanup resources - fail fast on errors
-    if (sharedSpreadsheetId) {
-      const accessToken = await authProvider.getAccessToken(accountId);
-      await deleteTestSpreadsheet(accessToken, sharedSpreadsheetId, logger);
-    }
+    if (tab) await deleteTestTabs(sharedSpreadsheetId, [tab.gid]);
     if (tmpDir) await fs.rm(tmpDir, { recursive: true, force: true });
   });
 
   it('validation_set applies all validation types (consolidated batch)', async () => {
-    const testSheetId = 0; // Use default sheet
+    const testSheetId = tab.sheetId;
 
     // OPTIMIZATION: Consolidate tests 1-8 and 10 into single batch request (saves 8 API writes)
     // Tests ONE_OF_LIST, ONE_OF_RANGE, NUMBER, TEXT, DATE, CUSTOM_FORMULA validations,
@@ -238,7 +232,7 @@ describe('validation-set tool (service-backed tests)', () => {
   });
 
   it('[O1:O10, P1:P10] validation_set handles partial failures gracefully', async () => {
-    const testSheetId = 0; // Use default sheet
+    const testSheetId = tab.sheetId;
 
     const requests = [
       {
@@ -292,7 +286,7 @@ describe('validation-set tool (service-backed tests)', () => {
   });
 
   it('[R1:R3] validation_set respects A1 range and does not apply to entire sheet', async () => {
-    const testSheetId = 0; // Use default sheet
+    const testSheetId = tab.sheetId;
 
     // Set validation ONLY on R1:R3
     const requests = [
@@ -361,7 +355,7 @@ describe('validation-set tool (service-backed tests)', () => {
       handler(
         {
           id: sharedSpreadsheetId,
-          gid: '0',
+          gid: tab.gid,
           requests: [
             { range: 'INVALID_RANGE', rule },
             { range: 'NOT_A_RANGE', rule },

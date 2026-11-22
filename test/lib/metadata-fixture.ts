@@ -1,14 +1,14 @@
 // Network: disposable Google Sheets fixtures for metadata integration suites.
 import { type sheets_v4, sheets as sheetsApi } from '@googleapis/sheets';
 import createMiddlewareContext from './create-middleware-context.ts';
-import { createTestSpreadsheet, deleteTestSpreadsheet } from './spreadsheet-helpers.ts';
+import { createTestSpreadsheet, deleteTestSpreadsheet, RUN_ID } from './spreadsheet-helpers.ts';
 
 export const METADATA_SHEET_TITLE = "Investor's ! Notes";
 export const METADATA_SHEET_ID = 17;
 
-export async function createMetadataFixture() {
+async function createMetadataFixture() {
   const context = await createMiddlewareContext();
-  const id = await createTestSpreadsheet(await context.authProvider.getAccessToken(context.accountId), { title: `ci-metadata-${Date.now()}` });
+  const id = await createTestSpreadsheet(await context.authProvider.getAccessToken(context.accountId), { title: `ci-metadata-${RUN_ID}` });
   const sheets = sheetsApi({ version: 'v4', auth: context.auth });
   const source = { sheetId: METADATA_SHEET_ID, startRowIndex: 0, endRowIndex: 4, startColumnIndex: 0, endColumnIndex: 2 };
   const validation: sheets_v4.Schema$DataValidationRule = {
@@ -106,8 +106,13 @@ export async function createMetadataFixture() {
     id,
     sheets,
     validation,
-    async close() {
-      await deleteTestSpreadsheet(await context.authProvider.getAccessToken(context.accountId), id, context.logger);
-    },
   };
+}
+
+let shared: ReturnType<typeof createMetadataFixture> | undefined;
+
+/** The run's one metadata fixture, created on the first call and deleted with the run's other spreadsheets. */
+export function sharedMetadataFixture() {
+  shared ??= createMetadataFixture();
+  return shared;
 }
